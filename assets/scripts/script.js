@@ -109,29 +109,119 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Form submission handling
-const form = document.querySelector(".form");
-if (form) {
-    form.addEventListener("submit", (e) => {
-        e.preventDefault();
+document.addEventListener("DOMContentLoaded", () => {
+    // Initialize EmailJS
+    emailjs.init("fF75M6sSU67LLEEQF"); // Reemplaza con tu PUBLIC KEY de EmailJS (no el service ID)
 
-        // Get form data
-        const formData = new FormData(form);
-        const name = form.querySelector('input[type="text"]').value;
-        const email = form.querySelector('input[type="email"]').value;
-        const subject = form.querySelectorAll('input[type="text"]')[1].value;
-        const message = form.querySelector("textarea").value;
+    const form = document.getElementById("contact-form");
+    const submitBtn = document.getElementById("submit-btn");
 
-        // Simple validation
-        if (!name || !email || !subject || !message) {
-            showNotification("Please fill in all fields", "error");
-            return;
-        }
+    if (form) {
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
 
-        // Simulate form submission
-        showNotification("Message sent successfully!", "success");
-        form.reset();
-    });
-}
+            // Validar campos
+            const name = form
+                .querySelector('input[name="from_name"]')
+                .value.trim();
+            const email = form
+                .querySelector('input[name="reply_to"]')
+                .value.trim();
+            const subject = form
+                .querySelector('input[name="subject"]')
+                .value.trim();
+            const message = form
+                .querySelector('textarea[name="message"]')
+                .value.trim();
+
+            // Validación básica
+            if (!name || !email || !subject || !message) {
+                showNotification(
+                    "Por favor, completa todos los campos.",
+                    "error"
+                );
+                return;
+            }
+
+            // Validación de email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showNotification(
+                    "Por favor, introduce un email válido.",
+                    "error"
+                );
+                return;
+            }
+
+            // Validación de longitud mínima
+            if (name.length < 2) {
+                showNotification(
+                    "El nombre debe tener al menos 2 caracteres.",
+                    "error"
+                );
+                return;
+            }
+
+            if (subject.length < 3) {
+                showNotification(
+                    "El asunto debe tener al menos 3 caracteres.",
+                    "error"
+                );
+                return;
+            }
+
+            if (message.length < 10) {
+                showNotification(
+                    "El mensaje debe tener al menos 10 caracteres.",
+                    "error"
+                );
+                return;
+            }
+
+            // Deshabilitar el botón y mostrar estado de carga
+            submitBtn.disabled = true;
+            submitBtn.innerHTML =
+                '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+
+            try {
+                // Enviar email usando EmailJS
+                const result = await emailjs.sendForm(
+                    "service_9ave0ys", // Tu Service ID va aquí
+                    "template_n9lja1l", // Reemplaza con tu Template ID
+                    form
+                );
+
+                console.log("Email sent successfully:", result);
+                showNotification(
+                    "¡Mensaje enviado exitosamente! Te responderé pronto.",
+                    "success"
+                );
+                form.reset();
+            } catch (error) {
+                console.error("Error sending email:", error);
+                let errorMessage =
+                    "Error al enviar el mensaje. Inténtalo de nuevo.";
+
+                // Manejo específico de errores
+                if (error.status === 422) {
+                    errorMessage =
+                        "Configuración de EmailJS incorrecta. Contacta al administrador.";
+                } else if (error.status === 400) {
+                    errorMessage = "Datos del formulario inválidos.";
+                } else if (!navigator.onLine) {
+                    errorMessage =
+                        "Sin conexión a internet. Verifica tu conexión.";
+                }
+
+                showNotification(errorMessage, "error");
+            } finally {
+                // Restaurar el botón
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = "Enviar Mensaje";
+            }
+        });
+    }
+});
 
 // Notification system
 function showNotification(message, type = "info") {
@@ -226,17 +316,23 @@ document.addEventListener("DOMContentLoaded", () => {
 function animateCounter(element, target, duration = 2000) {
     let start = 0;
     const increment = target / (duration / 16);
+    const originalText = element.textContent;
+    const hasPlus = originalText.includes("+");
+    const hasPercent = originalText.includes("%");
 
     function updateCounter() {
         start += increment;
         if (start < target) {
-            element.textContent =
-                Math.floor(start) +
-                (element.textContent.includes("+") ? "+" : "");
+            let displayText = Math.floor(start);
+            if (hasPlus) displayText += "+";
+            if (hasPercent) displayText += "%";
+            element.textContent = displayText;
             requestAnimationFrame(updateCounter);
         } else {
-            element.textContent =
-                target + (element.textContent.includes("+") ? "+" : "");
+            let finalText = target;
+            if (hasPlus) finalText += "+";
+            if (hasPercent) finalText += "%";
+            element.textContent = finalText;
         }
     }
 
@@ -393,3 +489,176 @@ const throttledScrollHandler = throttle(() => {
 }, 16); // ~60fps
 
 window.addEventListener("scroll", throttledScrollHandler);
+
+// ============================
+// PROTECCIÓN CONTRA COPIA
+// ============================
+
+// Prevenir clic derecho
+document.addEventListener("contextmenu", function (e) {
+    e.preventDefault();
+    return false;
+});
+
+// Prevenir arrastre de imágenes
+document.addEventListener("dragstart", function (e) {
+    if (e.target.tagName === "IMG") {
+        e.preventDefault();
+        return false;
+    }
+});
+
+// Prevenir teclas de desarrollador comunes
+document.addEventListener("keydown", function (e) {
+    // F12 - PERMITIDO para desarrollo
+    // if (e.keyCode === 123) {
+    //     e.preventDefault();
+    //     return false;
+    // }
+
+    // Ctrl+Shift+I (Inspector)
+    if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
+        e.preventDefault();
+        return false;
+    }
+    // Ctrl+Shift+C (Seleccionar elemento)
+    if (e.ctrlKey && e.shiftKey && e.keyCode === 67) {
+        e.preventDefault();
+        return false;
+    }
+    // Ctrl+Shift+J (Consola)
+    if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
+        e.preventDefault();
+        return false;
+    }
+    // Ctrl+U (Ver código fuente)
+    if (e.ctrlKey && e.keyCode === 85) {
+        e.preventDefault();
+        return false;
+    }
+    // Ctrl+S (Guardar página)
+    if (e.ctrlKey && e.keyCode === 83) {
+        e.preventDefault();
+        return false;
+    }
+    // Ctrl+A (Seleccionar todo) - opcional
+    if (e.ctrlKey && e.keyCode === 65) {
+        e.preventDefault();
+        return false;
+    }
+    // Ctrl+C (Copiar) - opcional
+    if (e.ctrlKey && e.keyCode === 67) {
+        e.preventDefault();
+        return false;
+    }
+});
+
+// Prevenir selección de texto con mouse
+document.addEventListener("selectstart", function (e) {
+    // Permitir selección en campos de formulario
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
+        return true;
+    }
+    e.preventDefault();
+    return false;
+});
+
+// Mensaje de advertencia si se intenta abrir herramientas de desarrollador
+let devtools = {
+    open: false,
+    orientation: null,
+};
+
+const threshold = 160;
+
+setInterval(function () {
+    if (
+        window.outerHeight - window.innerHeight > threshold ||
+        window.outerWidth - window.innerWidth > threshold
+    ) {
+        if (!devtools.open) {
+            devtools.open = true;
+            console.clear();
+            console.warn("🚨 Herramientas de desarrollador detectadas");
+            console.warn("⚠️  Este sitio está protegido contra copia");
+            // Opcional: redirigir o mostrar mensaje
+            // alert('Las herramientas de desarrollador están deshabilitadas en este sitio.');
+        }
+    } else {
+        devtools.open = false;
+    }
+}, 500);
+
+// Limpiar consola periódicamente
+setInterval(function () {
+    console.clear();
+}, 2000);
+
+// ============================
+// LOAD MORE PROJECTS FUNCTIONALITY
+// ============================
+
+document.addEventListener("DOMContentLoaded", function () {
+    const loadMoreBtn = document.getElementById("load-more-btn");
+    const hiddenProjects = document.querySelectorAll(".hidden-project");
+    let currentlyVisible = 0;
+    const projectsPerLoad = 3; // Cargar 3 proyectos a la vez
+
+    if (loadMoreBtn && hiddenProjects.length > 0) {
+        loadMoreBtn.addEventListener("click", function () {
+            // Agregar clase loading
+            loadMoreBtn.classList.add("loading");
+            loadMoreBtn.innerHTML =
+                '<i class="fas fa-spinner fa-spin"></i> Loading...';
+
+            // Simular delay de carga
+            setTimeout(() => {
+                // Determinar cuántos proyectos mostrar
+                const projectsToShow = Math.min(
+                    projectsPerLoad,
+                    hiddenProjects.length - currentlyVisible
+                );
+
+                // Mostrar los próximos proyectos
+                for (
+                    let i = currentlyVisible;
+                    i < currentlyVisible + projectsToShow;
+                    i++
+                ) {
+                    if (hiddenProjects[i]) {
+                        hiddenProjects[i].style.display = "block";
+
+                        // Agregar delay escalonado para animación
+                        setTimeout(() => {
+                            hiddenProjects[i].classList.add("show");
+                        }, (i - currentlyVisible) * 150);
+                    }
+                }
+
+                currentlyVisible += projectsToShow;
+
+                // Actualizar el botón
+                loadMoreBtn.classList.remove("loading");
+
+                if (currentlyVisible >= hiddenProjects.length) {
+                    // Todos los proyectos están visibles
+                    loadMoreBtn.innerHTML =
+                        '<i class="fas fa-check"></i> All Projects Loaded';
+                    loadMoreBtn.style.background = "var(--glass-bg)";
+                    loadMoreBtn.style.color = "var(--text-secondary)";
+                    loadMoreBtn.style.pointerEvents = "none";
+
+                    // Ocultar el botón SIN afectar el layout después de un momento
+                    setTimeout(() => {
+                        loadMoreBtn.style.visibility = "hidden";
+                        loadMoreBtn.style.opacity = "0";
+                    }, 1500);
+                } else {
+                    // Aún hay más proyectos por cargar
+                    const remaining = hiddenProjects.length - currentlyVisible;
+                    loadMoreBtn.innerHTML = `<i class="fas fa-plus"></i> Load More Projects (${remaining} remaining)`;
+                }
+            }, 300); // Delay reducido a 300ms
+        });
+    }
+});

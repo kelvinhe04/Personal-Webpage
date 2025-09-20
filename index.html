@@ -4,6 +4,12 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Kelvin He</title>
+
+        <!-- Protección contra copia -->
+        <meta name="robots" content="noarchive, nosnippet" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="format-detection" content="telephone=no" />
+
         <link rel="stylesheet" href="/assets/styles/styles.css" />
         <link
             href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
@@ -19,13 +25,18 @@
             sizes="16x16"
             href="assets/img/Logo.png"
         />
+        <!-- EmailJS SDK -->
+        <script
+            type="text/javascript"
+            src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"
+        ></script>
     </head>
     <body>
         <!-- Navbar translúcido -->
         <nav class="navbar" id="navbar">
             <div class="nav-container">
                 <div class="nav-logo">
-                    <a href="#navbar" class="logo-text">Portfolio</a>
+                    <a href="#navbar" class="logo-text">KH</a>
                     <!-- <span class="logo-text">Portfolio</span> -->
                 </div>
 
@@ -94,6 +105,12 @@
                     </div>
                 </div>
             </div>
+            <!-- Flecha animada para navegar a About -->
+            <div class="scroll-arrow">
+                <a href="#about" class="arrow-link">
+                    <i class="fas fa-chevron-down"></i>
+                </a>
+            </div>
         </section>
 
         <!-- About -->
@@ -132,12 +149,14 @@
                     </div>
                     <div class="about-image">
                         <div class="profile-card">
-                            <div class="profile-avatar">
-                                <img
-                                    class="profile-img"
-                                    src="assets/img/Perfil.png"
-                                    alt=""
-                                />
+                            <div class="profile-card-inside">
+                                <div class="profile-avatar">
+                                    <img
+                                        class="profile-img"
+                                        src="assets/img/Perfil.png"
+                                        alt=""
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -151,80 +170,143 @@
                 <h2 class="section-title">Technologies</h2>
                 <div class="tech-grid">
                     <div class="tech-category">
-                        <h3 class="tech-category-title">Frontend</h3>
+                        <h3 class="tech-category-title">Languages</h3>
                         <div class="tech-items">
                             <div class="tech-item">
-                                <i class="fab fa-react"></i>
-                                <span>React</span>
+                                <i class="fab fa-java"></i>
+                                <span>Java</span>
                             </div>
                             <div class="tech-item">
-                                <i class="fab fa-react"></i>
-                                <span>React</span>
-                            </div>
-                            <div class="tech-item">
-                                <i class="fab fa-react"></i>
-                                <span>React</span>
-                            </div>
-                            <div class="tech-item">
-                                <i class="fab fa-react"></i>
-                                <span>React</span>
-                            </div>
-                            <div class="tech-item">
-                                <i class="fab fa-react"></i>
-                                <span>React</span>
-                            </div>
-                            <div class="tech-item">
-                                <i class="fab fa-vue"></i>
-                                <span>Vue.js</span>
-                            </div>
-                            <div class="tech-item">
-                                <i class="fab fa-js-square"></i>
-                                <span>JavaScript</span>
+                                <i class="fab fa-html5"></i>
+                                <span>HTML5</span>
                             </div>
                             <div class="tech-item">
                                 <i class="fab fa-css3-alt"></i>
                                 <span>CSS3</span>
                             </div>
-                        </div>
-                    </div>
-                    <div class="tech-category">
-                        <h3 class="tech-category-title">Backend</h3>
-                        <div class="tech-items">
                             <div class="tech-item">
-                                <i class="fab fa-node-js"></i>
-                                <span>Node.js</span>
+                                <i class="fab fa-js"></i>
+                                <span>JavaScript</span>
+                            </div>
+                            <div class="tech-item">
+                                <i class="fab fa-js-square"></i>
+                                <span>TypeScript</span>
+                            </div>
+                            <div class="tech-item">
+                                <i class="fab fa-php"></i>
+                                <span>PHP</span>
+                            </div>
+                            <div class="tech-item">
+                                <i class="fab fa-cuttlefish"></i>
+                                <span>C#</span>
                             </div>
                             <div class="tech-item">
                                 <i class="fab fa-python"></i>
                                 <span>Python</span>
                             </div>
+                        </div>
+                    </div>
+                    <div class="tech-category">
+                        <h3 class="tech-category-title">Frameworks</h3>
+                        <div class="tech-items">
                             <div class="tech-item">
-                                <i class="fas fa-database"></i>
-                                <span>MongoDB</span>
+                                <img
+                                    src="assets/icons/icons8-flask-64.png"
+                                    alt=""
+                                    class="Flask-icon"
+                                />
+                                <span>Flask</span>
                             </div>
                             <div class="tech-item">
-                                <i class="fas fa-server"></i>
-                                <span>Express</span>
+                                <img
+                                    src="assets/icons/Tailwind CSS.svg"
+                                    alt=""
+                                    class="Tailwind-icon"
+                                />
+                                <span>Tailwind</span>
+                            </div>
+                            <div class="tech-item">
+                                <i class="fab fa-bootstrap"></i>
+                                <span>Bootstrap</span>
+                            </div>
+                            <div class="tech-item">
+                                <i class="fab fa-react"></i>
+                                <span>React</span>
+                            </div>
+                            <div class="tech-item">
+                                <i class="fab fa-vuejs"></i>
+                                <span>Vue</span>
                             </div>
                         </div>
                     </div>
                     <div class="tech-category">
-                        <h3 class="tech-category-title">Cloud & Tools</h3>
+                        <h3 class="tech-category-title">Databases</h3>
                         <div class="tech-items">
                             <div class="tech-item">
-                                <i class="fab fa-aws"></i>
-                                <span>AWS</span>
+                                <img
+                                    src="assets/icons/mysql-icon.svg"
+                                    alt=""
+                                    class="tech-icon"
+                                />
+                                <span>MySQL</span>
                             </div>
                             <div class="tech-item">
-                                <i class="fab fa-docker"></i>
-                                <span>Docker</span>
+                                <i class="fab fa-microsoft"></i>
+                                <!-- Corrected SQL Server -->
+                                <span>SQL Server</span>
                             </div>
                             <div class="tech-item">
-                                <i class="fab fa-git-alt"></i>
+                                <i class="fab fa-php"></i>
+                                <!-- phpMyAdmin uses the PHP logo -->
+                                <span>phpMyAdmin</span>
+                            </div>
+                            <div class="tech-item">
+                                <img
+                                    src="assets/icons/icons8-mariadb.svg"
+                                    alt=""
+                                    class="tech-icon"
+                                />
+                                <span>MariaDB</span>
+                            </div>
+                            <div class="tech-item">
+                                <img
+                                    src="assets/icons/sqlite-icon.svg"
+                                    alt=""
+                                    class="SQLite-icon"
+                                />
+                                <span>SQLite</span>
+                            </div>
+                            <div class="tech-item">
+                                <img
+                                    src="assets/icons/HeidiSQL_iduhejkw9C_0.png"
+                                    alt=""
+                                    class="HeidiSQL-icon"
+                                />
+                                <span>HeidiSQL</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tech-category">
+                        <h3 class="tech-category-title">Tools</h3>
+                        <div class="tech-items">
+                            <div class="tech-item">
+                                <i class="fab fa-git"></i>
                                 <span>Git</span>
                             </div>
                             <div class="tech-item">
-                                <i class="fab fa-firebase"></i>
+                                <i class="fab fa-github"></i>
+                                <span>GitHub</span>
+                            </div>
+                            <div class="tech-item">
+                                <i class="fab fa-figma"></i>
+                                <span>Figma</span>
+                            </div>
+                            <div class="tech-item">
+                                <img
+                                    src="assets/icons/firebase-icon.svg"
+                                    alt=""
+                                    class="Firebase-icon"
+                                />
                                 <span>Firebase</span>
                             </div>
                         </div>
@@ -346,19 +428,126 @@
                             <div class="project-tech">
                                 <span class="tech-tag">Java</span>
                                 <span class="tech-tag">Android Studio</span>
+                                <span class="tech-tag">Mobile</span>
                             </div>
                             <div class="project-links">
-                                <a href="https://github.com/kelvinhe04/Runner-App-SoftVII-Parcial-2" target="_blank" class="project-link">
+                                <a
+                                    href="https://github.com/kelvinhe04/Runner-App-SoftVII-Parcial-2"
+                                    target="_blank"
+                                    class="project-link"
+                                >
                                     <i class="fab fa-github"></i>
                                     Code
                                 </a>
-                                <a href="https://github.com/kelvinhe04/Runner-App-SoftVII-Parcial-2/releases/tag/v1.1" class="project-link" target="_blank">
+                                <a
+                                    href="https://github.com/kelvinhe04/Runner-App-SoftVII-Parcial-2/releases/tag/v1.1"
+                                    class="project-link"
+                                    target="_blank"
+                                >
                                     <i class="fas fa-external-link-alt"></i>
                                     Demo
                                 </a>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Proyectos adicionales (ocultos inicialmente) -->
+                    <div class="project-card hidden-project">
+                        <div class="project-image">
+                            <img
+                                class="project-img"
+                                src="assets/img/proyectos/CamaraFotoApp.png
+"
+                                alt=""
+                            />
+                        </div>
+                        <div class="project-content">
+                            <h3 class="project-title">Camera Photo App</h3>
+                            <p class="project-description">
+                                An Android application that allows users to take
+                                photos, save them, and view them in a gallery
+                                using private external storage.
+                            </p>
+                            <div class="project-tech">
+                                <span class="tech-tag">Java</span>
+                                <span class="tech-tag">Mobile</span>
+                                <span class="tech-tag">Android Studio</span>
+                                <span class="tech-tag">RecyclerView</span>
+                                <span class="tech-tag">FileProvider</span>
+                            </div>
+                            <div class="project-links">
+                                <a
+                                    href="https://github.com/kelvinhe04/CamaraFotoApp"
+                                    class="project-link"
+                                    target="_blank"
+                                >
+                                    <i class="fab fa-github"></i>
+                                    Code
+                                </a>
+                                <a
+                                    href="https://github.com/kelvinhe04/CamaraFotoApp/releases/tag/v1.0.0"
+                                    class="project-link"
+                                    target="_blank"
+                                >
+                                    <i class="fas fa-external-link-alt"></i>
+                                    Demo
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="project-card hidden-project">
+                        <div class="project-image">
+                            <img
+                                class="project-img"
+                                src="assets/img/proyectos/ApiAgrodelis.png"
+                                alt=""
+                            />
+                        </div>
+                        <div class="project-content">
+                            <h3 class="project-title">
+                                ApiAgrodelis - REST API
+                            </h3>
+                            <p class="project-description">
+                                A REST API developed in C# (.NET) for the Merca
+                                Panamá system. It manages agricultural and meat
+                                products published by vendors from a desktop
+                                application, providing data to a web frontend
+                                similar to an e-commerce platform.
+                            </p>
+                            <div class="project-tech">
+                                <span class="tech-tag">C#</span>
+                                <span class="tech-tag">.NET</span>
+                                <span class="tech-tag">SQL Server</span>
+                                <span class="tech-tag">REST API</span>
+                            </div>
+                            <div class="project-links">
+                                <a href="https://github.com/kelvinhe04/ApiAgrodelis" class="project-link" target="_blank">
+                                    <i class="fab fa-github"></i>
+                                    Code
+                                </a>
+                                <a href="https://github.com/kelvinhe04/ApiAgrodelis/releases/tag/v1.0" class="project-link" target="_blank">
+                                    <i class="fas fa-external-link-alt"></i>
+                                    Demo
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+
+                    
+                </div>
+
+                <!-- Botón Load More -->
+                <div class="load-more-container">
+                    <button
+                        id="load-more-btn"
+                        class="btn btn-primary load-more-btn"
+                    >
+                        <i class="fas fa-plus"></i>
+                        Load More Projects
+                    </button>
                 </div>
             </div>
         </section>
@@ -415,10 +604,11 @@
                         </div>
                     </div>
                     <div class="contact-form">
-                        <form class="form">
+                        <form class="form" id="contact-form">
                             <div class="form-group">
                                 <input
                                     type="text"
+                                    name="from_name"
                                     class="form-input"
                                     placeholder="Your name"
                                     required
@@ -427,6 +617,7 @@
                             <div class="form-group">
                                 <input
                                     type="email"
+                                    name="reply_to"
                                     class="form-input"
                                     placeholder="Your email"
                                     required
@@ -435,6 +626,7 @@
                             <div class="form-group">
                                 <input
                                     type="text"
+                                    name="subject"
                                     class="form-input"
                                     placeholder="Subject"
                                     required
@@ -442,6 +634,7 @@
                             </div>
                             <div class="form-group">
                                 <textarea
+                                    name="message"
                                     class="form-input form-textarea"
                                     placeholder="Your message"
                                     rows="5"
@@ -451,6 +644,7 @@
                             <button
                                 type="submit"
                                 class="btn btn-primary btn-full"
+                                id="submit-btn"
                             >
                                 Send Message
                             </button>
