@@ -568,7 +568,7 @@ body:hover::after {
 
 .about-stats-profile {
     display: flex;
-    flex-direction: column;
+    flex-direction: column-reverse;
     align-items: center;
     gap: 2rem;
 }
