@@ -150,6 +150,28 @@ body:hover::after {
     opacity: 1;
 }
 
+/* Efecto de iluminación estático en móvil */
+@media (max-width: 768px) {
+    body::before {
+        background: radial-gradient(600px circle at 80% 20%,
+                var(--mouse-glow-before),
+                transparent 50%);
+        opacity: 1;
+    }
+
+    body::after {
+        background: radial-gradient(300px circle at 80% 20%,
+                var(--mouse-glow-after),
+                transparent 40%);
+        opacity: 1;
+    }
+
+    body:hover::before,
+    body:hover::after {
+        opacity: 1;
+    }
+}
+
 /* Navbar translúcido con efecto difuminado */
 .navbar {
     position: fixed;
@@ -177,7 +199,7 @@ body:hover::after {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 70px;
+    height: 60px;
     overflow: hidden;
 }
 
@@ -266,21 +288,59 @@ body:hover::after {
     display: none;
     flex-direction: column;
     cursor: pointer;
-    gap: 4px;
+    gap: 6px;
+    padding: 4px;
+    transition: all 0.3s ease;
+    position: relative;
+    width: 33px;
+    height: 21px;
+    justify-content: space-between;
+    margin-left: 5px;
 }
 
 .nav-burger-mode-toggle-container {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 20px;
 }
 
 .bar {
     width: 25px;
     height: 3px;
     background: var(--text-primary);
-    transition: 0.3s;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     border-radius: 2px;
+    transform-origin: center;
+    position: absolute;
+    left: 4px;
+}
+
+.bar:nth-child(1) {
+    top: 4px;
+}
+
+.bar:nth-child(2) {
+    top: 9px;
+}
+
+.bar:nth-child(3) {
+    top: 14px;
+}
+
+/* Animación del hamburger a X */
+.hamburger.active .bar:nth-child(1) {
+    transform: rotate(45deg);
+    top: 9px;
+}
+
+.hamburger.active .bar:nth-child(2) {
+    opacity: 0;
+    transform: scale(0);
+}
+
+.hamburger.active .bar:nth-child(3) {
+    transform: rotate(-45deg);
+    top: 9px;
 }
 
 /* Hero Section */
@@ -998,7 +1058,7 @@ body:hover::after {
 .footer {
     background: var(--secondary-bg);
     border-top: 1px solid var(--border-color);
-    padding: 1rem 0;
+    padding: 0.5rem 0;
     text-align: center;
 }
 
