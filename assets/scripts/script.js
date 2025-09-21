@@ -322,15 +322,15 @@ function showNotification(message, type = "info") {
     }, 3000);
 }
 
-// Parallax effect for hero section
-window.addEventListener("scroll", () => {
-    const scrolled = window.pageYOffset;
-    const hero = document.querySelector(".hero");
-    if (hero) {
-        const rate = scrolled * -0.5;
-        hero.style.transform = `translateY(${rate}px)`;
-    }
-});
+// Parallax effect for hero section - REMOVIDO
+// window.addEventListener("scroll", () => {
+//     const scrolled = window.pageYOffset;
+//     const hero = document.querySelector(".hero");
+//     if (hero) {
+//         const rate = scrolled * -0.5;
+//         hero.style.transform = `translateY(${rate}px)`;
+//     }
+// });
 
 
 
