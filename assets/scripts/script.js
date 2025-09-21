@@ -275,19 +275,29 @@ function showNotification(message, type = "info") {
     notification.className = `notification notification-${type}`;
     notification.textContent = message;
 
+    // Check if mobile device
+    const isMobile = window.innerWidth <= 768;
+    const isSmallMobile = window.innerWidth <= 480;
+
     // Styles for notification
     Object.assign(notification.style, {
         position: "fixed",
-        top: "100px",
-        right: "20px",
-        padding: "1rem 1.5rem",
+        top: isMobile ? "80px" : "100px",
+        right: isMobile ? "10px" : "20px",
+        left: isMobile ? "10px" : "auto",
+        padding: isSmallMobile
+            ? "0.7rem 1rem"
+            : isMobile
+            ? "0.8rem 1.2rem"
+            : "1rem 1.5rem",
         borderRadius: "8px",
         color: "white",
         fontWeight: "500",
+        fontSize: isSmallMobile ? "0.85rem" : isMobile ? "0.9rem" : "1rem",
         zIndex: "10000",
         transform: "translateX(100%)",
         transition: "transform 0.3s ease",
-        maxWidth: "300px",
+        maxWidth: isMobile ? "calc(100% - 20px)" : "300px",
         wordWrap: "break-word",
     });
 
@@ -310,7 +320,13 @@ function showNotification(message, type = "info") {
 
     // Animate in
     setTimeout(() => {
-        notification.style.transform = "translateX(0)";
+        if (isMobile) {
+            notification.style.transform = "translateX(0)";
+            notification.style.right = "10px";
+            notification.style.left = "10px";
+        } else {
+            notification.style.transform = "translateX(0)";
+        }
     }, 100);
 
     // Remove after 3 seconds
@@ -331,8 +347,6 @@ function showNotification(message, type = "info") {
 //         hero.style.transform = `translateY(${rate}px)`;
 //     }
 // });
-
-
 
 // Counter animation for stats
 function animateCounter(element, target, duration = 2000) {
