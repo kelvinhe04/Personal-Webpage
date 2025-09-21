@@ -33,19 +33,32 @@
 
 /* Light theme variables */
 body.light-mode {
-    --primary-bg: #ffffff; /* Fondo blanco */
-    --secondary-bg: #f5f5f5; /* Fondo gris claro */
-    --accent-color: #00c6ff; /* Mantener el azul */
-    --accent-secondary: #00c6ff; /* Mantener el azul */
-    --text-primary: #000000; /* Texto negro */
-    --text-secondary: #333333; /* Texto gris oscuro */
-    --text-muted: #555555; /* Texto más claro para texto secundario */
-    --border-color: rgba(0, 0, 0, 0.1); /* Borde suave oscuro */
-    --glass-bg: rgba(0, 0, 0, 0.05); /* Fondo ligeramente oscuro */
-    --glass-border: rgba(0, 0, 0, 0.1); /* Borde oscuro sutil */
-    --shadow: 0 8px 32px rgba(0, 0, 0, 0.1); /* Sombra suave */
-    --shadow-hover: 0 12px 40px rgba(0, 198, 255, 0.2); /* Sombra azul cuando se pasa el ratón */
-    --mouse-glow-before: rgba(0, 198, 255, 0.15); /* Efecto glow azul */
+    --primary-bg: #ffffff;
+    /* Fondo blanco */
+    --secondary-bg: #f5f5f5;
+    /* Fondo gris claro */
+    --accent-color: #00c6ff;
+    /* Mantener el azul */
+    --accent-secondary: #00c6ff;
+    /* Mantener el azul */
+    --text-primary: #000000;
+    /* Texto negro */
+    --text-secondary: #333333;
+    /* Texto gris oscuro */
+    --text-muted: #555555;
+    /* Texto más claro para texto secundario */
+    --border-color: rgba(0, 0, 0, 0.1);
+    /* Borde suave oscuro */
+    --glass-bg: rgba(0, 0, 0, 0.05);
+    /* Fondo ligeramente oscuro */
+    --glass-border: rgba(0, 0, 0, 0.1);
+    /* Borde oscuro sutil */
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    /* Sombra suave */
+    --shadow-hover: 0 12px 40px rgba(0, 198, 255, 0.2);
+    /* Sombra azul cuando se pasa el ratón */
+    --mouse-glow-before: rgba(0, 198, 255, 0.15);
+    /* Efecto glow azul */
     --mouse-glow-after: rgba(0, 198, 255, 0.1);
     --scrolled: rgba(240, 240, 240, 0.9);
 }
@@ -101,11 +114,9 @@ body::before {
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(
-        800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-        var(--mouse-glow-before),
-        transparent 50%
-    );
+    background: radial-gradient(800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+            var(--mouse-glow-before),
+            transparent 50%);
     pointer-events: none;
     z-index: 1;
     opacity: 0;
@@ -124,11 +135,9 @@ body::after {
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(
-        400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-        var(--mouse-glow-after),
-        transparent 40%
-    );
+    background: radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+            var(--mouse-glow-after),
+            transparent 40%);
     pointer-events: none;
     z-index: 1;
     opacity: 0;
@@ -167,16 +176,15 @@ body:hover::after {
     justify-content: space-between;
     align-items: center;
     height: 70px;
+    overflow: hidden;
 }
 
 .nav-logo .logo-text {
     font-size: 1.5rem;
     font-weight: 700;
-    background: linear-gradient(
-        135deg,
-        var(--accent-color),
-        var(--accent-secondary)
-    );
+    background: linear-gradient(135deg,
+            var(--accent-color),
+            var(--accent-secondary));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -189,10 +197,14 @@ body:hover::after {
     justify-content: center;
     align-items: center;
 }
+
 .nav-links {
     display: flex;
     gap: 2rem;
+    align-items: center;
+    flex-shrink: 0;
 }
+
 .nav-link {
     color: var(--text-primary);
     text-decoration: none;
@@ -210,11 +222,9 @@ body:hover::after {
     left: 0;
     width: 0;
     height: 2px;
-    background: linear-gradient(
-        135deg,
-        var(--accent-color),
-        var(--accent-secondary)
-    );
+    background: linear-gradient(135deg,
+            var(--accent-color),
+            var(--accent-secondary));
     transition: width 0.3s ease;
 }
 
@@ -226,6 +236,7 @@ body:hover::after {
 .nav-link:hover {
     color: var(--accent-color);
 }
+
 .themeToggle {
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
@@ -243,6 +254,7 @@ body:hover::after {
     font-weight: 500;
     transition: all 0.3s ease;
 }
+
 .themeToggle:hover {
     opacity: 0.6;
 }
@@ -254,6 +266,7 @@ body:hover::after {
     cursor: pointer;
     gap: 4px;
 }
+
 .nav-burger-mode-toggle-container {
     display: flex;
     align-items: center;
@@ -298,11 +311,9 @@ body:hover::after {
 }
 
 .highlight {
-    background: linear-gradient(
-        135deg,
-        var(--accent-color),
-        var(--accent-secondary)
-    );
+    background: linear-gradient(135deg,
+            var(--accent-color),
+            var(--accent-secondary));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -337,11 +348,9 @@ body:hover::after {
 }
 
 .btn-primary {
-    background: linear-gradient(
-        135deg,
-        var(--accent-color),
-        var(--accent-secondary)
-    );
+    background: linear-gradient(135deg,
+            var(--accent-color),
+            var(--accent-secondary));
     color: white;
     box-shadow: var(--shadow);
 }
@@ -423,6 +432,7 @@ body:hover::after {
 
 /* Animación de rebote para la flecha */
 @keyframes bounce {
+
     0%,
     20%,
     50%,
@@ -430,19 +440,23 @@ body:hover::after {
     100% {
         transform: translateY(0);
     }
+
     40% {
         transform: translateY(-10px);
     }
+
     60% {
         transform: translateY(-5px);
     }
 }
 
 @keyframes float {
+
     0%,
     100% {
         transform: translateY(0px);
     }
+
     50% {
         transform: translateY(-30px);
     }
@@ -476,11 +490,9 @@ body:hover::after {
     transform: translateX(-50%);
     width: 60px;
     height: 4px;
-    background: linear-gradient(
-        135deg,
-        var(--accent-color),
-        var(--accent-secondary)
-    );
+    background: linear-gradient(135deg,
+            var(--accent-color),
+            var(--accent-secondary));
     border-radius: 2px;
 }
 
@@ -537,6 +549,7 @@ body:hover::after {
     align-items: center;
     z-index: 99;
 }
+
 .profile-card-inside {
     background: rgba(166, 68, 68, 0.02);
     backdrop-filter: blur(100px);
@@ -564,6 +577,7 @@ body:hover::after {
     color: white;
     border-radius: 20px;
 }
+
 .profile-img {
     width: 190px;
     height: 190px;
@@ -639,33 +653,40 @@ body:hover::after {
 .tech-icon {
     width: 20px;
     height: 20px;
-    filter: hue-rotate(11.01deg); /* Cambia el color del SVG */
+    filter: hue-rotate(11.01deg);
+    /* Cambia el color del SVG */
 }
+
 .SQLite-icon {
     width: 20px;
     height: 20px;
     filter: hue-rotate(-10deg);
 }
+
 .HeidiSQL-icon {
     width: 20px;
     height: 20px;
     filter: hue-rotate(100deg);
 }
+
 .Firebase-icon {
     width: 20px;
     height: 20px;
     filter: hue-rotate(160deg);
 }
+
 .Tailwind-icon {
     width: 20px;
     height: 20px;
 }
+
 .Flask-icon {
     width: 25px;
     height: 25px;
     color: var(--accent-color);
     filter: hue-rotate(-70deg);
 }
+
 /* Proyectos */
 .projects-grid {
     display: grid;
@@ -691,15 +712,14 @@ body:hover::after {
 
 .project-image {
     height: 200px;
-    background: linear-gradient(
-        135deg,
-        var(--accent-color),
-        var(--accent-color)
-    );
+    background: linear-gradient(135deg,
+            var(--accent-color),
+            var(--accent-color));
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden; /* Para que la imagen no se salga del contenedor */
+    overflow: hidden;
+    /* Para que la imagen no se salga del contenedor */
     position: relative;
 }
 
@@ -719,12 +739,14 @@ body:hover::after {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.4s ease; /* Transición suave para el efecto */
+    transition: transform 0.4s ease;
+    /* Transición suave para el efecto */
 }
 
 /* Efecto de escala en la imagen cuando se hace hover en el project-card */
 .project-card:hover .project-img {
-    transform: scale(1.1); /* Escala la imagen al 110% */
+    transform: scale(1.1);
+    /* Escala la imagen al 110% */
 }
 
 .project-placeholder {
@@ -789,7 +811,8 @@ body:hover::after {
     display: none;
     opacity: 0;
     transform: translateY(40px);
-    transition: none; /* Sin transición para estado inicial */
+    transition: none;
+    /* Sin transición para estado inicial */
 }
 
 .hidden-project.show {
@@ -803,6 +826,7 @@ body:hover::after {
         opacity: 0;
         transform: translateY(40px);
     }
+
     100% {
         opacity: 1;
         transform: translateY(0);
@@ -850,6 +874,7 @@ body:hover::after {
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -982,6 +1007,19 @@ body:hover::after {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    .nav-container {
+        padding: 0 1.5rem;
+    }
+
+    .themeToggle {
+        padding: 9px;
+        font-size: 15px;
+    }
+
+    .nav-burger-mode-toggle-container {
+        gap: 9px;
+    }
+
     .hamburger {
         display: flex;
     }
@@ -1072,7 +1110,20 @@ body:hover::after {
     }
 
     .nav-container {
-        padding: 0 1rem;
+        padding: 0 0.75rem;
+    }
+
+    .themeToggle {
+        padding: 8px;
+        font-size: 14px;
+    }
+
+    .nav-burger-mode-toggle-container {
+        gap: 8px;
+    }
+
+    .nav-logo .logo-text {
+        font-size: 1.25rem;
     }
 
     .hero-title {
@@ -1124,6 +1175,7 @@ body:hover::after {
         opacity: 0;
         transform: translateY(40px);
     }
+
     100% {
         opacity: 1;
         transform: translateY(0);
@@ -1154,7 +1206,8 @@ body:hover::after {
 }
 
 ::-webkit-scrollbar-track {
-    background: var(--secondary-bg);
+    background: var(--primary-bg);
+    /* Mismo color que el fondo de la página */
 }
 
 ::-webkit-scrollbar-thumb {
