@@ -7,7 +7,31 @@ themeToggle.addEventListener("click", () => {
     icon.classList.toggle("fa-sun");
     icon.classList.toggle("fa-moon");
 });
+// Typing effect for hero title
+function typeWriter(element, text, speed = 100) {
+    let i = 0;
+    element.innerHTML = "";
 
+    function type() {
+        if (i < text.length) {
+            element.innerHTML += text.charAt(i);
+            i++;
+            setTimeout(type, speed);
+        }
+    }
+
+    type();
+}
+
+// Initialize typing effect when page loads
+document.addEventListener("DOMContentLoaded", () => {
+    const heroTitle = document.querySelector(".hero-title");
+    if (heroTitle) {
+        const originalText = heroTitle.textContent;
+
+        typeWriter(heroTitle, originalText, 40);
+    }
+});
 // Mouse glow effect
 document.addEventListener("mousemove", (e) => {
     const mouseX = (e.clientX / window.innerWidth) * 100;
@@ -93,15 +117,37 @@ const observerOptions = {
 const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
         if (entry.isIntersecting) {
-            entry.target.classList.add("fade-in-up");
+            // Si es un contenedor con múltiples elementos (como projects-grid)
+            const isContainer =
+                entry.target.classList.contains("about-content") ||
+                entry.target.classList.contains("contact-content");
+
+            if (isContainer) {
+                // Animar directamente sin delay
+                entry.target.classList.add("fade-in-up");
+            } else {
+                // Para elementos individuales, agregar delay si hay múltiples
+                const siblings = entry.target.parentElement.querySelectorAll(
+                    ".project-card, .tech-category"
+                );
+                const index = Array.from(siblings).indexOf(entry.target);
+
+                setTimeout(() => {
+                    entry.target.classList.add("fade-in-up");
+                }, index * 150); // 150ms delay entre cada elemento
+            }
+
+            // Desconectar el observer para este elemento después de animar
+            observer.unobserve(entry.target);
         }
     });
 }, observerOptions);
 
 // Observe elements for animation
 document.addEventListener("DOMContentLoaded", () => {
+    // Excluir proyectos ocultos del observer para evitar doble animación
     const animateElements = document.querySelectorAll(
-        ".project-card, .tech-category, .about-content, .contact-content"
+        ".project-card:not(.hidden-project), .tech-category, .about-content, .contact-content"
     );
     animateElements.forEach((el) => {
         observer.observe(el);
@@ -286,31 +332,7 @@ window.addEventListener("scroll", () => {
     }
 });
 
-// Typing effect for hero title
-function typeWriter(element, text, speed = 100) {
-    let i = 0;
-    element.innerHTML = "";
 
-    function type() {
-        if (i < text.length) {
-            element.innerHTML += text.charAt(i);
-            i++;
-            setTimeout(type, speed);
-        }
-    }
-
-    type();
-}
-
-// Initialize typing effect when page loads
-document.addEventListener("DOMContentLoaded", () => {
-    const heroTitle = document.querySelector(".hero-title");
-    if (heroTitle) {
-        const originalText = heroTitle.textContent;
-
-        typeWriter(heroTitle, originalText, 50);
-    }
-});
 
 // Counter animation for stats
 function animateCounter(element, target, duration = 2000) {
@@ -619,19 +641,23 @@ document.addEventListener("DOMContentLoaded", function () {
                     hiddenProjects.length - currentlyVisible
                 );
 
-                // Mostrar los próximos proyectos
+                // Mostrar los próximos proyectos con animación suave
                 for (
                     let i = currentlyVisible;
                     i < currentlyVisible + projectsToShow;
                     i++
                 ) {
                     if (hiddenProjects[i]) {
+                        // Hacer visible el elemento pero mantenerlo invisible
                         hiddenProjects[i].style.display = "block";
 
-                        // Agregar delay escalonado para animación
+                        // Forzar un reflow para que el display:block tome efecto
+                        hiddenProjects[i].offsetHeight;
+
+                        // Agregar delay escalonado para animación suave
                         setTimeout(() => {
                             hiddenProjects[i].classList.add("show");
-                        }, (i - currentlyVisible) * 150);
+                        }, (i - currentlyVisible) * 200); // Aumentado a 200ms para más suavidad
                     }
                 }
 
