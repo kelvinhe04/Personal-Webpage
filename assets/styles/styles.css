@@ -771,12 +771,13 @@ body:hover::after {
     border-radius: 16px;
     overflow: hidden;
     box-shadow: var(--shadow);
-    transition: all 0.3s ease;
+    transition: all 0.3s ease !important;
 }
 
 .project-card:hover {
     transform: translateY(-10px);
     box-shadow: var(--shadow-hover);
+        
 }
 
 .project-image {
