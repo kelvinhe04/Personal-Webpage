@@ -79,24 +79,6 @@ Welcome to my personal portfolio! This project showcases my skills, projects, an
 
 3. Open `index.html` in your browser to view the portfolio.
 
-## Live Demo
 
-Check out the live version of my portfolio [here](https://your-live-demo-link.com).
-
-## Contact
-
-Feel free to reach out to me:
-
--   **Email**: kelvinhe04@gmail.com
--   **Phone**: +507 6996-3888
--   **Location**: Panama City, Panama
-
-Follow me on:
-
--   [GitHub](https://github.com/kelvinhe04)
--   [LinkedIn](https://www.linkedin.com/in/kelvin-he-256986289/)
--   [Instagram](https://www.instagram.com/khelvinw/)
-
----
 
 Thank you for visiting my portfolio!
