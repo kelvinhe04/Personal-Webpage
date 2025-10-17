@@ -1,4 +1,5 @@
 const themeToggle = document.getElementById("themeToggle");
+const languageToggle = document.getElementById("languageToggle");
 
 // Theme Toggle
 themeToggle.addEventListener("click", () => {
@@ -6,6 +7,121 @@ themeToggle.addEventListener("click", () => {
     const icon = themeToggle.querySelector("i");
     icon.classList.toggle("fa-sun");
     icon.classList.toggle("fa-moon");
+});
+
+// Language Toggle
+let currentLanguage = localStorage.getItem('language') || 'en';
+
+// Function to change language
+function changeLanguage(lang) {
+    currentLanguage = lang;
+    localStorage.setItem('language', lang);
+    
+    // Update language icon
+    const icon = languageToggle.querySelector("i");
+    if (lang === 'es') {
+        icon.className = "fas fa-globe";
+        icon.style.color = "#00c6ff";
+    } else {
+        icon.className = "fas fa-globe";
+        icon.style.color = "";
+    }
+    
+    // Update all elements with language attributes
+    const elements = document.querySelectorAll('[data-en][data-es]');
+    elements.forEach(element => {
+        const text = element.getAttribute(`data-${lang}`);
+        if (text) {
+            element.textContent = text;
+        }
+    });
+    
+    // Update specific complex elements
+    updateComplexElements(lang);
+}
+
+// Function to update complex elements that need special handling
+function updateComplexElements(lang) {
+    // Update Load More button
+    const loadMoreBtn = document.getElementById("load-more-btn");
+    if (loadMoreBtn && !loadMoreBtn.style.visibility === 'hidden') {
+        const remaining = document.querySelectorAll(".hidden-project:not(.show)").length;
+        if (remaining > 0) {
+            if (lang === 'es') {
+                loadMoreBtn.innerHTML = `<i class="fas fa-plus"></i> Cargar Más Proyectos (${remaining} restantes)`;
+            } else {
+                loadMoreBtn.innerHTML = `<i class="fas fa-plus"></i> Load More Projects (${remaining} remaining)`;
+            }
+        } else {
+            if (lang === 'es') {
+                loadMoreBtn.innerHTML = '<i class="fas fa-check"></i> Todos los Proyectos Cargados';
+            } else {
+                loadMoreBtn.innerHTML = '<i class="fas fa-check"></i> All Projects Loaded';
+            }
+        }
+    }
+    
+    // Update form placeholders
+    const formInputs = document.querySelectorAll('.form-input');
+    formInputs.forEach(input => {
+        const name = input.getAttribute('name');
+        if (name === 'from_name') {
+            input.placeholder = lang === 'es' ? 'Tu nombre' : 'Your name';
+        } else if (name === 'reply_to') {
+            input.placeholder = lang === 'es' ? 'Tu email' : 'Your email';
+        } else if (name === 'subject') {
+            input.placeholder = lang === 'es' ? 'Asunto' : 'Subject';
+        } else if (name === 'message') {
+            input.placeholder = lang === 'es' ? 'Tu mensaje' : 'Your message';
+        }
+    });
+    
+    // Update submit button
+    const submitBtn = document.getElementById("submit-btn");
+    if (submitBtn && !submitBtn.disabled) {
+        submitBtn.textContent = lang === 'es' ? 'Enviar Mensaje' : 'Send Message';
+    }
+    
+    // Update skill tags in timeline and certificates that use nested spans
+    const skillTags = document.querySelectorAll('.skill-tag, .cert-skill-tag');
+    skillTags.forEach(tag => {
+        const enText = tag.getAttribute('data-en');
+        const esText = tag.getAttribute('data-es');
+        if (enText && esText) {
+            tag.textContent = lang === 'es' ? esText : enText;
+        }
+    });
+    
+    // Update project links (Code/Demo buttons)
+    const projectLinks = document.querySelectorAll('.project-link span[data-en]');
+    projectLinks.forEach(link => {
+        const enText = link.getAttribute('data-en');
+        const esText = link.getAttribute('data-es');
+        if (enText && esText) {
+            link.textContent = lang === 'es' ? esText : enText;
+        }
+    });
+    
+    // Update certificate buttons
+    const certBtns = document.querySelectorAll('.cert-btn span[data-en]');
+    certBtns.forEach(btn => {
+        const enText = btn.getAttribute('data-en');
+        const esText = btn.getAttribute('data-es');
+        if (enText && esText) {
+            btn.textContent = lang === 'es' ? esText : enText;
+        }
+    });
+}
+
+// Language toggle event listener
+languageToggle.addEventListener("click", () => {
+    const newLang = currentLanguage === 'en' ? 'es' : 'en';
+    changeLanguage(newLang);
+});
+
+// Initialize language on page load
+document.addEventListener("DOMContentLoaded", () => {
+    changeLanguage(currentLanguage);
 });
 // Typing effect for hero title
 function typeWriter(element, text, speed = 100) {
@@ -634,8 +750,9 @@ document.addEventListener("DOMContentLoaded", function () {
         loadMoreBtn.addEventListener("click", function () {
             // Agregar clase loading
             loadMoreBtn.classList.add("loading");
-            loadMoreBtn.innerHTML =
-                '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            loadMoreBtn.innerHTML = currentLanguage === 'es' 
+                ? '<i class="fas fa-spinner fa-spin"></i> Cargando...' 
+                : '<i class="fas fa-spinner fa-spin"></i> Loading...';
 
             // Simular delay de carga
             setTimeout(() => {
@@ -672,8 +789,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if (currentlyVisible >= hiddenProjects.length) {
                     // Todos los proyectos están visibles
-                    loadMoreBtn.innerHTML =
-                        '<i class="fas fa-check"></i> All Projects Loaded';
+                    loadMoreBtn.innerHTML = currentLanguage === 'es' 
+                        ? '<i class="fas fa-check"></i> Todos los Proyectos Cargados'
+                        : '<i class="fas fa-check"></i> All Projects Loaded';
                     loadMoreBtn.style.background = "var(--glass-bg)";
                     loadMoreBtn.style.color = "var(--text-secondary)";
                     loadMoreBtn.style.pointerEvents = "none";
@@ -686,7 +804,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 } else {
                     // Aún hay más proyectos por cargar
                     const remaining = hiddenProjects.length - currentlyVisible;
-                    loadMoreBtn.innerHTML = `<i class="fas fa-plus"></i> Load More Projects (${remaining} remaining)`;
+                    loadMoreBtn.innerHTML = currentLanguage === 'es'
+                        ? `<i class="fas fa-plus"></i> Cargar Más Proyectos (${remaining} restantes)`
+                        : `<i class="fas fa-plus"></i> Load More Projects (${remaining} remaining)`;
                 }
             }, 300); // Delay reducido a 300ms
         });

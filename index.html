@@ -43,31 +43,30 @@
                 <div class="nav-links">
                     <ul class="nav-menu">
                         <li class="nav-item">
-                            <a href="#about" class="nav-link">About</a>
+                            <a href="#about" class="nav-link" data-en="About" data-es="Acerca de">About</a>
                         </li>
                         <li class="nav-item">
-                            <a href="#technologies" class="nav-link"
-                                >Technologies</a
-                            >
+                            <a href="#technologies" class="nav-link" data-en="Technologies" data-es="Tecnologías">Technologies</a>
                         </li>
                         <li class="nav-item">
-                            <a href="#experience" class="nav-link"
-                                >Experience</a
-                            >
+                            <a href="#experience" class="nav-link" data-en="Experience" data-es="Experiencia">Experience</a>
                         </li>
                         <li class="nav-item">
-                            <a href="#projects" class="nav-link">Projects</a>
+                            <a href="#projects" class="nav-link" data-en="Projects" data-es="Proyectos">Projects</a>
                         </li>
                         <li class="nav-item">
-                            <a href="#certificates" class="nav-link"
-                                >Certificates</a
-                            >
+                            <a href="#certificates" class="nav-link" data-en="Certificates" data-es="Certificados">Certificates</a>
                         </li>
                         <li class="nav-item">
-                            <a href="#contact" class="nav-link">Contact</a>
+                            <a href="#contact" class="nav-link" data-en="Contact" data-es="Contacto">Contact</a>
                         </li>
                     </ul>
                     <div class="nav-burger-mode-toggle-container">
+                        <div>
+                            <a id="languageToggle" class="languageToggle"
+                                ><i class="fas fa-globe"></i
+                            ></a>
+                        </div>
                         <div>
                             <a id="themeToggle" class="themeToggle"
                                 ><i class="fas fa-sun"></i
@@ -89,21 +88,21 @@
             <div class="hero-container">
                 <div class="hero-content">
                     <h1 class="hero-title">
-                        Hello, I'm <span class="highlight">Kelvin He</span>
+                        <span data-en="Hello, I'm " data-es="Hola, soy ">Hello, I'm </span><span class="highlight">Kelvin He</span>
                     </h1>
-                    <p class="hero-subtitle">
+                    <p class="hero-subtitle" data-en="Full Stack Developer passionate about creating exceptional digital experiences" data-es="Desarrollador Full Stack apasionado por crear experiencias digitales excepcionales">
                         Full Stack Developer passionate about creating
                         exceptional digital experiences
                     </p>
                     <div class="hero-buttons">
-                        <a href="#projects" class="btn btn-primary"
-                            >View Projects</a
-                        >
-                        <a href="#contact" class="btn btn-secondary">Contact</a>
+                        <a href="#projects" class="btn btn-primary" data-en="View Projects" data-es="Ver Proyectos">View Projects</a>
+                        <a href="#contact" class="btn btn-secondary" data-en="Contact" data-es="Contacto">Contact</a>
                         <a
                             href="assets/Kelvin_He_CV.pdf"
                             download
                             class="btn btn-secondary"
+                            data-en="Download CV"
+                            data-es="Descargar CV"
                             >Download CV</a
                         >
                     </div>
@@ -125,16 +124,16 @@
         <!-- About -->
         <section id="about" class="section">
             <div class="container">
-                <h2 class="section-title">About Me</h2>
+                <h2 class="section-title" data-en="About Me" data-es="Acerca de Mí">About Me</h2>
                 <div class="about-content">
                     <div class="about-text">
-                        <p class="about-description">
+                        <p class="about-description" data-en="I'm a third-year student in Software Development and Management at the Technology University of Panama. I'm passionate about technology and eager to become a fullstack developer." data-es="Soy un estudiante de tercer año en Desarrollo y Gestión de Software en la Universidad Tecnológica de Panamá. Soy apasionado por la tecnología y ansioso por convertirme en un desarrollador fullstack.">
                             I'm a third-year student in Software Development and
                             Management at the Technology University of Panama.
-                            I’m passionate about technology and eager to become
+                            I'm passionate about technology and eager to become
                             a fullstack developer.
                         </p>
-                        <p class="about-description">
+                        <p class="about-description" data-en="I thrive in problem-solving, teamwork, and adapting to new technologies. My goal is to contribute to innovative projects that challenge my abilities and help me grow as a developer." data-es="Me destaco en la resolución de problemas, el trabajo en equipo y la adaptación a nuevas tecnologías. Mi objetivo es contribuir a proyectos innovadores que desafíen mis habilidades y me ayuden a crecer como desarrollador.">
                             I thrive in problem-solving, teamwork, and adapting
                             to new technologies. My goal is to contribute to
                             innovative projects that challenge my abilities and
@@ -145,15 +144,15 @@
                         <div class="stats">
                             <div class="stat-item">
                                 <span class="stat-number">8</span>
-                                <span class="stat-label">Projects</span>
+                                <span class="stat-label" data-en="Projects" data-es="Proyectos">Projects</span>
                             </div>
                             <div class="stat-item">
                                 <span class="stat-number">3+</span>
-                                <span class="stat-label">Years of Study</span>
+                                <span class="stat-label" data-en="Years of Study" data-es="Años de Estudio">Years of Study</span>
                             </div>
                             <div class="stat-item">
                                 <span class="stat-number">100%</span>
-                                <span class="stat-label">Commitment</span>
+                                <span class="stat-label" data-en="Commitment" data-es="Compromiso">Commitment</span>
                             </div>
                         </div>
                         <div class="about-image">
@@ -177,10 +176,10 @@
         <!-- Technologies -->
         <section id="technologies" class="section">
             <div class="container">
-                <h2 class="section-title">Technologies</h2>
+                <h2 class="section-title" data-en="Technologies" data-es="Tecnologías">Technologies</h2>
                 <div class="tech-grid">
                     <div class="tech-category">
-                        <h3 class="tech-category-title">Languages</h3>
+                        <h3 class="tech-category-title" data-en="Languages" data-es="Lenguajes">Languages</h3>
                         <div class="tech-items">
                             <div class="tech-item">
                                 <i class="fab fa-java"></i>
@@ -217,7 +216,7 @@
                         </div>
                     </div>
                     <div class="tech-category">
-                        <h3 class="tech-category-title">Frameworks</h3>
+                        <h3 class="tech-category-title" data-en="Frameworks" data-es="Frameworks">Frameworks</h3>
                         <div class="tech-items">
                             <div class="tech-item">
                                 <img
@@ -250,7 +249,7 @@
                         </div>
                     </div>
                     <div class="tech-category">
-                        <h3 class="tech-category-title">Databases</h3>
+                        <h3 class="tech-category-title" data-en="Databases" data-es="Bases de Datos">Databases</h3>
                         <div class="tech-items">
                             <div class="tech-item">
                                 <img
@@ -297,7 +296,7 @@
                         </div>
                     </div>
                     <div class="tech-category">
-                        <h3 class="tech-category-title">Tools</h3>
+                        <h3 class="tech-category-title" data-en="Tools" data-es="Herramientas">Tools</h3>
                         <div class="tech-items">
                             <div class="tech-item">
                                 <i class="fab fa-git"></i>
@@ -328,23 +327,23 @@
         <!-- Experience Timeline -->
         <section id="experience" class="section">
             <div class="container">
-                <h2 class="section-title">Experience</h2>
+                <h2 class="section-title" data-en="Experience" data-es="Experiencia">Experience</h2>
                 <div class="timeline">
                     <!-- Web Development Intern -->
                     <div class="timeline-item">
                         <div class="timeline-marker"></div>
                         <div class="timeline-content">
                             <div class="timeline-date">Jul 2025 - Oct 2025</div>
-                            <h3 class="timeline-title">
+                            <h3 class="timeline-title" data-en="Web Development and Multimedia Intern" data-es="Pasantía en Desarrollo Web y Multimedia">
                                 Web Development and Multimedia Intern
                             </h3>
                             <p class="timeline-company">
                                 Universidad Tecnológica de Panamá (UTP)
                             </p>
-                            <p class="timeline-location">
+                            <p class="timeline-location" data-en="Panama City, Panama • On-site" data-es="Ciudad de Panamá, Panamá • Presencial">
                                 Panama City, Panama • On-site
                             </p>
-                            <p class="timeline-description">
+                            <p class="timeline-description" data-en="Participated in the DiGITED project within the Directorate of Innovation and Educational Technology. Worked on Frontend development using Vue.js and Backend with Flask. Contributed to designing and implementing technological solutions for the educational sector. Assisted in creating interactive and dynamic web applications that enhanced user experience and accessibility." data-es="Participé en el proyecto DiGITED dentro de la Dirección de Innovación y Tecnología Educativa. Trabajé en desarrollo Frontend usando Vue.js y Backend con Flask. Contribuí al diseño e implementación de soluciones tecnológicas para el sector educativo. Asistí en la creación de aplicaciones web interactivas y dinámicas que mejoraron la experiencia del usuario y la accesibilidad.">
                                 Participated in the DiGITED project within the
                                 Directorate of Innovation and Educational
                                 Technology. Worked on Frontend development using
@@ -370,14 +369,14 @@
                         <div class="timeline-marker"></div>
                         <div class="timeline-content">
                             <div class="timeline-date">Jun 2025 - Jul 2025</div>
-                            <h3 class="timeline-title">
+                            <h3 class="timeline-title" data-en="Business Intelligence Intern" data-es="Pasantía en Inteligencia de Negocios">
                                 Business Intelligence Intern
                             </h3>
                             <p class="timeline-company">
                                 Insignia Financial Advisors (IFA BPO)
                             </p>
-                            <p class="timeline-location">Remote</p>
-                            <p class="timeline-description">
+                            <p class="timeline-location" data-en="Remote" data-es="Remoto">Remote</p>
+                            <p class="timeline-description" data-en="Participated in a training and development program in the Business Intelligence field, performing analytical tasks under technical supervision. Applied programming knowledge (Python, C#, JavaScript) and SQL database management. Utilized Excel and Power BI for data analysis, visualization, and reporting. Collaborated on real-world projects, strengthening analytical thinking and problem-solving skills in a remote professional environment." data-es="Participé en un programa de capacitación y desarrollo en el campo de Inteligencia de Negocios, realizando tareas analíticas bajo supervisión técnica. Apliqué conocimientos de programación (Python, C#, JavaScript) y gestión de bases de datos SQL. Utilicé Excel y Power BI para análisis de datos, visualización e informes. Colaboré en proyectos del mundo real, fortaleciendo el pensamiento analítico y habilidades de resolución de problemas en un entorno profesional remoto.">
                                 Participated in a training and development
                                 program in the Business Intelligence field,
                                 performing analytical tasks under technical
@@ -406,7 +405,7 @@
         <!-- Projects -->
         <section id="projects" class="section">
             <div class="container">
-                <h2 class="section-title">My Projects</h2>
+                <h2 class="section-title" data-en="My Projects" data-es="Mis Proyectos">My Projects</h2>
                 <div class="projects-grid">
                     <div class="project-card">
                         <div class="project-image">
@@ -417,8 +416,8 @@
                             />
                         </div>
                         <div class="project-content">
-                            <h3 class="project-title">Restaurant Website</h3>
-                            <p class="project-description">
+                            <h3 class="project-title" data-en="Restaurant Website" data-es="Sitio Web de Restaurante">Restaurant Website</h3>
+                            <p class="project-description" data-en="A modern and responsive website for El Restaurante El Parque, showcasing a blend of Chinese and Creole cuisine." data-es="Un sitio web moderno y responsivo para El Restaurante El Parque, que muestra una mezcla de cocina china y criolla.">
                                 A modern and responsive website for El
                                 Restaurante El Parque, showcasing a blend of
                                 Chinese and Creole cuisine.
@@ -435,7 +434,7 @@
                                     class="project-link"
                                 >
                                     <i class="fab fa-github"></i>
-                                    Code
+                                    <span data-en="Code" data-es="Código">Code</span>
                                 </a>
                                 <a
                                     href="https://elrestauranteelparque.netlify.app/"
@@ -443,7 +442,7 @@
                                     class="project-link"
                                 >
                                     <i class="fas fa-external-link-alt"></i>
-                                    Demo
+                                    <span data-en="Demo" data-es="Demo">Demo</span>
                                 </a>
                             </div>
                         </div>
@@ -458,10 +457,10 @@
                             />
                         </div>
                         <div class="project-content">
-                            <h3 class="project-title">
+                            <h3 class="project-title" data-en="E-Commerce Web Interface" data-es="Interfaz Web de E-Commerce">
                                 E-Commerce Web Interface
                             </h3>
-                            <p class="project-description">
+                            <p class="project-description" data-en="An e-commerce web interface inspired by Amazon, where customers can browse agricultural products and meats available for sale." data-es="Una interfaz web de e-commerce inspirada en Amazon, donde los clientes pueden navegar productos agrícolas y carnes disponibles para la venta.">
                                 An e-commerce web interface inspired by Amazon,
                                 where customers can browse agricultural products
                                 and meats available for sale.
@@ -478,7 +477,7 @@
                                     target="_blank"
                                 >
                                     <i class="fab fa-github"></i>
-                                    Code
+                                    <span data-en="Code" data-es="Código">Code</span>
                                 </a>
                                 <a
                                     href="https://semestral-softv.netlify.app/"
@@ -486,7 +485,7 @@
                                     class="project-link"
                                 >
                                     <i class="fas fa-external-link-alt"></i>
-                                    Demo
+                                    <span data-en="Demo" data-es="Demo">Demo</span>
                                 </a>
                             </div>
                         </div>
@@ -501,10 +500,10 @@
                             />
                         </div>
                         <div class="project-content">
-                            <h3 class="project-title">
+                            <h3 class="project-title" data-en="Runner Fitness Tracker" data-es="Rastreador de Fitness para Corredores">
                                 Runner Fitness Tracker
                             </h3>
-                            <p class="project-description">
+                            <p class="project-description" data-en="The Runner Fitness Tracker is an Android app tailored for runners, helping them track their training sessions, set fitness goals, and view workout history." data-es="El Rastreador de Fitness para Corredores es una aplicación Android diseñada para corredores, que les ayuda a rastrear sus sesiones de entrenamiento, establecer metas de fitness y ver el historial de ejercicios.">
                                 The Runner Fitness Tracker is an Android app
                                 tailored for runners, helping them track their
                                 training sessions, set fitness goals, and view
@@ -522,7 +521,7 @@
                                     class="project-link"
                                 >
                                     <i class="fab fa-github"></i>
-                                    Code
+                                    <span data-en="Code" data-es="Código">Code</span>
                                 </a>
                                 <a
                                     href="https://github.com/kelvinhe04/Runner-App-SoftVII-Parcial-2/releases/tag/v1.1"
@@ -530,7 +529,7 @@
                                     target="_blank"
                                 >
                                     <i class="fas fa-mobile-alt"></i>
-                                    Mobile App
+                                    <span data-en="Mobile App" data-es="App Móvil">Mobile App</span>
                                 </a>
                             </div>
                         </div>
@@ -547,8 +546,8 @@
                             />
                         </div>
                         <div class="project-content">
-                            <h3 class="project-title">Camera Photo App</h3>
-                            <p class="project-description">
+                            <h3 class="project-title" data-en="Camera Photo App" data-es="Aplicación de Cámara y Fotos">Camera Photo App</h3>
+                            <p class="project-description" data-en="An Android application that allows users to take photos, save them, and view them in a gallery using private external storage." data-es="Una aplicación Android que permite a los usuarios tomar fotos, guardarlas y verlas en una galería usando almacenamiento externo privado.">
                                 An Android application that allows users to take
                                 photos, save them, and view them in a gallery
                                 using private external storage.
@@ -567,7 +566,7 @@
                                     target="_blank"
                                 >
                                     <i class="fab fa-github"></i>
-                                    Code
+                                    <span data-en="Code" data-es="Código">Code</span>
                                 </a>
                                 <a
                                     href="https://github.com/kelvinhe04/CamaraFotoApp/releases/tag/v1.0.0"
@@ -575,7 +574,7 @@
                                     target="_blank"
                                 >
                                     <i class="fas fa-mobile-alt"></i>
-                                    Mobile App
+                                    <span data-en="Mobile App" data-es="App Móvil">Mobile App</span>
                                 </a>
                             </div>
                         </div>
@@ -590,10 +589,10 @@
                             />
                         </div>
                         <div class="project-content">
-                            <h3 class="project-title">
+                            <h3 class="project-title" data-en="ApiAgrodelis - REST API" data-es="ApiAgrodelis - API REST">
                                 ApiAgrodelis - REST API
                             </h3>
-                            <p class="project-description">
+                            <p class="project-description" data-en="A REST API developed in C# (.NET) for the Merca Panamá system. It manages agricultural and meat products published by vendors from a desktop application, providing data to a web frontend similar to an e-commerce platform." data-es="Una API REST desarrollada en C# (.NET) para el sistema Merca Panamá. Gestiona productos agrícolas y cárnicos publicados por vendedores desde una aplicación de escritorio, proporcionando datos a un frontend web similar a una plataforma de e-commerce.">
                                 A REST API developed in C# (.NET) for the Merca
                                 Panamá system. It manages agricultural and meat
                                 products published by vendors from a desktop
@@ -613,7 +612,7 @@
                                     target="_blank"
                                 >
                                     <i class="fab fa-github"></i>
-                                    Code
+                                    <span data-en="Code" data-es="Código">Code</span>
                                 </a>
                                 <a
                                     href="https://github.com/kelvinhe04/ApiAgrodelis/releases/tag/v1.0"
@@ -621,7 +620,7 @@
                                     target="_blank"
                                 >
                                     <i class="fas fa-download"></i>
-                                    Download .exe
+                                    <span data-en="Download .exe" data-es="Descargar .exe">Download .exe</span>
                                 </a>
                             </div>
                         </div>
@@ -635,8 +634,8 @@
                             />
                         </div>
                         <div class="project-content">
-                            <h3 class="project-title">AgroAssistant</h3>
-                            <p class="project-description">
+                            <h3 class="project-title" data-en="AgroAssistant" data-es="AgroAsistente">AgroAssistant</h3>
+                            <p class="project-description" data-en="A modular Python application designed to support Panamanian farmers in making informed decisions about their crops. The system integrates real-time weather data, technical crop information for 25 Panamanian crops, and provides visual analytics, intelligent search, and personalized recommendations through a user-friendly Tkinter GUI." data-es="Una aplicación modular de Python diseñada para apoyar a los agricultores panameños en la toma de decisiones informadas sobre sus cultivos. El sistema integra datos meteorológicos en tiempo real, información técnica de cultivos de 25 cultivos panameños, y proporciona análisis visuales, búsqueda inteligente y recomendaciones personalizadas a través de una interfaz GUI amigable de Tkinter.">
                                 A modular Python application designed to support
                                 Panamanian farmers in making informed decisions
                                 about their crops. The system integrates
@@ -660,7 +659,7 @@
                                     target="_blank"
                                 >
                                     <i class="fab fa-github"></i>
-                                    Code
+                                    <span data-en="Code" data-es="Código">Code</span>
                                 </a>
                                 <a
                                     href="https://github.com/SukisDev/AgroAssistant/releases/tag/v1.0-demo"
@@ -668,7 +667,7 @@
                                     target="_blank"
                                 >
                                     <i class="fas fa-download"></i>
-                                    Download .exe
+                                    <span data-en="Download .exe" data-es="Descargar .exe">Download .exe</span>
                                 </a>
                             </div>
                         </div>
@@ -682,8 +681,8 @@
                             />
                         </div>
                         <div class="project-content">
-                            <h3 class="project-title">NoticiaPTY</h3>
-                            <p class="project-description">
+                            <h3 class="project-title" data-en="NoticiaPTY" data-es="NoticiaPTY">NoticiaPTY</h3>
+                            <p class="project-description" data-en="A comprehensive news management system designed specifically for Panamanian content. The platform features role-based user management, interactive commenting system, news categorization, and a powerful admin dashboard. Built with modern web technologies to deliver real-time news updates and engaging user experience with advanced security measures." data-es="Un sistema integral de gestión de noticias diseñado específicamente para contenido panameño. La plataforma cuenta con gestión de usuarios basada en roles, sistema de comentarios interactivo, categorización de noticias y un potente panel de administración. Construido con tecnologías web modernas para entregar actualizaciones de noticias en tiempo real y experiencia de usuario atractiva con medidas de seguridad avanzadas.">
                                 A comprehensive news management system designed
                                 specifically for Panamanian content. The
                                 platform features role-based user management,
@@ -705,7 +704,7 @@
                                     target="_blank"
                                 >
                                     <i class="fab fa-github"></i>
-                                    Code
+                                    <span data-en="Code" data-es="Código">Code</span>
                                 </a>
                                 <a
                                     href="https://noticiapty.page.gd/app/index.php"
@@ -713,7 +712,7 @@
                                     target="_blank"
                                 >
                                     <i class="fas fa-external-link-alt"></i>
-                                    Live Demo
+                                    <span data-en="Live Demo" data-es="Demo en Vivo">Live Demo</span>
                                 </a>
                             </div>
                         </div>
@@ -727,8 +726,8 @@
                             />
                         </div>
                         <div class="project-content">
-                            <h3 class="project-title">BibliotecaNative</h3>
-                            <p class="project-description">
+                            <h3 class="project-title" data-en="BibliotecaNative" data-es="BibliotecaNative">BibliotecaNative</h3>
+                            <p class="project-description" data-en="A modern mobile library management system built with React Native and Expo. Features comprehensive book management, user authentication with Firebase, image handling capabilities, and form validation. The app provides an intuitive interface for library operations including book cataloging, user management, and real-time notifications with cross-platform compatibility." data-es="Un sistema moderno de gestión de bibliotecas móviles construido con React Native y Expo. Cuenta con gestión integral de libros, autenticación de usuarios con Firebase, capacidades de manejo de imágenes y validación de formularios. La aplicación proporciona una interfaz intuitiva para operaciones de biblioteca incluyendo catalogación de libros, gestión de usuarios y notificaciones en tiempo real con compatibilidad multiplataforma.">
                                 A modern mobile library management system built
                                 with React Native and Expo. Features
                                 comprehensive book management, user
@@ -753,7 +752,7 @@
                                     target="_blank"
                                 >
                                     <i class="fab fa-github"></i>
-                                    Code
+                                    <span data-en="Code" data-es="Código">Code</span>
                                 </a>
                                 <a
                                     href="https://github.com/N0oCh1/BibliotecaNative/releases/tag/Release-1"
@@ -761,7 +760,7 @@
                                     target="_blank"
                                 >
                                     <i class="fas fa-mobile-alt"></i>
-                                    Mobile App
+                                    <span data-en="Mobile App" data-es="App Móvil">Mobile App</span>
                                 </a>
                             </div>
                         </div>
@@ -773,9 +772,11 @@
                     <button
                         id="load-more-btn"
                         class="btn btn-primary load-more-btn"
+                        data-en="Load More Projects"
+                        data-es="Cargar Más Proyectos"
                     >
                         <i class="fas fa-plus"></i>
-                        Load More Projects
+                        <span class="load-more-text">Load More Projects</span>
                     </button>
                 </div>
             </div>
@@ -784,7 +785,7 @@
         <!-- Certificates -->
         <section id="certificates" class="section">
             <div class="container">
-                <h2 class="section-title">Certificates</h2>
+                <h2 class="section-title" data-en="Certificates" data-es="Certificados">Certificates</h2>
                 <div class="certificates-grid">
                     <!-- Oracle Cloud Infrastructure Certificate -->
                     <div class="certificate-card">
@@ -792,38 +793,28 @@
                             <i class="fas fa-cloud"></i>
                         </div>
                         <div class="certificate-content">
-                            <h3 class="certificate-title">
+                            <h3 class="certificate-title" data-en="Oracle Cloud Infrastructure 2025 Certified AI Foundations Associate" data-es="Oracle Cloud Infrastructure 2025 Asociado Certificado en Fundamentos de IA">
                                 Oracle Cloud Infrastructure 2025 Certified AI
                                 Foundations Associate
                             </h3>
                             <p class="certificate-issuer">Oracle University</p>
-                            <p class="certificate-date">
+                            <p class="certificate-date" data-en="Issued Oct 2025 • Expires Oct 2027" data-es="Emitido Oct 2025 • Expira Oct 2027">
                                 Issued Oct 2025 • Expires Oct 2027
                             </p>
                             <p class="certificate-id">
                                 Credential ID: 323011531OCI25AICFA
                             </p>
                             <div class="certificate-skills">
-                                <span class="cert-skill-tag"
-                                    >Artificial Intelligence (AI)</span
-                                >
-                                <span class="cert-skill-tag"
-                                    >Machine Learning</span
-                                >
-                                <span class="cert-skill-tag"
-                                    >Cloud Computing</span
-                                >
-                                <span class="cert-skill-tag"
-                                    >Oracle Cloud Infrastructure</span
-                                >
-                                <span class="cert-skill-tag"
-                                    >Data Analysis</span
-                                >
+                                <span class="cert-skill-tag" data-en="Artificial Intelligence (AI)" data-es="Inteligencia Artificial (IA)">Artificial Intelligence (AI)</span>
+                                <span class="cert-skill-tag" data-en="Machine Learning" data-es="Aprendizaje Automático">Machine Learning</span>
+                                <span class="cert-skill-tag" data-en="Cloud Computing" data-es="Computación en la Nube">Cloud Computing</span>
+                                <span class="cert-skill-tag" data-en="Oracle Cloud Infrastructure" data-es="Infraestructura Oracle Cloud">Oracle Cloud Infrastructure</span>
+                                <span class="cert-skill-tag" data-en="Data Analysis" data-es="Análisis de Datos">Data Analysis</span>
                             </div>
                             <div class="certificate-actions">
-                                <a href="assets/img/certificados/Oracle_Cloud_Infrastructure_2025_Certified_AI_Foundations_Associate.pdf" class="cert-btn" target="_blank">
+                                <a href="#" class="cert-btn" target="_blank">
                                     <i class="fas fa-certificate"></i>
-                                    Show Credential
+                                    <span data-en="Show Credential" data-es="Ver Credencial">Show Credential</span>
                                 </a>
                             </div>
                         </div>
@@ -835,33 +826,25 @@
                             <i class="fas fa-shield-alt"></i>
                         </div>
                         <div class="certificate-content">
-                            <h3 class="certificate-title">
+                            <h3 class="certificate-title" data-en="Computer Forensics Certificate" data-es="Certificado Informática Forense">
                                 Certificado Informática Forense
                             </h3>
                             <p class="certificate-issuer">Academia Progenios</p>
-                            <p class="certificate-date">Issued Sep 2025</p>
+                            <p class="certificate-date" data-en="Issued Sep 2025" data-es="Emitido Sep 2025">Issued Sep 2025</p>
                             <p class="certificate-id">
                                 Credential ID:
                                 017066c2-a94d-48d4-abf5-464b94e765b5
                             </p>
                             <div class="certificate-skills">
-                                <span class="cert-skill-tag"
-                                    >Digital Forensics</span
-                                >
-                                <span class="cert-skill-tag"
-                                    >Cybersecurity</span
-                                >
-                                <span class="cert-skill-tag"
-                                    >Information Security</span
-                                >
-                                <span class="cert-skill-tag"
-                                    >Evidence Analysis</span
-                                >
+                                <span class="cert-skill-tag" data-en="Digital Forensics" data-es="Forense Digital">Digital Forensics</span>
+                                <span class="cert-skill-tag" data-en="Cybersecurity" data-es="Ciberseguridad">Cybersecurity</span>
+                                <span class="cert-skill-tag" data-en="Information Security" data-es="Seguridad de la Información">Information Security</span>
+                                <span class="cert-skill-tag" data-en="Evidence Analysis" data-es="Análisis de Evidencia">Evidence Analysis</span>
                             </div>
                             <div class="certificate-actions">
-                                <a href="assets/img/certificados/Certificado_Informática_Forense.pdf" class="cert-btn" target="_blank">
+                                <a href="#" class="cert-btn" target="_blank">
                                     <i class="fas fa-certificate"></i>
-                                    Show Credential
+                                    <span data-en="Show Credential" data-es="Ver Credencial">Show Credential</span>
                                 </a>
                             </div>
                         </div>
@@ -873,11 +856,11 @@
         <!-- Contact -->
         <section id="contact" class="section">
             <div class="container">
-                <h2 class="section-title">Contact</h2>
+                <h2 class="section-title" data-en="Contact" data-es="Contacto">Contact</h2>
                 <div class="contact-content">
                     <div class="contact-info">
-                        <h3 class="contact-title">Let's Talk!</h3>
-                        <p class="contact-description">
+                        <h3 class="contact-title" data-en="Let's Talk!" data-es="¡Hablemos!">Let's Talk!</h3>
+                        <p class="contact-description" data-en="Have a project in mind? I'd love to hear about it. I'm available for collaborations and job opportunities." data-es="¿Tienes un proyecto en mente? Me encantaría escuchar sobre él. Estoy disponible para colaboraciones y oportunidades de trabajo.">
                             Have a project in mind? I'd love to hear about it.
                             I'm available for collaborations and job
                             opportunities.

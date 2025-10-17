@@ -283,6 +283,28 @@ body:hover::after {
     opacity: 0.6;
 }
 
+.languageToggle {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 0.375rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    padding: 10px;
+    box-shadow: var(--shadow);
+    color: var(--text-primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.languageToggle:hover {
+    opacity: 0.6;
+}
+
 /* Hamburger menu para móviles */
 .hamburger {
     display: none;
@@ -783,7 +805,7 @@ body:hover::after {
 
 .timeline-marker {
     position: absolute;
-    left: 18px;
+    left: 19.5px;
     top: 0;
     width: 24px;
     height: 24px;
@@ -1310,6 +1332,11 @@ body:hover::after {
         font-size: 15px;
     }
 
+    .languageToggle {
+        padding: 9px;
+        font-size: 15px;
+    }
+
     .nav-burger-mode-toggle-container {
         gap: 9px;
     }
@@ -1487,7 +1514,7 @@ body:hover::after {
     }
 
     .timeline-marker {
-        left: 8px;
+        left: 9.5px;
         width: 20px;
         height: 20px;
     }
@@ -1537,6 +1564,11 @@ body:hover::after {
     }
 
     .themeToggle {
+        padding: 8px;
+        font-size: 14px;
+    }
+
+    .languageToggle {
         padding: 8px;
         font-size: 14px;
     }
@@ -1654,7 +1686,7 @@ body:hover::after {
     }
 
     .timeline-marker {
-        left: 6px;
+        left: 7px;
         width: 16px;
         height: 16px;
     }
