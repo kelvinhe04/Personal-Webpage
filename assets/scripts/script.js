@@ -27,8 +27,8 @@ function changeLanguage(lang) {
         icon.style.color = "";
     }
     
-    // Update all elements with language attributes
-    const elements = document.querySelectorAll('[data-en][data-es]');
+    // Update all elements with language attributes (except hero-greeting)
+    const elements = document.querySelectorAll('[data-en][data-es]:not(.hero-greeting)');
     elements.forEach(element => {
         const text = element.getAttribute(`data-${lang}`);
         if (text) {
@@ -42,6 +42,9 @@ function changeLanguage(lang) {
 
 // Function to update complex elements that need special handling
 function updateComplexElements(lang) {
+    // Update hero title with typing effect
+    updateHeroTitle(lang);
+    
     // Update Load More button
     const loadMoreBtn = document.getElementById("load-more-btn");
     if (loadMoreBtn && !loadMoreBtn.style.visibility === 'hidden') {
@@ -119,34 +122,100 @@ languageToggle.addEventListener("click", () => {
     changeLanguage(newLang);
 });
 
-// Initialize language on page load
-document.addEventListener("DOMContentLoaded", () => {
-    changeLanguage(currentLanguage);
-});
 // Typing effect for hero title
+let typingTimeout;
+
 function typeWriter(element, text, speed = 100) {
+    // Clear any existing timeout
+    if (typingTimeout) {
+        clearTimeout(typingTimeout);
+    }
+    
     let i = 0;
-    element.innerHTML = "";
+    element.textContent = "";
 
     function type() {
         if (i < text.length) {
-            element.innerHTML += text.charAt(i);
+            element.textContent += text.charAt(i);
             i++;
-            setTimeout(type, speed);
+            typingTimeout = setTimeout(type, speed);
         }
     }
 
     type();
 }
 
-// Initialize typing effect when page loads
-document.addEventListener("DOMContentLoaded", () => {
-    const heroTitle = document.querySelector(".hero-title");
-    if (heroTitle) {
-        const originalText = heroTitle.textContent;
-
-        typeWriter(heroTitle, originalText, 40);
+// Typing effect for full hero title (greeting + name)
+function typeWriterFullTitle(titleElement, greetingText, nameText, speed = 50) {
+    // Clear any existing timeout
+    if (typingTimeout) {
+        clearTimeout(typingTimeout);
     }
+    
+    const greetingSpan = titleElement.querySelector('.hero-greeting');
+    const nameSpan = titleElement.querySelector('.highlight');
+    
+    let greetingIndex = 0;
+    let nameIndex = 0;
+    let isTypingName = false;
+    let pauseDone = false;
+    
+    // Clear both spans
+    greetingSpan.textContent = "";
+    nameSpan.textContent = "";
+    
+    function type() {
+        if (!isTypingName && greetingIndex < greetingText.length) {
+            // Still typing greeting
+            greetingSpan.textContent += greetingText.charAt(greetingIndex);
+            greetingIndex++;
+            typingTimeout = setTimeout(type, speed);
+        } else if (!isTypingName && !pauseDone) {
+            // Pause before starting name
+            pauseDone = true;
+            isTypingName = true;
+            typingTimeout = setTimeout(type, speed * 3);
+        } else if (isTypingName && nameIndex < nameText.length) {
+            // Now typing name
+            nameSpan.textContent += nameText.charAt(nameIndex);
+            nameIndex++;
+            typingTimeout = setTimeout(type, speed);
+        }
+    }
+
+    type();
+}
+
+// Function to update hero title based on language
+function updateHeroTitle(lang) {
+    const heroTitle = document.querySelector(".hero-title");
+    
+    if (heroTitle) {
+        const greetingText = lang === 'es' ? 'Hola, soy ' : 'Hello, I\'m ';
+        const fullText = greetingText + 'Kelvin He';
+        
+        // Clear the title and recreate with proper structure
+        heroTitle.innerHTML = '<span class="hero-greeting" data-en="Hello, I\'m " data-es="Hola, soy "></span><span class="highlight">Kelvin He</span>';
+        
+        // Apply typing effect to the entire title
+        typeWriterFullTitle(heroTitle, greetingText, 'Kelvin He', 50);
+    }
+}
+
+// Initialize language and typing effect on page load
+document.addEventListener("DOMContentLoaded", () => {
+    // First initialize language (without typing effect for hero)
+    changeLanguage(currentLanguage);
+    
+    // Then start typing effect after a short delay
+    setTimeout(() => {
+        const heroTitle = document.querySelector(".hero-title");
+        
+        if (heroTitle) {
+            const greetingText = currentLanguage === 'es' ? 'Hola, soy ' : 'Hello, I\'m ';
+            typeWriterFullTitle(heroTitle, greetingText, 'Kelvin He', 50);
+        }
+    }, 200);
 });
 // Mouse glow effect
 document.addEventListener("mousemove", (e) => {
