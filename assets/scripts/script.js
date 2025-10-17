@@ -147,7 +147,7 @@ const observer = new IntersectionObserver((entries) => {
 document.addEventListener("DOMContentLoaded", () => {
     // Excluir proyectos ocultos del observer para evitar doble animación
     const animateElements = document.querySelectorAll(
-        ".project-card:not(.hidden-project), .tech-category, .about-content, .contact-content"
+        ".project-card:not(.hidden-project), .tech-category, .about-content, .contact-content, .timeline-item, .certificate-card"
     );
     animateElements.forEach((el) => {
         observer.observe(el);
@@ -337,8 +337,6 @@ function showNotification(message, type = "info") {
         }, 300);
     }, 3000);
 }
-
-
 
 // Counter animation for stats
 function animateCounter(element, target, duration = 2000) {
