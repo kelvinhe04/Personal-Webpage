@@ -10,32 +10,34 @@ themeToggle.addEventListener("click", () => {
 });
 
 // Language Toggle
-let currentLanguage = localStorage.getItem('language') || 'en';
+let currentLanguage = localStorage.getItem("language") || "en";
 
 // Function to change language
 function changeLanguage(lang) {
     currentLanguage = lang;
-    localStorage.setItem('language', lang);
-    
+    localStorage.setItem("language", lang);
+
     // Update language icon
     const icon = languageToggle.querySelector("i");
-    if (lang === 'es') {
+    if (lang === "es") {
         icon.className = "fas fa-globe";
         icon.style.color = "#00c6ff";
     } else {
         icon.className = "fas fa-globe";
         icon.style.color = "";
     }
-    
+
     // Update all elements with language attributes (except hero-greeting)
-    const elements = document.querySelectorAll('[data-en][data-es]:not(.hero-greeting)');
-    elements.forEach(element => {
+    const elements = document.querySelectorAll(
+        "[data-en][data-es]:not(.hero-greeting)"
+    );
+    elements.forEach((element) => {
         const text = element.getAttribute(`data-${lang}`);
         if (text) {
             element.textContent = text;
         }
     });
-    
+
     // Update specific complex elements
     updateComplexElements(lang);
 }
@@ -44,81 +46,88 @@ function changeLanguage(lang) {
 function updateComplexElements(lang) {
     // Update hero title with typing effect
     updateHeroTitle(lang);
-    
+
     // Update Load More button
     const loadMoreBtn = document.getElementById("load-more-btn");
-    if (loadMoreBtn && !loadMoreBtn.style.visibility === 'hidden') {
-        const remaining = document.querySelectorAll(".hidden-project:not(.show)").length;
+    if (loadMoreBtn && !loadMoreBtn.style.visibility === "hidden") {
+        const remaining = document.querySelectorAll(
+            ".hidden-project:not(.show)"
+        ).length;
         if (remaining > 0) {
-            if (lang === 'es') {
+            if (lang === "es") {
                 loadMoreBtn.innerHTML = `<i class="fas fa-plus"></i> Cargar Más Proyectos (${remaining} restantes)`;
             } else {
                 loadMoreBtn.innerHTML = `<i class="fas fa-plus"></i> Load More Projects (${remaining} remaining)`;
             }
         } else {
-            if (lang === 'es') {
-                loadMoreBtn.innerHTML = '<i class="fas fa-check"></i> Todos los Proyectos Cargados';
+            if (lang === "es") {
+                loadMoreBtn.innerHTML =
+                    '<i class="fas fa-check"></i> Todos los Proyectos Cargados';
             } else {
-                loadMoreBtn.innerHTML = '<i class="fas fa-check"></i> All Projects Loaded';
+                loadMoreBtn.innerHTML =
+                    '<i class="fas fa-check"></i> All Projects Loaded';
             }
         }
     }
-    
+
     // Update form placeholders
-    const formInputs = document.querySelectorAll('.form-input');
-    formInputs.forEach(input => {
-        const name = input.getAttribute('name');
-        if (name === 'from_name') {
-            input.placeholder = lang === 'es' ? 'Tu nombre' : 'Your name';
-        } else if (name === 'reply_to') {
-            input.placeholder = lang === 'es' ? 'Tu email' : 'Your email';
-        } else if (name === 'subject') {
-            input.placeholder = lang === 'es' ? 'Asunto' : 'Subject';
-        } else if (name === 'message') {
-            input.placeholder = lang === 'es' ? 'Tu mensaje' : 'Your message';
+    const formInputs = document.querySelectorAll(".form-input");
+    formInputs.forEach((input) => {
+        const name = input.getAttribute("name");
+        if (name === "from_name") {
+            input.placeholder = lang === "es" ? "Tu nombre" : "Your name";
+        } else if (name === "reply_to") {
+            input.placeholder = lang === "es" ? "Tu email" : "Your email";
+        } else if (name === "subject") {
+            input.placeholder = lang === "es" ? "Asunto" : "Subject";
+        } else if (name === "message") {
+            input.placeholder = lang === "es" ? "Tu mensaje" : "Your message";
         }
     });
-    
+
     // Update submit button
     const submitBtn = document.getElementById("submit-btn");
     if (submitBtn && !submitBtn.disabled) {
-        submitBtn.textContent = lang === 'es' ? 'Enviar Mensaje' : 'Send Message';
+        submitBtn.textContent =
+            lang === "es" ? "Enviar Mensaje" : "Send Message";
     }
-    
+
     // Update skill tags in timeline and certificates that use nested spans
-    const skillTags = document.querySelectorAll('.skill-tag, .cert-skill-tag');
-    skillTags.forEach(tag => {
-        const enText = tag.getAttribute('data-en');
-        const esText = tag.getAttribute('data-es');
+    const skillTags = document.querySelectorAll(".skill-tag, .cert-skill-tag");
+    skillTags.forEach((tag) => {
+        const enText = tag.getAttribute("data-en");
+        const esText = tag.getAttribute("data-es");
         if (enText && esText) {
-            tag.textContent = lang === 'es' ? esText : enText;
+            tag.textContent = lang === "es" ? esText : enText;
         }
     });
-    
+
     // Update project links (Code/Demo buttons)
-    const projectLinks = document.querySelectorAll('.project-link span[data-en]');
-    projectLinks.forEach(link => {
-        const enText = link.getAttribute('data-en');
-        const esText = link.getAttribute('data-es');
+    const projectLinks = document.querySelectorAll(
+        ".project-link span[data-en]"
+    );
+    projectLinks.forEach((link) => {
+        const enText = link.getAttribute("data-en");
+        const esText = link.getAttribute("data-es");
         if (enText && esText) {
-            link.textContent = lang === 'es' ? esText : enText;
+            link.textContent = lang === "es" ? esText : enText;
         }
     });
-    
+
     // Update certificate buttons
-    const certBtns = document.querySelectorAll('.cert-btn span[data-en]');
-    certBtns.forEach(btn => {
-        const enText = btn.getAttribute('data-en');
-        const esText = btn.getAttribute('data-es');
+    const certBtns = document.querySelectorAll(".cert-btn span[data-en]");
+    certBtns.forEach((btn) => {
+        const enText = btn.getAttribute("data-en");
+        const esText = btn.getAttribute("data-es");
         if (enText && esText) {
-            btn.textContent = lang === 'es' ? esText : enText;
+            btn.textContent = lang === "es" ? esText : enText;
         }
     });
 }
 
 // Language toggle event listener
 languageToggle.addEventListener("click", () => {
-    const newLang = currentLanguage === 'en' ? 'es' : 'en';
+    const newLang = currentLanguage === "en" ? "es" : "en";
     changeLanguage(newLang);
 });
 
@@ -130,7 +139,7 @@ function typeWriter(element, text, speed = 100) {
     if (typingTimeout) {
         clearTimeout(typingTimeout);
     }
-    
+
     let i = 0;
     element.textContent = "";
 
@@ -151,19 +160,19 @@ function typeWriterFullTitle(titleElement, greetingText, nameText, speed = 50) {
     if (typingTimeout) {
         clearTimeout(typingTimeout);
     }
-    
-    const greetingSpan = titleElement.querySelector('.hero-greeting');
-    const nameSpan = titleElement.querySelector('.highlight');
-    
+
+    const greetingSpan = titleElement.querySelector(".hero-greeting");
+    const nameSpan = titleElement.querySelector(".highlight");
+
     let greetingIndex = 0;
     let nameIndex = 0;
     let isTypingName = false;
     let pauseDone = false;
-    
+
     // Clear both spans
     greetingSpan.textContent = "";
     nameSpan.textContent = "";
-    
+
     function type() {
         if (!isTypingName && greetingIndex < greetingText.length) {
             // Still typing greeting
@@ -189,16 +198,17 @@ function typeWriterFullTitle(titleElement, greetingText, nameText, speed = 50) {
 // Function to update hero title based on language
 function updateHeroTitle(lang) {
     const heroTitle = document.querySelector(".hero-title");
-    
+
     if (heroTitle) {
-        const greetingText = lang === 'es' ? 'Hola, soy ' : 'Hello, I\'m ';
-        const fullText = greetingText + 'Kelvin He';
-        
+        const greetingText = lang === "es" ? "Hola, soy " : "Hello, I'm ";
+        const fullText = greetingText + "Kelvin He";
+
         // Clear the title and recreate with proper structure
-        heroTitle.innerHTML = '<span class="hero-greeting" data-en="Hello, I\'m " data-es="Hola, soy "></span><span class="highlight">Kelvin He</span>';
-        
+        heroTitle.innerHTML =
+            '<span class="hero-greeting" data-en="Hello, I\'m " data-es="Hola, soy "></span><span class="highlight">Kelvin He</span>';
+
         // Apply typing effect to the entire title
-        typeWriterFullTitle(heroTitle, greetingText, 'Kelvin He', 50);
+        typeWriterFullTitle(heroTitle, greetingText, "Kelvin He", 50);
     }
 }
 
@@ -206,14 +216,15 @@ function updateHeroTitle(lang) {
 document.addEventListener("DOMContentLoaded", () => {
     // First initialize language (without typing effect for hero)
     changeLanguage(currentLanguage);
-    
+
     // Then start typing effect after a short delay
     setTimeout(() => {
         const heroTitle = document.querySelector(".hero-title");
-        
+
         if (heroTitle) {
-            const greetingText = currentLanguage === 'es' ? 'Hola, soy ' : 'Hello, I\'m ';
-            typeWriterFullTitle(heroTitle, greetingText, 'Kelvin He', 50);
+            const greetingText =
+                currentLanguage === "es" ? "Hola, soy " : "Hello, I'm ";
+            typeWriterFullTitle(heroTitle, greetingText, "Kelvin He", 50);
         }
     }, 200);
 });
@@ -819,9 +830,10 @@ document.addEventListener("DOMContentLoaded", function () {
         loadMoreBtn.addEventListener("click", function () {
             // Agregar clase loading
             loadMoreBtn.classList.add("loading");
-            loadMoreBtn.innerHTML = currentLanguage === 'es' 
-                ? '<i class="fas fa-spinner fa-spin"></i> Cargando...' 
-                : '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            loadMoreBtn.innerHTML =
+                currentLanguage === "es"
+                    ? '<i class="fas fa-spinner fa-spin"></i> Cargando...'
+                    : '<i class="fas fa-spinner fa-spin"></i> Loading...';
 
             // Simular delay de carga
             setTimeout(() => {
@@ -858,9 +870,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if (currentlyVisible >= hiddenProjects.length) {
                     // Todos los proyectos están visibles
-                    loadMoreBtn.innerHTML = currentLanguage === 'es' 
-                        ? '<i class="fas fa-check"></i> Todos los Proyectos Cargados'
-                        : '<i class="fas fa-check"></i> All Projects Loaded';
+                    loadMoreBtn.innerHTML =
+                        currentLanguage === "es"
+                            ? '<i class="fas fa-check"></i> Todos los Proyectos Cargados'
+                            : '<i class="fas fa-check"></i> All Projects Loaded';
                     loadMoreBtn.style.background = "var(--glass-bg)";
                     loadMoreBtn.style.color = "var(--text-secondary)";
                     loadMoreBtn.style.pointerEvents = "none";
@@ -873,9 +886,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 } else {
                     // Aún hay más proyectos por cargar
                     const remaining = hiddenProjects.length - currentlyVisible;
-                    loadMoreBtn.innerHTML = currentLanguage === 'es'
-                        ? `<i class="fas fa-plus"></i> Cargar Más Proyectos (${remaining} restantes)`
-                        : `<i class="fas fa-plus"></i> Load More Projects (${remaining} remaining)`;
+                    loadMoreBtn.innerHTML =
+                        currentLanguage === "es"
+                            ? `<i class="fas fa-plus"></i> Cargar Más Proyectos (${remaining} restantes)`
+                            : `<i class="fas fa-plus"></i> Load More Projects (${remaining} remaining)`;
                 }
             }, 300); // Delay reducido a 300ms
         });
