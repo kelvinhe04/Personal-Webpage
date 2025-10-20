@@ -1453,7 +1453,7 @@ body:hover::after {
     }
 
     .hero-buttons {
-        justify-content: flex-start;
+        justify-content: center;
         flex-wrap: wrap;
     }
 
@@ -1934,7 +1934,7 @@ body:hover::after {
     .hero-buttons {
         flex-direction: column;
         gap: 0.75rem;
-        align-items: flex-start;
+        align-items: center;
         width: 100%;
         padding: 0 1rem;
     }
