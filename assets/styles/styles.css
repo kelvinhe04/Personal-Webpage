@@ -941,13 +941,12 @@ body:hover::after {
     border-radius: 16px;
     padding: 2rem;
     box-shadow: var(--shadow);
-    transition: all 0.3s ease;
+    transition: all 0.3s ease !important;
     display: flex;
     gap: 1.5rem;
 }
 
 .certificate-card:hover {
-    transform: translateY(-5px);
     box-shadow: var(--shadow-hover);
 }
 
