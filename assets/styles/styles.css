@@ -1202,6 +1202,20 @@ body:hover::after {
     animation: fadeInUpSmooth 0.8s ease-out forwards;
 }
 
+/* Certificados ocultos y Load More */
+.hidden-certificate {
+    display: none;
+    opacity: 0;
+    transform: translateY(40px);
+    transition: none;
+    /* Sin transición para estado inicial */
+}
+
+.hidden-certificate.show {
+    display: flex;
+    animation: fadeInUpSmooth 0.8s ease-out forwards;
+}
+
 /* Animación suave para proyectos del Load More */
 @keyframes fadeInUpSmooth {
     0% {

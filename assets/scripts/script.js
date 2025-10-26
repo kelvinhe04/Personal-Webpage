@@ -70,6 +70,29 @@ function updateComplexElements(lang) {
         }
     }
 
+    // Update Load More Certificates button
+    const loadMoreCertBtn = document.getElementById("load-more-certificates-btn");
+    if (loadMoreCertBtn && !loadMoreCertBtn.style.visibility === "hidden") {
+        const remainingCerts = document.querySelectorAll(
+            ".hidden-certificate:not(.show)"
+        ).length;
+        if (remainingCerts > 0) {
+            if (lang === "es") {
+                loadMoreCertBtn.innerHTML = `<i class="fas fa-plus"></i> Cargar Más Certificados (${remainingCerts} restantes)`;
+            } else {
+                loadMoreCertBtn.innerHTML = `<i class="fas fa-plus"></i> Load More Certificates (${remainingCerts} remaining)`;
+            }
+        } else {
+            if (lang === "es") {
+                loadMoreCertBtn.innerHTML =
+                    '<i class="fas fa-check"></i> Todos los Certificados Cargados';
+            } else {
+                loadMoreCertBtn.innerHTML =
+                    '<i class="fas fa-check"></i> All Certificates Loaded';
+            }
+        }
+    }
+
     // Update form placeholders
     const formInputs = document.querySelectorAll(".form-input");
     formInputs.forEach((input) => {
@@ -942,6 +965,85 @@ document.addEventListener("DOMContentLoaded", function () {
                             : `<i class="fas fa-plus"></i> Load More Projects (${remaining} remaining)`;
                 }
             }, 300); // Delay reducido a 300ms
+        });
+    }
+});
+
+// LOAD MORE CERTIFICATES FUNCTIONALITY
+// ============================
+
+document.addEventListener("DOMContentLoaded", function () {
+    const loadMoreCertBtn = document.getElementById("load-more-certificates-btn");
+    const hiddenCertificates = document.querySelectorAll(".hidden-certificate");
+    let currentlyVisibleCerts = 0;
+    const certificatesPerLoad = 2; // Cargar 2 certificados a la vez
+
+    if (loadMoreCertBtn && hiddenCertificates.length > 0) {
+        loadMoreCertBtn.addEventListener("click", function () {
+            // Agregar clase loading
+            loadMoreCertBtn.classList.add("loading");
+            loadMoreCertBtn.innerHTML =
+                currentLanguage === "es"
+                    ? '<i class="fas fa-spinner fa-spin"></i> Cargando...'
+                    : '<i class="fas fa-spinner fa-spin"></i> Loading...';
+
+            // Simular delay de carga
+            setTimeout(() => {
+                // Determinar cuántos certificados mostrar
+                const certificatesToShow = Math.min(
+                    certificatesPerLoad,
+                    hiddenCertificates.length - currentlyVisibleCerts
+                );
+
+                // Mostrar los próximos certificados con animación suave
+                for (
+                    let i = currentlyVisibleCerts;
+                    i < currentlyVisibleCerts + certificatesToShow;
+                    i++
+                ) {
+                    if (hiddenCertificates[i]) {
+                        // Hacer visible el elemento pero mantenerlo invisible
+                        hiddenCertificates[i].style.display = "flex";
+
+                        // Forzar un reflow para que el display:flex tome efecto
+                        hiddenCertificates[i].offsetHeight;
+
+                        // Agregar delay escalonado para animación suave
+                        setTimeout(() => {
+                            hiddenCertificates[i].classList.add("show");
+                        }, (i - currentlyVisibleCerts) * 200);
+                    }
+                }
+
+                currentlyVisibleCerts += certificatesToShow;
+
+                // Actualizar el botón
+                loadMoreCertBtn.classList.remove("loading");
+
+                if (currentlyVisibleCerts >= hiddenCertificates.length) {
+                    // Todos los certificados están visibles
+                    loadMoreCertBtn.innerHTML =
+                        currentLanguage === "es"
+                            ? '<i class="fas fa-check"></i> Todos los Certificados Cargados'
+                            : '<i class="fas fa-check"></i> All Certificates Loaded';
+                    loadMoreCertBtn.style.background = "var(--glass-bg)";
+                    loadMoreCertBtn.style.color = "var(--text-secondary)";
+                    loadMoreCertBtn.style.pointerEvents = "none";
+
+                    // Ocultar el botón SIN afectar el layout después de un momento
+                    setTimeout(() => {
+                        loadMoreCertBtn.style.visibility = "hidden";
+                        loadMoreCertBtn.style.opacity = "0";
+                    }, 1500);
+                } else {
+                    // Aún hay más certificados por cargar
+                    const remaining = hiddenCertificates.length - currentlyVisibleCerts;
+                    loadMoreCertBtn.innerHTML =
+                        currentLanguage === "es"
+                            ? `<i class="fas fa-plus"></i> Cargar Más Certificados (${remaining} restantes)`
+                            : `<i class="fas fa-plus"></i> Load More Certificates (${remaining} remaining)`;
+                }
+            }, 300);
         });
     }
 });
