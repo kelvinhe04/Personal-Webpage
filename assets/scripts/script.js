@@ -71,43 +71,7 @@ function updateComplexElements(lang) {
     }
 
     // Update Load More Certificates button
-    const loadMoreCertBtn = document.getElementById("load-more-certificates-btn");
-    if (loadMoreCertBtn && !loadMoreCertBtn.style.visibility === "hidden") {
-        const remainingCerts = document.querySelectorAll(
-            ".hidden-certificate:not(.show)"
-        ).length;
-        const isMobile = window.innerWidth <= 480;
-        
-        if (remainingCerts > 0) {
-            if (isMobile) {
-                if (lang === "es") {
-                    loadMoreCertBtn.innerHTML = `<i class="fas fa-plus"></i> <span class="cert-btn-text">Más Certs (${remainingCerts})</span>`;
-                } else {
-                    loadMoreCertBtn.innerHTML = `<i class="fas fa-plus"></i> <span class="cert-btn-text">More Certs (${remainingCerts})</span>`;
-                }
-            } else {
-                if (lang === "es") {
-                    loadMoreCertBtn.innerHTML = `<i class="fas fa-plus"></i> <span class="cert-btn-text">Cargar Más Certificados (${remainingCerts} restantes)</span>`;
-                } else {
-                    loadMoreCertBtn.innerHTML = `<i class="fas fa-plus"></i> <span class="cert-btn-text">Load More Certificates (${remainingCerts} remaining)</span>`;
-                }
-            }
-        } else {
-            if (isMobile) {
-                if (lang === "es") {
-                    loadMoreCertBtn.innerHTML = '<i class="fas fa-check"></i> Todo Cargado';
-                } else {
-                    loadMoreCertBtn.innerHTML = '<i class="fas fa-check"></i> All Loaded';
-                }
-            } else {
-                if (lang === "es") {
-                    loadMoreCertBtn.innerHTML = '<i class="fas fa-check"></i> Todos los Certificados Cargados';
-                } else {
-                    loadMoreCertBtn.innerHTML = '<i class="fas fa-check"></i> All Certificates Loaded';
-                }
-            }
-        }
-    }
+    updateCertificatesButtonText();
 
     // Update form placeholders
     const formInputs = document.querySelectorAll(".form-input");
@@ -985,24 +949,48 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
+// Function to update certificates button text
+function updateCertificatesButtonText() {
+    const loadMoreCertBtn = document.getElementById("load-more-certificates-btn");
+    if (loadMoreCertBtn && loadMoreCertBtn.style.visibility !== "hidden") {
+        const remainingCerts = document.querySelectorAll(".hidden-certificate:not(.show)").length;
+        const isMobile = window.innerWidth <= 480;
+        
+        if (remainingCerts > 0) {
+            if (isMobile) {
+                loadMoreCertBtn.innerHTML =
+                    currentLanguage === "es"
+                        ? `<i class="fas fa-plus"></i> <span class="cert-btn-text">Más Certs (${remainingCerts})</span>`
+                        : `<i class="fas fa-plus"></i> <span class="cert-btn-text">More Certs (${remainingCerts})</span>`;
+            } else {
+                loadMoreCertBtn.innerHTML =
+                    currentLanguage === "es"
+                        ? `<i class="fas fa-plus"></i> <span class="cert-btn-text">Cargar Más Certificados (${remainingCerts} restantes)</span>`
+                        : `<i class="fas fa-plus"></i> <span class="cert-btn-text">Load More Certificates (${remainingCerts} remaining)</span>`;
+            }
+        } else {
+            if (isMobile) {
+                loadMoreCertBtn.innerHTML =
+                    currentLanguage === "es"
+                        ? '<i class="fas fa-check"></i> Todo Cargado'
+                        : '<i class="fas fa-check"></i> All Loaded';
+            } else {
+                loadMoreCertBtn.innerHTML =
+                    currentLanguage === "es"
+                        ? '<i class="fas fa-check"></i> Todos los Certificados Cargados'
+                        : '<i class="fas fa-check"></i> All Certificates Loaded';
+            }
+        }
+    }
+}
+
 // LOAD MORE CERTIFICATES FUNCTIONALITY
 // ============================
 
 document.addEventListener("DOMContentLoaded", function () {
     const loadMoreCertBtn = document.getElementById("load-more-certificates-btn");
-    
-    // Actualizar texto inicial según el tamaño de pantalla
-    if (loadMoreCertBtn) {
-        const isMobile = window.innerWidth <= 480;
-        const remainingCerts = document.querySelectorAll(".hidden-certificate").length;
-        
-        if (isMobile) {
-            loadMoreCertBtn.innerHTML =
-                currentLanguage === "es"
-                    ? `<i class="fas fa-plus"></i> <span class="cert-btn-text">Más Certs (${remainingCerts})</span>`
-                    : `<i class="fas fa-plus"></i> <span class="cert-btn-text">More Certs (${remainingCerts})</span>`;
-        }
-    }
+    // Inicializar el texto del botón de certificados
+    updateCertificatesButtonText();
     const hiddenCertificates = document.querySelectorAll(".hidden-certificate");
     let currentlyVisibleCerts = 0;
     const certificatesPerLoad = 2; // Cargar 2 certificados a la vez
@@ -1049,22 +1037,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 // Actualizar el botón
                 loadMoreCertBtn.classList.remove("loading");
 
+                // Actualizar el botón usando la función auxiliar
+                updateCertificatesButtonText();
+
                 if (currentlyVisibleCerts >= hiddenCertificates.length) {
-                    // Todos los certificados están visibles
-                    const isMobile = window.innerWidth <= 480;
-                    
-                    if (isMobile) {
-                        loadMoreCertBtn.innerHTML =
-                            currentLanguage === "es"
-                                ? '<i class="fas fa-check"></i> Todo Cargado'
-                                : '<i class="fas fa-check"></i> All Loaded';
-                    } else {
-                        loadMoreCertBtn.innerHTML =
-                            currentLanguage === "es"
-                                ? '<i class="fas fa-check"></i> Todos los Certificados Cargados'
-                                : '<i class="fas fa-check"></i> All Certificates Loaded';
-                    }
-                    
+                    // Todos los certificados están visibles - aplicar estilos de completado
                     loadMoreCertBtn.style.background = "var(--glass-bg)";
                     loadMoreCertBtn.style.color = "var(--text-secondary)";
                     loadMoreCertBtn.style.pointerEvents = "none";
@@ -1074,24 +1051,13 @@ document.addEventListener("DOMContentLoaded", function () {
                         loadMoreCertBtn.style.visibility = "hidden";
                         loadMoreCertBtn.style.opacity = "0";
                     }, 1500);
-                } else {
-                    // Aún hay más certificados por cargar
-                    const remaining = hiddenCertificates.length - currentlyVisibleCerts;
-                    const isMobile = window.innerWidth <= 480;
-                    
-                    if (isMobile) {
-                        loadMoreCertBtn.innerHTML =
-                            currentLanguage === "es"
-                                ? `<i class="fas fa-plus"></i> <span class="cert-btn-text">Más Certs (${remaining})</span>`
-                                : `<i class="fas fa-plus"></i> <span class="cert-btn-text">More Certs (${remaining})</span>`;
-                    } else {
-                        loadMoreCertBtn.innerHTML =
-                            currentLanguage === "es"
-                                ? `<i class="fas fa-plus"></i> <span class="cert-btn-text">Cargar Más Certificados (${remaining} restantes)</span>`
-                                : `<i class="fas fa-plus"></i> <span class="cert-btn-text">Load More Certificates (${remaining} remaining)</span>`;
-                    }
                 }
             }, 300);
         });
     }
+});
+
+// Update certificates button text on window resize
+window.addEventListener('resize', function() {
+    updateCertificatesButtonText();
 });
