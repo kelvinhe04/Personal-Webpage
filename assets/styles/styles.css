@@ -814,17 +814,41 @@ body:hover::after {
 .timeline {
     position: relative;
     max-width: min(800px, calc(100% - 40px));
-    margin: 0 auto;
+    margin: 0 auto 0 auto;
     padding: 2rem 0;
+    /* Volvemos al padding original sin laterales */
     width: 100%;
-    overflow: hidden;
+    overflow: visible;
+    /* Permitir que el box-shadow sea visible */
     box-sizing: border-box;
+}
+
+/* REGLA ESPECIAL PARA FORZAR CENTRADO - MÁXIMA PRIORIDAD */
+#experience .timeline-marker,
+.timeline .timeline-marker,
+.section .timeline-marker {
+    position: absolute !important;
+    left: 31.5px !important;
+    /* Centro de línea: 30px + 1.5px (mitad del ancho de línea) */
+    top: 0 !important;
+    width: 24px !important;
+    height: 24px !important;
+    margin-left: -12px !important;
+    /* Centrado matemático: -ancho/2 */
+    background: var(--accent-color) !important;
+    border: 4px solid var(--primary-bg) !important;
+    border-radius: 50% !important;
+    box-shadow: 0 0 0 4px rgba(0, 198, 255, 0.2) !important;
+    z-index: 10 !important;
+    transform: none !important;
+    /* Resetear transform */
 }
 
 .timeline::before {
     content: '';
     position: absolute;
     left: 30px;
+    /* Volvemos a la posición original */
     top: 0;
     bottom: 0;
     width: 3px;
@@ -837,13 +861,14 @@ body:hover::after {
     position: relative;
     margin-bottom: 4rem;
     padding-left: 70px;
+    /* Volvemos al padding original */
     width: 100%;
     box-sizing: border-box;
 }
 
+/* Regla básica para timeline-marker (sobrescrita por las reglas específicas arriba) */
 .timeline-marker {
     position: absolute;
-    left: 19.5px; /* Centro matemático: 30px + 1.5px - 12px = 19.5px */
     top: 0;
     width: 24px;
     height: 24px;
@@ -868,6 +893,8 @@ body:hover::after {
     overflow-wrap: break-word;
     word-wrap: break-word;
     hyphens: auto;
+    margin-right: 0.5rem;
+    /* Agregar margin para el box-shadow */
 }
 
 .timeline-content:hover {
@@ -930,7 +957,10 @@ body:hover::after {
     gap: 2rem;
     width: 100%;
     max-width: 100%;
-    overflow: hidden;
+    overflow: visible;
+    /* Permitir que el box-shadow sea visible */
+    margin: 1rem 0;
+    /* Usar margin en lugar de padding */
 }
 
 .certificate-card {
@@ -944,6 +974,8 @@ body:hover::after {
     transition: all 0.3s ease !important;
     display: flex;
     gap: 1.5rem;
+    margin: 0.5rem;
+    /* Agregar margin para el box-shadow */
 }
 
 .certificate-card:hover {
@@ -1556,28 +1588,44 @@ body:hover::after {
     /* Timeline responsive */
     .timeline {
         padding: 1.5rem 0;
+        /* Sin padding lateral */
         width: calc(100% - 30px);
         max-width: 100%;
-        overflow-x: hidden;
+        overflow: visible;
     }
 
     .timeline::before {
         left: 25px;
+        /* Posición original */
         width: 3px;
         z-index: 1;
     }
 
     .timeline-item {
         padding-left: 60px;
+        /* Posición original */
         width: 100%;
         box-sizing: border-box;
     }
 
-    .timeline-marker {
-        left: 17.5px; /* Centro matemático: 25px + 1.5px - 9px = 17.5px */
-        width: 18px;
-        height: 18px;
-        z-index: 10;
+    /* TABLET - CENTRADO FORZADO */
+    #experience .timeline-marker,
+    .timeline .timeline-marker,
+    .section .timeline-marker {
+        position: absolute !important;
+        left: 26.5px !important;
+        /* Centro de línea: 25px + 1.5px (mitad del ancho de línea) */
+        top: 0 !important;
+        width: 18px !important;
+        height: 18px !important;
+        margin-left: -9px !important;
+        /* Centrado: -ancho/2 */
+        background: var(--accent-color) !important;
+        border: 4px solid var(--primary-bg) !important;
+        border-radius: 50% !important;
+        box-shadow: 0 0 0 4px rgba(0, 198, 255, 0.2) !important;
+        z-index: 10 !important;
+        transform: none !important;
     }
 
     .timeline-content {
@@ -1596,7 +1644,8 @@ body:hover::after {
     .certificates-grid {
         grid-template-columns: 1fr;
         gap: 1.5rem;
-        padding: 0 1rem;
+        margin: 1rem 0;
+        /* Usar margin en lugar de padding */
     }
 
     .certificate-card {
@@ -1763,30 +1812,46 @@ body:hover::after {
     /* Timeline mobile adjustments */
     .timeline {
         padding: 1rem 0;
+        /* Sin padding lateral */
         margin: 0 auto;
         width: calc(100% - 20px);
         max-width: 100%;
-        overflow-x: hidden;
+        overflow: visible;
     }
 
     .timeline::before {
         left: 20px;
+        /* Posición original */
         width: 3px;
         z-index: 1;
     }
 
     .timeline-item {
         padding-left: 50px;
+        /* Posición original */
         margin-bottom: 3rem;
         width: 100%;
         box-sizing: border-box;
     }
 
-    .timeline-marker {
-        left: 13.5px; /* Centro matemático: 20px + 1.5px - 8px = 13.5px */
-        width: 16px;
-        height: 16px;
-        z-index: 10;
+    /* MOBILE - CENTRADO FORZADO */
+    #experience .timeline-marker,
+    .timeline .timeline-marker,
+    .section .timeline-marker {
+        position: absolute !important;
+        left: 21.5px !important;
+        /* Centro de línea: 20px + 1.5px (mitad del ancho de línea) */
+        top: 0 !important;
+        width: 16px !important;
+        height: 16px !important;
+        margin-left: -8px !important;
+        /* Centrado: -ancho/2 */
+        background: var(--accent-color) !important;
+        border: 4px solid var(--primary-bg) !important;
+        border-radius: 50% !important;
+        box-shadow: 0 0 0 4px rgba(0, 198, 255, 0.2) !important;
+        z-index: 10 !important;
+        transform: none !important;
     }
 
     .timeline-content {
@@ -1958,33 +2023,49 @@ body:hover::after {
     .certificates-grid {
         grid-template-columns: 1fr;
         gap: 1rem;
-        padding: 0 0.5rem;
+        margin: 1rem 0;
+        /* Usar margin en lugar de padding */
     }
 
     /* Timeline ultra-mobile adjustments */
     .timeline {
         width: calc(100% - 20px);
         padding: 1rem 0;
+        /* Sin padding lateral */
         margin: 0 auto;
     }
 
     .timeline::before {
         left: 15px;
+        /* Posición original */
         width: 2px;
         z-index: 1;
     }
 
     .timeline-item {
         padding-left: 40px;
+        /* Posición original */
         margin-bottom: 2.5rem;
     }
 
-    .timeline-marker {
-        left: 9px; /* Centro matemático: 15px + 1px - 7px = 9px */
-        width: 14px;
-        height: 14px;
-        border: 2px solid var(--primary-bg);
-        z-index: 10;
+    /* ULTRA MOBILE - CENTRADO FORZADO */
+    #experience .timeline-marker,
+    .timeline .timeline-marker,
+    .section .timeline-marker {
+        position: absolute !important;
+        left: 16px !important;
+        /* Centro de línea: 15px + 1px (mitad del ancho de línea de 2px) */
+        top: 0 !important;
+        width: 14px !important;
+        height: 14px !important;
+        margin-left: -7px !important;
+        /* Centrado: -ancho/2 */
+        background: var(--accent-color) !important;
+        border: 2px solid var(--primary-bg) !important;
+        border-radius: 50% !important;
+        box-shadow: 0 0 0 4px rgba(0, 198, 255, 0.2) !important;
+        z-index: 10 !important;
+        transform: none !important;
     }
 
     .timeline-content {
@@ -2012,12 +2093,14 @@ body:hover::after {
     }
 
     .timeline {
-        padding: 1rem 0;
+        padding: 1rem;
+        /* Mejorado padding para el box-shadow */
         margin: 0 0.5rem;
     }
 
     .timeline-item {
-        padding-left: 60px;
+        padding-left: 76px;
+        /* 60px + 16px padding = 76px */
         margin-bottom: 2.5rem;
     }
 }
