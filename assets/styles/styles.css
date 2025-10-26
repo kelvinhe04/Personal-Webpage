@@ -2092,15 +2092,46 @@ body:hover::after {
         gap: 1rem;
     }
 
+    /* TIMELINE PARA DISPOSITIVOS < 375px - CENTRADO FORZADO */
+    #experience .timeline-marker,
+    .timeline .timeline-marker,
+    .section .timeline-marker {
+        position: absolute !important;
+        left: 16px !important;
+        /* Centro de línea: 15px + 1px (mitad del ancho de línea de 2px) */
+        top: 0 !important;
+        width: 14px !important;
+        height: 14px !important;
+        margin-left: -7px !important;
+        /* Centrado: -ancho/2 */
+        background: var(--accent-color) !important;
+        border: 2px solid var(--primary-bg) !important;
+        border-radius: 50% !important;
+        box-shadow: 0 0 0 4px rgba(0, 198, 255, 0.2) !important;
+        z-index: 10 !important;
+        transform: none !important;
+    }
+
     .timeline {
-        padding: 1rem;
-        /* Mejorado padding para el box-shadow */
+        padding: 1rem 0;
+        /* Sin padding lateral para mejor aprovechamiento del espacio */
         margin: 0 0.5rem;
+        width: calc(100% - 1rem);
+        /* Aprovechar mejor el espacio disponible */
     }
 
     .timeline-item {
-        padding-left: 76px;
-        /* 60px + 16px padding = 76px */
+        padding-left: 40px;
+        /* Posición original para dispositivos ultra pequeños */
         margin-bottom: 2.5rem;
+    }
+
+    .timeline-content {
+        width: calc(100% - 10px);
+        /* Aumentar el ancho de las cards para mejor aprovechamiento */
+        max-width: none;
+        /* Remover limitación de ancho máximo */
+        margin-right: 0.25rem;
+        /* Reducir margin derecho para más espacio */
     }
 }
