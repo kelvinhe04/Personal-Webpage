@@ -76,19 +76,35 @@ function updateComplexElements(lang) {
         const remainingCerts = document.querySelectorAll(
             ".hidden-certificate:not(.show)"
         ).length;
+        const isMobile = window.innerWidth <= 480;
+        
         if (remainingCerts > 0) {
-            if (lang === "es") {
-                loadMoreCertBtn.innerHTML = `<i class="fas fa-plus"></i> Cargar Más Certificados (${remainingCerts} restantes)`;
+            if (isMobile) {
+                if (lang === "es") {
+                    loadMoreCertBtn.innerHTML = `<i class="fas fa-plus"></i> <span class="cert-btn-text">Más Certs (${remainingCerts})</span>`;
+                } else {
+                    loadMoreCertBtn.innerHTML = `<i class="fas fa-plus"></i> <span class="cert-btn-text">More Certs (${remainingCerts})</span>`;
+                }
             } else {
-                loadMoreCertBtn.innerHTML = `<i class="fas fa-plus"></i> Load More Certificates (${remainingCerts} remaining)`;
+                if (lang === "es") {
+                    loadMoreCertBtn.innerHTML = `<i class="fas fa-plus"></i> <span class="cert-btn-text">Cargar Más Certificados (${remainingCerts} restantes)</span>`;
+                } else {
+                    loadMoreCertBtn.innerHTML = `<i class="fas fa-plus"></i> <span class="cert-btn-text">Load More Certificates (${remainingCerts} remaining)</span>`;
+                }
             }
         } else {
-            if (lang === "es") {
-                loadMoreCertBtn.innerHTML =
-                    '<i class="fas fa-check"></i> Todos los Certificados Cargados';
+            if (isMobile) {
+                if (lang === "es") {
+                    loadMoreCertBtn.innerHTML = '<i class="fas fa-check"></i> Todo Cargado';
+                } else {
+                    loadMoreCertBtn.innerHTML = '<i class="fas fa-check"></i> All Loaded';
+                }
             } else {
-                loadMoreCertBtn.innerHTML =
-                    '<i class="fas fa-check"></i> All Certificates Loaded';
+                if (lang === "es") {
+                    loadMoreCertBtn.innerHTML = '<i class="fas fa-check"></i> Todos los Certificados Cargados';
+                } else {
+                    loadMoreCertBtn.innerHTML = '<i class="fas fa-check"></i> All Certificates Loaded';
+                }
             }
         }
     }
@@ -974,6 +990,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
 document.addEventListener("DOMContentLoaded", function () {
     const loadMoreCertBtn = document.getElementById("load-more-certificates-btn");
+    
+    // Actualizar texto inicial según el tamaño de pantalla
+    if (loadMoreCertBtn) {
+        const isMobile = window.innerWidth <= 480;
+        const remainingCerts = document.querySelectorAll(".hidden-certificate").length;
+        
+        if (isMobile) {
+            loadMoreCertBtn.innerHTML =
+                currentLanguage === "es"
+                    ? `<i class="fas fa-plus"></i> <span class="cert-btn-text">Más Certs (${remainingCerts})</span>`
+                    : `<i class="fas fa-plus"></i> <span class="cert-btn-text">More Certs (${remainingCerts})</span>`;
+        }
+    }
     const hiddenCertificates = document.querySelectorAll(".hidden-certificate");
     let currentlyVisibleCerts = 0;
     const certificatesPerLoad = 2; // Cargar 2 certificados a la vez
@@ -1022,10 +1051,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if (currentlyVisibleCerts >= hiddenCertificates.length) {
                     // Todos los certificados están visibles
-                    loadMoreCertBtn.innerHTML =
-                        currentLanguage === "es"
-                            ? '<i class="fas fa-check"></i> Todos los Certificados Cargados'
-                            : '<i class="fas fa-check"></i> All Certificates Loaded';
+                    const isMobile = window.innerWidth <= 480;
+                    
+                    if (isMobile) {
+                        loadMoreCertBtn.innerHTML =
+                            currentLanguage === "es"
+                                ? '<i class="fas fa-check"></i> Todo Cargado'
+                                : '<i class="fas fa-check"></i> All Loaded';
+                    } else {
+                        loadMoreCertBtn.innerHTML =
+                            currentLanguage === "es"
+                                ? '<i class="fas fa-check"></i> Todos los Certificados Cargados'
+                                : '<i class="fas fa-check"></i> All Certificates Loaded';
+                    }
+                    
                     loadMoreCertBtn.style.background = "var(--glass-bg)";
                     loadMoreCertBtn.style.color = "var(--text-secondary)";
                     loadMoreCertBtn.style.pointerEvents = "none";
@@ -1038,10 +1077,19 @@ document.addEventListener("DOMContentLoaded", function () {
                 } else {
                     // Aún hay más certificados por cargar
                     const remaining = hiddenCertificates.length - currentlyVisibleCerts;
-                    loadMoreCertBtn.innerHTML =
-                        currentLanguage === "es"
-                            ? `<i class="fas fa-plus"></i> Cargar Más Certificados (${remaining} restantes)`
-                            : `<i class="fas fa-plus"></i> Load More Certificates (${remaining} remaining)`;
+                    const isMobile = window.innerWidth <= 480;
+                    
+                    if (isMobile) {
+                        loadMoreCertBtn.innerHTML =
+                            currentLanguage === "es"
+                                ? `<i class="fas fa-plus"></i> <span class="cert-btn-text">Más Certs (${remaining})</span>`
+                                : `<i class="fas fa-plus"></i> <span class="cert-btn-text">More Certs (${remaining})</span>`;
+                    } else {
+                        loadMoreCertBtn.innerHTML =
+                            currentLanguage === "es"
+                                ? `<i class="fas fa-plus"></i> <span class="cert-btn-text">Cargar Más Certificados (${remaining} restantes)</span>`
+                                : `<i class="fas fa-plus"></i> <span class="cert-btn-text">Load More Certificates (${remaining} remaining)</span>`;
+                    }
                 }
             }, 300);
         });
