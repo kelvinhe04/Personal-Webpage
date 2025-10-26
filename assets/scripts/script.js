@@ -9,7 +9,7 @@ themeToggle.addEventListener("click", () => {
     icon.classList.toggle("fa-moon");
 });
 
-// Language Toggle
+// Language Toggle - Initialize immediately
 let currentLanguage = localStorage.getItem("language") || "en";
 
 // Function to change language
@@ -45,7 +45,7 @@ function changeLanguage(lang) {
 // Function to update complex elements that need special handling
 function updateComplexElements(lang) {
     // Update hero title with typing effect
-    updateHeroTitle(lang);
+    updateHeroTitle();
 
     // Update Load More button
     const loadMoreBtn = document.getElementById("load-more-btn");
@@ -206,16 +206,27 @@ function typeWriterFullTitle(titleElement, greetingText, nameText, speed = 40) {
     });
 }
 
-// Function to update hero title based on language
-function updateHeroTitle(lang) {
+// Function to update hero title based on current language
+function updateHeroTitle() {
     const heroTitle = document.querySelector(".hero-title");
 
     if (heroTitle) {
-        const greetingText = lang === "es" ? "Hola, soy " : "Hello, I'm ";
+        const greetingText = currentLanguage === "es" ? "Hola, soy " : "Hello, I'm ";
 
-        // Clear the title and recreate with proper structure
-        heroTitle.innerHTML =
-            '<span class="hero-greeting" data-en="Hello, I\'m " data-es="Hola, soy "></span><span class="highlight">Kelvin He</span>';
+        // Check if structure already exists to prevent flash
+        let greetingSpan = heroTitle.querySelector(".hero-greeting");
+        let nameSpan = heroTitle.querySelector(".highlight");
+        
+        if (!greetingSpan || !nameSpan) {
+            // Only recreate structure if it doesn't exist
+            heroTitle.innerHTML = '<span class="hero-greeting" data-en="Hello, I\'m " data-es="Hola, soy "></span><span class="highlight"></span>';
+            greetingSpan = heroTitle.querySelector(".hero-greeting");
+            nameSpan = heroTitle.querySelector(".highlight");
+        }
+
+        // Clear content before typing
+        if (greetingSpan) greetingSpan.textContent = "";
+        if (nameSpan) nameSpan.textContent = "";
 
         // Apply typing effect to the entire title with optimized speed
         typeWriterFullTitle(heroTitle, greetingText, "Kelvin He", 40);
@@ -224,19 +235,48 @@ function updateHeroTitle(lang) {
 
 // Initialize language and typing effect on page load
 document.addEventListener("DOMContentLoaded", () => {
-    // First initialize language (without typing effect for hero)
-    changeLanguage(currentLanguage);
+    // Initialize hero title structure FIRST to prevent flash
+    const heroTitle = document.querySelector(".hero-title");
+    if (heroTitle) {
+        // Set up the HTML structure immediately with empty content
+        heroTitle.innerHTML = '<span class="hero-greeting" data-en="Hello, I\'m " data-es="Hola, soy "></span><span class="highlight"></span>';
+        
+        // Clear both spans to prevent any flash
+        const greetingSpan = heroTitle.querySelector(".hero-greeting");
+        const nameSpan = heroTitle.querySelector(".highlight");
+        if (greetingSpan) greetingSpan.textContent = "";
+        if (nameSpan) nameSpan.textContent = "";
+    }
 
-    // Then start typing effect after a short delay for better performance
+    // Initialize language for all OTHER elements (excluding hero-greeting)
+    const elements = document.querySelectorAll("[data-en][data-es]:not(.hero-greeting)");
+    elements.forEach((element) => {
+        const text = element.getAttribute(`data-${currentLanguage}`);
+        if (text) {
+            element.textContent = text;
+        }
+    });
+
+    // Update language icon
+    const icon = languageToggle.querySelector("i");
+    if (currentLanguage === "es") {
+        icon.className = "fas fa-globe";
+        icon.style.color = "#00c6ff";
+    } else {
+        icon.className = "fas fa-globe";
+        icon.style.color = "";
+    }
+
+    // Update complex elements (forms, buttons, etc.)
+    updateComplexElements(currentLanguage);
+
+    // Start typing effect immediately with correct language
     setTimeout(() => {
-        const heroTitle = document.querySelector(".hero-title");
-
         if (heroTitle) {
-            const greetingText =
-                currentLanguage === "es" ? "Hola, soy " : "Hello, I'm ";
+            const greetingText = currentLanguage === "es" ? "Hola, soy " : "Hello, I'm ";
             typeWriterFullTitle(heroTitle, greetingText, "Kelvin He", 40);
         }
-    }, 150);
+    }, 100);
 });
 // Mouse glow effect
 document.addEventListener("mousemove", (e) => {
