@@ -131,12 +131,18 @@ function updateComplexElements(lang) {
 // Language toggle event listener
 languageToggle.addEventListener("click", () => {
     const newLang = currentLanguage === "en" ? "es" : "en";
+    
+    // Allow typing effect for language changes
+    typingInitialized = false;
+    isTypingActive = false;
+    
     changeLanguage(newLang);
 });
 
 // Typing effect for hero title - Optimized
 let typingTimeout;
 let isTypingActive = false;
+let typingInitialized = false; // Flag to prevent multiple initializations
 
 function typeWriter(element, text, speed = 80) {
     // Clear any existing timeout
@@ -167,6 +173,11 @@ function typeWriter(element, text, speed = 80) {
 
 // Typing effect for full hero title (greeting + name) - Optimized version
 function typeWriterFullTitle(titleElement, greetingText, nameText, speed = 40) {
+    // Prevent multiple executions
+    if (isTypingActive) {
+        return;
+    }
+
     // Clear any existing timeout
     if (typingTimeout) {
         clearTimeout(typingTimeout);
@@ -176,6 +187,9 @@ function typeWriterFullTitle(titleElement, greetingText, nameText, speed = 40) {
     const nameSpan = titleElement.querySelector(".highlight");
 
     if (!greetingSpan || !nameSpan) return;
+
+    // Set typing as active to prevent concurrent executions
+    isTypingActive = true;
 
     let greetingIndex = 0;
     let nameIndex = 0;
@@ -200,6 +214,9 @@ function typeWriterFullTitle(titleElement, greetingText, nameText, speed = 40) {
             nameSpan.textContent += nameText.charAt(nameIndex);
             nameIndex++;
             typingTimeout = setTimeout(type, speed);
+        } else {
+            // Typing completed
+            isTypingActive = false;
         }
     }
 
@@ -227,12 +244,20 @@ function updateHeroTitle() {
             nameSpan = heroTitle.querySelector(".highlight");
         }
 
-        // Clear content before typing
-        if (greetingSpan) greetingSpan.textContent = "";
-        if (nameSpan) nameSpan.textContent = "";
+        // Only run typing effect if not already initialized or if explicitly changing language
+        if (!typingInitialized) {
+            // Clear content before typing
+            if (greetingSpan) greetingSpan.textContent = "";
+            if (nameSpan) nameSpan.textContent = "";
 
-        // Apply typing effect to the entire title with optimized speed
-        typeWriterFullTitle(heroTitle, greetingText, "Kelvin He", 40);
+            // Apply typing effect to the entire title with optimized speed
+            typeWriterFullTitle(heroTitle, greetingText, "Kelvin He", 40);
+            typingInitialized = true;
+        } else {
+            // Just update the text directly for language changes (no typing effect)
+            if (greetingSpan) greetingSpan.textContent = greetingText;
+            if (nameSpan) nameSpan.textContent = "Kelvin He";
+        }
     }
 }
 
@@ -275,9 +300,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Start typing effect immediately with correct language
     setTimeout(() => {
-        if (heroTitle) {
+        if (heroTitle && !typingInitialized) {
             const greetingText = currentLanguage === "es" ? "Hola, soy " : "Hello, I'm ";
             typeWriterFullTitle(heroTitle, greetingText, "Kelvin He", 40);
+            typingInitialized = true;
         }
     }, 100);
 });
