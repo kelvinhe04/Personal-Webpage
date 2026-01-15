@@ -1362,12 +1362,26 @@ body:hover::after {
 .form-input {
     width: 100%;
     padding: 1rem;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--border-color);
     border-radius: 8px;
     color: var(--text-primary);
     font-size: 1rem;
     transition: all 0.3s ease;
+    /* Asegurar consistencia entre input y textarea */
+    font-family: inherit;
+    box-sizing: border-box;
+    appearance: none;
+    -webkit-appearance: none;
+    line-height: normal;
+}
+
+textarea.form-input {
+    resize: vertical;
+    min-height: 120px;
+    /* Resetear estilos específicos de textarea que puedan causar inconsistencia */
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
 }
 
 .form-input:focus {

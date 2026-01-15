@@ -1021,7 +1021,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const loadMoreCertBtn = document.getElementById("load-more-certificates-btn");
     const hiddenCertificates = document.querySelectorAll(".hidden-certificate");
     let currentlyVisibleCerts = 0;
-    const certificatesPerLoad = 2; // Cargar 2 certificados a la vez
+    const certificatesPerLoad = 4; // Cargar 4 certificados a la vez
     
     // Inicializar el texto del botón de certificados
     updateCertificatesButtonText();
@@ -1055,34 +1055,36 @@ document.addEventListener("DOMContentLoaded", function () {
                     return;
                 }
 
-                // Contador fuera del loop para evitar conflictos
-                let certificatesProcessed = 0;
+                // Guardar índice inicial para el loop
                 const batchStartIndex = currentlyVisibleCerts;
 
-                // Función para finalizar el batch
-                function finalizeBatch() {
-                    // Actualizar contador global
-                    currentlyVisibleCerts += certificatesToShow;
-                    
-                    // Remover loading y actualizar texto
-                    loadMoreCertBtn.classList.remove("loading");
-                    updateCertificatesButtonText();
-                    
-                    // Si todos los certificados están visibles
-                    if (currentlyVisibleCerts >= hiddenCertificates.length) {
-                        setTimeout(() => {
-                            // Aplicar estilos de completado
-                            loadMoreCertBtn.style.background = "var(--glass-bg)";
-                            loadMoreCertBtn.style.color = "var(--text-secondary)";
-                            loadMoreCertBtn.style.pointerEvents = "none";
+                // Actualizar contador global
+                currentlyVisibleCerts += certificatesToShow;
 
-                            // Ocultar el botón después de un momento
-                            setTimeout(() => {
-                                loadMoreCertBtn.style.visibility = "hidden";
-                                loadMoreCertBtn.style.opacity = "0";
-                            }, 1500);
-                        }, 200);
-                    }
+                // Remover loading y actualizar texto inmediatamente (como en proyectos)
+                loadMoreCertBtn.classList.remove("loading");
+                
+                // Si todos los certificados están visibles
+                if (currentlyVisibleCerts >= hiddenCertificates.length) {
+                    loadMoreCertBtn.innerHTML =
+                        currentLanguage === "es"
+                            ? '<i class="fas fa-check"></i> Todos los Certificados Cargados'
+                            : '<i class="fas fa-check"></i> All Certificates Loaded';
+                    
+                    // Aplicar estilos de completado inmediatamente
+                    loadMoreCertBtn.style.transition = "none";
+                    loadMoreCertBtn.style.background = "var(--glass-bg)";
+                    loadMoreCertBtn.style.color = "var(--text-secondary)";
+                    loadMoreCertBtn.style.pointerEvents = "none";
+
+                    // Ocultar el botón después de un momento
+                    setTimeout(() => {
+                        loadMoreCertBtn.style.transition = "opacity 0.5s ease, visibility 0.5s";
+                        loadMoreCertBtn.style.visibility = "hidden";
+                        loadMoreCertBtn.style.opacity = "0";
+                    }, 1500);
+                } else {
+                    updateCertificatesButtonText();
                 }
 
                 // Mostrar los próximos certificados con animación suave
@@ -1095,12 +1097,6 @@ document.addEventListener("DOMContentLoaded", function () {
                         // Agregar delay escalonado para animación suave
                         setTimeout(() => {
                             hiddenCertificates[i].classList.add("show");
-                            certificatesProcessed++;
-                            
-                            // Cuando se procese el último certificado del batch
-                            if (certificatesProcessed === certificatesToShow) {
-                                finalizeBatch();
-                            }
                         }, (i - batchStartIndex) * 200);
                     }
                 }
