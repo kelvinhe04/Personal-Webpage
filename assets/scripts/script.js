@@ -29,7 +29,7 @@ function changeLanguage(lang) {
 
     // Update all elements with language attributes (except hero-greeting)
     const elements = document.querySelectorAll(
-        "[data-en][data-es]:not(.hero-greeting)"
+        "[data-en][data-es]:not(.hero-greeting)",
     );
     elements.forEach((element) => {
         const text = element.getAttribute(`data-${lang}`);
@@ -51,7 +51,7 @@ function updateComplexElements(lang) {
     const loadMoreBtn = document.getElementById("load-more-btn");
     if (loadMoreBtn && !loadMoreBtn.style.visibility === "hidden") {
         const remaining = document.querySelectorAll(
-            ".hidden-project:not(.show)"
+            ".hidden-project:not(.show)",
         ).length;
         if (remaining > 0) {
             if (lang === "es") {
@@ -107,7 +107,7 @@ function updateComplexElements(lang) {
 
     // Update project links (Code/Demo buttons)
     const projectLinks = document.querySelectorAll(
-        ".project-link span[data-en]"
+        ".project-link span[data-en]",
     );
     projectLinks.forEach((link) => {
         const enText = link.getAttribute("data-en");
@@ -131,11 +131,11 @@ function updateComplexElements(lang) {
 // Language toggle event listener
 languageToggle.addEventListener("click", () => {
     const newLang = currentLanguage === "en" ? "es" : "en";
-    
+
     // Allow typing effect for language changes
     typingInitialized = false;
     isTypingActive = false;
-    
+
     changeLanguage(newLang);
 });
 
@@ -231,15 +231,17 @@ function updateHeroTitle() {
     const heroTitle = document.querySelector(".hero-title");
 
     if (heroTitle) {
-        const greetingText = currentLanguage === "es" ? "Hola, soy " : "Hello, I'm ";
+        const greetingText =
+            currentLanguage === "es" ? "Hola, soy " : "Hello, I'm ";
 
         // Check if structure already exists to prevent flash
         let greetingSpan = heroTitle.querySelector(".hero-greeting");
         let nameSpan = heroTitle.querySelector(".highlight");
-        
+
         if (!greetingSpan || !nameSpan) {
             // Only recreate structure if it doesn't exist
-            heroTitle.innerHTML = '<span class="hero-greeting" data-en="Hello, I\'m " data-es="Hola, soy "></span><span class="highlight"></span>';
+            heroTitle.innerHTML =
+                '<span class="hero-greeting" data-en="Hello, I\'m " data-es="Hola, soy "></span><span class="highlight"></span>';
             greetingSpan = heroTitle.querySelector(".hero-greeting");
             nameSpan = heroTitle.querySelector(".highlight");
         }
@@ -267,8 +269,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const heroTitle = document.querySelector(".hero-title");
     if (heroTitle) {
         // Set up the HTML structure immediately with empty content
-        heroTitle.innerHTML = '<span class="hero-greeting" data-en="Hello, I\'m " data-es="Hola, soy "></span><span class="highlight"></span>';
-        
+        heroTitle.innerHTML =
+            '<span class="hero-greeting" data-en="Hello, I\'m " data-es="Hola, soy "></span><span class="highlight"></span>';
+
         // Clear both spans to prevent any flash
         const greetingSpan = heroTitle.querySelector(".hero-greeting");
         const nameSpan = heroTitle.querySelector(".highlight");
@@ -277,7 +280,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Initialize language for all OTHER elements (excluding hero-greeting)
-    const elements = document.querySelectorAll("[data-en][data-es]:not(.hero-greeting)");
+    const elements = document.querySelectorAll(
+        "[data-en][data-es]:not(.hero-greeting)",
+    );
     elements.forEach((element) => {
         const text = element.getAttribute(`data-${currentLanguage}`);
         if (text) {
@@ -301,7 +306,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Start typing effect immediately with correct language
     setTimeout(() => {
         if (heroTitle && !typingInitialized) {
-            const greetingText = currentLanguage === "es" ? "Hola, soy " : "Hello, I'm ";
+            const greetingText =
+                currentLanguage === "es" ? "Hola, soy " : "Hello, I'm ";
             typeWriterFullTitle(heroTitle, greetingText, "Kelvin He", 40);
             typingInitialized = true;
         }
@@ -403,7 +409,7 @@ const observer = new IntersectionObserver((entries) => {
             } else {
                 // Para elementos individuales, agregar delay si hay múltiples
                 const siblings = entry.target.parentElement.querySelectorAll(
-                    ".project-card, .tech-category"
+                    ".project-card, .tech-category",
                 );
                 const index = Array.from(siblings).indexOf(entry.target);
 
@@ -422,7 +428,7 @@ const observer = new IntersectionObserver((entries) => {
 document.addEventListener("DOMContentLoaded", () => {
     // Excluir proyectos ocultos del observer para evitar doble animación
     const animateElements = document.querySelectorAll(
-        ".project-card:not(.hidden-project), .tech-category, .about-content, .contact-content, .timeline-item, .certificate-card"
+        ".project-card:not(.hidden-project), .tech-category, .about-content, .contact-content, .timeline-item, .certificate-card",
     );
     animateElements.forEach((el) => {
         observer.observe(el);
@@ -459,7 +465,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!name || !email || !subject || !message) {
                 showNotification(
                     "Por favor, completa todos los campos.",
-                    "error"
+                    "error",
                 );
                 return;
             }
@@ -469,7 +475,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!emailRegex.test(email)) {
                 showNotification(
                     "Por favor, introduce un email válido.",
-                    "error"
+                    "error",
                 );
                 return;
             }
@@ -478,7 +484,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (name.length < 2) {
                 showNotification(
                     "El nombre debe tener al menos 2 caracteres.",
-                    "error"
+                    "error",
                 );
                 return;
             }
@@ -486,7 +492,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (subject.length < 3) {
                 showNotification(
                     "El asunto debe tener al menos 3 caracteres.",
-                    "error"
+                    "error",
                 );
                 return;
             }
@@ -494,7 +500,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (message.length < 10) {
                 showNotification(
                     "El mensaje debe tener al menos 10 caracteres.",
-                    "error"
+                    "error",
                 );
                 return;
             }
@@ -509,13 +515,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 const result = await emailjs.sendForm(
                     "service_9ave0ys", // Tu Service ID va aquí
                     "template_n9lja1l", // Reemplaza con tu Template ID
-                    form
+                    form,
                 );
 
                 console.log("Email sent successfully:", result);
                 showNotification(
                     "¡Mensaje enviado exitosamente! Te responderé pronto.",
-                    "success"
+                    "success",
                 );
                 form.reset();
             } catch (error) {
@@ -563,8 +569,8 @@ function showNotification(message, type = "info") {
         padding: isSmallMobile
             ? "0.7rem 1rem"
             : isMobile
-            ? "0.8rem 1.2rem"
-            : "1rem 1.5rem",
+              ? "0.8rem 1.2rem"
+              : "1rem 1.5rem",
         borderRadius: "8px",
         color: "white",
         fontWeight: "500",
@@ -658,7 +664,7 @@ const statsObserver = new IntersectionObserver(
             }
         });
     },
-    { threshold: 0.5 }
+    { threshold: 0.5 },
 );
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -919,7 +925,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 // Determinar cuántos proyectos mostrar
                 const projectsToShow = Math.min(
                     projectsPerLoad,
-                    hiddenProjects.length - currentlyVisible
+                    hiddenProjects.length - currentlyVisible,
                 );
 
                 // Mostrar los próximos proyectos con animación suave
@@ -936,9 +942,12 @@ document.addEventListener("DOMContentLoaded", function () {
                         hiddenProjects[i].offsetHeight;
 
                         // Agregar delay escalonado para animación suave
-                        setTimeout(() => {
-                            hiddenProjects[i].classList.add("show");
-                        }, (i - currentlyVisible) * 200); // Aumentado a 200ms para más suavidad
+                        setTimeout(
+                            () => {
+                                hiddenProjects[i].classList.add("show");
+                            },
+                            (i - currentlyVisible) * 200,
+                        ); // Aumentado a 200ms para más suavidad
                     }
                 }
 
@@ -977,11 +986,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // Function to update certificates button text
 function updateCertificatesButtonText() {
-    const loadMoreCertBtn = document.getElementById("load-more-certificates-btn");
+    const loadMoreCertBtn = document.getElementById(
+        "load-more-certificates-btn",
+    );
     if (loadMoreCertBtn && loadMoreCertBtn.style.visibility !== "hidden") {
-        const remainingCerts = document.querySelectorAll(".hidden-certificate:not(.show)").length;
+        const remainingCerts = document.querySelectorAll(
+            ".hidden-certificate:not(.show)",
+        ).length;
         const isMobile = window.innerWidth <= 480;
-        
+
         if (remainingCerts > 0) {
             if (isMobile) {
                 const certText = remainingCerts === 1 ? "Cert" : "Certs";
@@ -990,9 +1003,14 @@ function updateCertificatesButtonText() {
                         ? `<i class="fas fa-plus"></i> <span class="cert-btn-text">Más ${certText} (${remainingCerts})</span>`
                         : `<i class="fas fa-plus"></i> <span class="cert-btn-text">More ${certText} (${remainingCerts})</span>`;
             } else {
-                const certText = remainingCerts === 1 ? 
-                    (currentLanguage === "es" ? "restante" : "remaining") :
-                    (currentLanguage === "es" ? "restantes" : "remaining");
+                const certText =
+                    remainingCerts === 1
+                        ? currentLanguage === "es"
+                            ? "restante"
+                            : "remaining"
+                        : currentLanguage === "es"
+                          ? "restantes"
+                          : "remaining";
                 loadMoreCertBtn.innerHTML =
                     currentLanguage === "es"
                         ? `<i class="fas fa-plus"></i> <span class="cert-btn-text">Cargar Más Certificados (${remainingCerts} ${certText})</span>`
@@ -1018,11 +1036,13 @@ function updateCertificatesButtonText() {
 // ============================
 
 document.addEventListener("DOMContentLoaded", function () {
-    const loadMoreCertBtn = document.getElementById("load-more-certificates-btn");
+    const loadMoreCertBtn = document.getElementById(
+        "load-more-certificates-btn",
+    );
     const hiddenCertificates = document.querySelectorAll(".hidden-certificate");
     let currentlyVisibleCerts = 0;
     const certificatesPerLoad = 4; // Cargar 4 certificados a la vez
-    
+
     // Inicializar el texto del botón de certificados
     updateCertificatesButtonText();
 
@@ -1045,7 +1065,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 // Determinar cuántos certificados mostrar
                 const certificatesToShow = Math.min(
                     certificatesPerLoad,
-                    hiddenCertificates.length - currentlyVisibleCerts
+                    hiddenCertificates.length - currentlyVisibleCerts,
                 );
 
                 // Si no hay certificados para mostrar, salir
@@ -1063,14 +1083,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 // Remover loading y actualizar texto inmediatamente (como en proyectos)
                 loadMoreCertBtn.classList.remove("loading");
-                
+
                 // Si todos los certificados están visibles
                 if (currentlyVisibleCerts >= hiddenCertificates.length) {
                     loadMoreCertBtn.innerHTML =
                         currentLanguage === "es"
                             ? '<i class="fas fa-check"></i> Todos los Certificados Cargados'
                             : '<i class="fas fa-check"></i> All Certificates Loaded';
-                    
+
                     // Aplicar estilos de completado inmediatamente
                     loadMoreCertBtn.style.transition = "none";
                     loadMoreCertBtn.style.background = "var(--glass-bg)";
@@ -1079,7 +1099,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     // Ocultar el botón después de un momento
                     setTimeout(() => {
-                        loadMoreCertBtn.style.transition = "opacity 0.5s ease, visibility 0.5s";
+                        loadMoreCertBtn.style.transition =
+                            "opacity 0.5s ease, visibility 0.5s";
                         loadMoreCertBtn.style.visibility = "hidden";
                         loadMoreCertBtn.style.opacity = "0";
                     }, 1500);
@@ -1088,16 +1109,23 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
 
                 // Mostrar los próximos certificados con animación suave
-                for (let i = batchStartIndex; i < batchStartIndex + certificatesToShow; i++) {
+                for (
+                    let i = batchStartIndex;
+                    i < batchStartIndex + certificatesToShow;
+                    i++
+                ) {
                     if (hiddenCertificates[i]) {
                         // Hacer visible el elemento
                         hiddenCertificates[i].style.display = "flex";
                         hiddenCertificates[i].offsetHeight; // Forzar reflow
 
                         // Agregar delay escalonado para animación suave
-                        setTimeout(() => {
-                            hiddenCertificates[i].classList.add("show");
-                        }, (i - batchStartIndex) * 200);
+                        setTimeout(
+                            () => {
+                                hiddenCertificates[i].classList.add("show");
+                            },
+                            (i - batchStartIndex) * 200,
+                        );
                     }
                 }
             }, 300);
@@ -1106,6 +1134,22 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // Update certificates button text on window resize
-window.addEventListener('resize', function() {
+window.addEventListener("resize", function () {
     updateCertificatesButtonText();
 });
+
+// Dynamic Year based on Panama Timezone
+function updateYear() {
+    const yearElement = document.getElementById("year");
+    if (yearElement) {
+        // Get date in Panama timezone
+        const date = new Date();
+        const panamaDate = new Date(
+            date.toLocaleString("en-US", { timeZone: "America/Panama" }),
+        );
+        yearElement.textContent = panamaDate.getFullYear();
+    }
+}
+
+// Initialize year
+document.addEventListener("DOMContentLoaded", updateYear);
