@@ -779,6 +779,11 @@ body:hover::after {
     filter: hue-rotate(11.01deg);
     /* Cambia el color del SVG */
 }
+.DBeaver-icon {
+    width: 20px;
+    height: 20px;
+    filter: hue-rotate(180.01deg);
+}
 
 .SQLite-icon {
     width: 20px;

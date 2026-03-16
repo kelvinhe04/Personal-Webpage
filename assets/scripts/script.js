@@ -1041,7 +1041,7 @@ document.addEventListener("DOMContentLoaded", function () {
     );
     const hiddenCertificates = document.querySelectorAll(".hidden-certificate");
     let currentlyVisibleCerts = 0;
-    const certificatesPerLoad = 4; // Cargar 4 certificados a la vez
+    const certificatesPerLoad = 2; // Cargar 4 certificados a la vez
 
     // Inicializar el texto del botón de certificados
     updateCertificatesButtonText();
@@ -1075,23 +1075,48 @@ document.addEventListener("DOMContentLoaded", function () {
                     return;
                 }
 
-                // Guardar índice inicial para el loop
+                // Mostrar los próximos certificados con animación suave
                 const batchStartIndex = currentlyVisibleCerts;
+
+                for (
+                    let i = batchStartIndex;
+                    i < batchStartIndex + certificatesToShow;
+                    i++
+                ) {
+                    if (hiddenCertificates[i]) {
+                        // Hacer visible el elemento
+                        hiddenCertificates[i].style.display = "flex";
+                        hiddenCertificates[i].offsetHeight; // Forzar reflow
+
+                        // Remover la clase hidden-certificate para que updateCertificatesButtonText lo cuente bien
+                        hiddenCertificates[i].classList.remove("hidden-certificate");
+
+                        // Agregar delay escalonado para animación suave
+                        setTimeout(
+                            () => {
+                                hiddenCertificates[i].classList.add("show");
+                            },
+                            (i - batchStartIndex) * 200,
+                        );
+                    }
+                }
 
                 // Actualizar contador global
                 currentlyVisibleCerts += certificatesToShow;
 
-                // Remover loading y actualizar texto inmediatamente (como en proyectos)
+                // Remover loading y actualizar texto inmediatamente
                 loadMoreCertBtn.classList.remove("loading");
 
-                // Si todos los certificados están visibles
-                if (currentlyVisibleCerts >= hiddenCertificates.length) {
+                // Actualizar estado del botón basado en los que quedan
+                const remaining = hiddenCertificates.length - currentlyVisibleCerts;
+                
+                if (remaining <= 0) {
                     loadMoreCertBtn.innerHTML =
                         currentLanguage === "es"
                             ? '<i class="fas fa-check"></i> Todos los Certificados Cargados'
                             : '<i class="fas fa-check"></i> All Certificates Loaded';
 
-                    // Aplicar estilos de completado inmediatamente
+                    // Aplicar estilos de completado
                     loadMoreCertBtn.style.transition = "none";
                     loadMoreCertBtn.style.background = "var(--glass-bg)";
                     loadMoreCertBtn.style.color = "var(--text-secondary)";
@@ -1106,27 +1131,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     }, 1500);
                 } else {
                     updateCertificatesButtonText();
-                }
-
-                // Mostrar los próximos certificados con animación suave
-                for (
-                    let i = batchStartIndex;
-                    i < batchStartIndex + certificatesToShow;
-                    i++
-                ) {
-                    if (hiddenCertificates[i]) {
-                        // Hacer visible el elemento
-                        hiddenCertificates[i].style.display = "flex";
-                        hiddenCertificates[i].offsetHeight; // Forzar reflow
-
-                        // Agregar delay escalonado para animación suave
-                        setTimeout(
-                            () => {
-                                hiddenCertificates[i].classList.add("show");
-                            },
-                            (i - batchStartIndex) * 200,
-                        );
-                    }
                 }
             }, 300);
         });
