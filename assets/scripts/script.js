@@ -20,10 +20,10 @@ function changeLanguage(lang) {
     // Update language icon
     const icon = languageToggle.querySelector("i");
     if (lang === "es") {
-        icon.className = "fas fa-globe";
+        icon.className = "fas fa-language";
         icon.style.color = "#00c6ff";
     } else {
-        icon.className = "fas fa-globe";
+        icon.className = "fas fa-language";
         icon.style.color = "";
     }
 
@@ -293,10 +293,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Update language icon
     const icon = languageToggle.querySelector("i");
     if (currentLanguage === "es") {
-        icon.className = "fas fa-globe";
+        icon.className = "fas fa-language";
         icon.style.color = "#00c6ff";
     } else {
-        icon.className = "fas fa-globe";
+        icon.className = "fas fa-language";
         icon.style.color = "";
     }
 

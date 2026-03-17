@@ -215,6 +215,7 @@ body:hover::after {
     align-items: center;
     height: 60px;
     overflow: hidden;
+    position: relative;
 }
 
 .nav-logo .logo-text {
@@ -236,6 +237,14 @@ body:hover::after {
     align-items: center;
 }
 
+@media (min-width: 769px) {
+    .nav-menu {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}
+
 .nav-links {
     display: flex;
     gap: 2rem;
@@ -251,6 +260,7 @@ body:hover::after {
     position: relative;
     transition: all 0.3s ease;
     padding: 0.5rem 0;
+    white-space: nowrap;
 }
 
 .nav-link::after {
