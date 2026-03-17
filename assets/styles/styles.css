@@ -221,6 +221,7 @@ body:hover::after {
 .nav-logo .logo-text {
     font-size: 1.5rem;
     font-weight: 700;
+    text-decoration: none;
     background: linear-gradient(135deg,
             var(--accent-color),
             var(--accent-secondary));
