@@ -18,6 +18,7 @@
     --secondary-bg: #0f0f0f;
     --accent-color: #00c6ff;
     --accent-secondary: #00c6ff;
+    --accent-rgb: 0, 198, 255;
     --text-primary: #ffffff;
     --text-secondary: #b0b3b8;
     --text-muted: #8a8d93;
@@ -25,9 +26,9 @@
     --glass-bg: rgba(255, 255, 255, 0.05);
     --glass-border: rgba(255, 255, 255, 0.1);
     --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    --shadow-hover: 0 12px 40px rgba(0, 198, 255, 0.2);
-    --mouse-glow-before: rgba(0, 198, 255, 0.15);
-    --mouse-glow-after: rgba(0, 198, 255, 0.1);
+    --shadow-hover: 0 12px 40px rgba(var(--accent-rgb), 0.2);
+    --mouse-glow-before: rgba(var(--accent-rgb), 0.15);
+    --mouse-glow-after: rgba(var(--accent-rgb), 0.1);
     --scrolled: rgba(7, 10, 23, 0.9);
 }
 
@@ -37,10 +38,11 @@ body.light-mode {
     /* Fondo blanco */
     --secondary-bg: #f5f5f5;
     /* Fondo gris claro */
-    --accent-color: #00c6ff;
-    /* Mantener el azul */
-    --accent-secondary: #00c6ff;
-    /* Mantener el azul */
+    --accent-color: #0077b6;
+    /* Azul con mejor contraste */
+    --accent-secondary: #0077b6;
+    --accent-rgb: 0, 119, 182;
+    /* Azul con mejor contraste */
     --text-primary: #000000;
     /* Texto negro */
     --text-secondary: #333333;
@@ -53,13 +55,14 @@ body.light-mode {
     /* Fondo ligeramente oscuro */
     --glass-border: rgba(0, 0, 0, 0.1);
     /* Borde oscuro sutil */
-    --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    --card-shadow: 0 15px 40px rgba(var(--accent-rgb), 0.1);
     /* Sombra suave */
-    --shadow-hover: 0 12px 40px rgba(0, 198, 255, 0.2);
+    --shadow-hover: 0 12px 40px rgba(var(--accent-rgb), 0.2);
     /* Sombra azul cuando se pasa el ratón */
-    --mouse-glow-before: rgba(0, 198, 255, 0.15);
+    --mouse-glow-before: rgba(var(--accent-rgb), 0.15);
     /* Efecto glow azul */
-    --mouse-glow-after: rgba(0, 198, 255, 0.1);
+    --mouse-glow-after: rgba(var(--accent-rgb), 0.1);
     --scrolled: rgba(240, 240, 240, 0.9);
 }
 
@@ -297,7 +300,7 @@ body:hover::after {
     justify-content: center;
     font-size: 16px;
     padding: 10px;
-    box-shadow: var(--shadow);
+    box-shadow: var(--card-shadow, var(--shadow));
     color: var(--text-primary);
     text-decoration: none;
     font-weight: 500;
@@ -319,7 +322,7 @@ body:hover::after {
     justify-content: center;
     font-size: 16px;
     padding: 10px;
-    box-shadow: var(--shadow);
+    box-shadow: var(--card-shadow, var(--shadow));
     color: var(--text-primary);
     text-decoration: none;
     font-weight: 500;
@@ -479,7 +482,7 @@ body:hover::after {
             var(--accent-color),
             var(--accent-secondary));
     color: white;
-    box-shadow: var(--shadow);
+    box-shadow: var(--card-shadow, var(--shadow));
 }
 
 .btn-primary:hover {
@@ -519,7 +522,7 @@ body:hover::after {
     font-size: 4rem;
     color: var(--accent-color);
     animation: float 3s ease-in-out infinite;
-    box-shadow: var(--shadow);
+    box-shadow: var(--card-shadow, var(--shadow));
 }
 
 /* Flecha de scroll animada */
@@ -547,7 +550,7 @@ body:hover::after {
     font-size: 1.2rem;
     transition: all 0.3s ease;
     animation: bounce 2s ease-in-out infinite;
-    box-shadow: var(--shadow);
+    box-shadow: var(--card-shadow, var(--shadow));
 }
 
 .arrow-link:hover {
@@ -675,7 +678,7 @@ body:hover::after {
     border: 1px solid var(--glass-border);
     border-radius: 100%;
     text-align: center;
-    box-shadow: var(--shadow);
+    box-shadow: var(--card-shadow, var(--shadow));
     width: 200px;
     height: 200px;
     display: flex;
@@ -691,7 +694,7 @@ body:hover::after {
     border: 1px solid var(--glass-border);
     border-radius: 100%;
     text-align: center;
-    box-shadow: var(--shadow);
+    box-shadow: var(--card-shadow, var(--shadow));
     width: 190px;
     height: 190px;
     display: flex;
@@ -738,7 +741,7 @@ body:hover::after {
     border: 1px solid var(--glass-border);
     border-radius: 16px;
     padding: 2rem;
-    box-shadow: var(--shadow);
+    box-shadow: var(--card-shadow, var(--shadow));
     transition: all 0.3s ease !important;
 }
 
@@ -771,7 +774,7 @@ body:hover::after {
 }
 
 .tech-item:hover {
-    /* background: rgba(0, 198, 255, 0.1); */
+    /* background: rgba(var(--accent-rgb), 0.1); */
     transform: translateX(5px);
 }
 
@@ -854,7 +857,7 @@ body:hover::after {
     background: var(--accent-color) !important;
     border: 4px solid var(--primary-bg) !important;
     border-radius: 50% !important;
-    box-shadow: 0 0 0 4px rgba(0, 198, 255, 0.2) !important;
+    box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.2) !important;
     z-index: 10 !important;
     transform: none !important;
     /* Resetear transform */
@@ -891,7 +894,7 @@ body:hover::after {
     background: var(--accent-color);
     border: 4px solid var(--primary-bg);
     border-radius: 50%;
-    box-shadow: 0 0 0 4px rgba(0, 198, 255, 0.2);
+    box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.2);
     z-index: 10;
 }
 
@@ -902,7 +905,7 @@ body:hover::after {
     border: 1px solid var(--glass-border);
     border-radius: 16px;
     padding: 2rem;
-    box-shadow: var(--shadow);
+    box-shadow: var(--card-shadow, var(--shadow));
     transition: all 0.3s ease;
     width: 100%;
     box-sizing: border-box;
@@ -958,7 +961,7 @@ body:hover::after {
 }
 
 .skill-tag {
-    background: rgba(0, 198, 255, 0.1);
+    background: rgba(var(--accent-rgb), 0.1);
     color: var(--accent-color);
     padding: 0.3rem 0.8rem;
     border-radius: 20px;
@@ -986,7 +989,7 @@ body:hover::after {
     border: 1px solid var(--glass-border);
     border-radius: 16px;
     padding: 2rem;
-    box-shadow: var(--shadow);
+    box-shadow: var(--card-shadow, var(--shadow));
     transition: all 0.3s ease !important;
     display: flex;
     gap: 1.5rem;
@@ -1051,7 +1054,7 @@ body:hover::after {
 }
 
 .cert-skill-tag {
-    background: rgba(0, 198, 255, 0.08);
+    background: rgba(var(--accent-rgb), 0.08);
     color: var(--accent-color);
     padding: 0.25rem 0.7rem;
     border-radius: 16px;
@@ -1099,7 +1102,7 @@ body:hover::after {
     border: 1px solid var(--glass-border);
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: var(--shadow);
+    box-shadow: var(--card-shadow, var(--shadow));
     transition: all 0.3s ease !important;
 }
 
@@ -1177,7 +1180,7 @@ body:hover::after {
 }
 
 .tech-tag {
-    background: rgba(0, 198, 255, 0.1);
+    background: rgba(var(--accent-rgb), 0.1);
     color: var(--accent-color);
     padding: 0.25rem 0.75rem;
     border-radius: 20px;
@@ -1265,7 +1268,7 @@ body:hover::after {
 
 .load-more-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 198, 255, 0.3);
+    box-shadow: 0 8px 25px rgba(var(--accent-rgb), 0.3);
 }
 
 .load-more-btn i {
@@ -1367,7 +1370,7 @@ body:hover::after {
     border: 1px solid var(--glass-border);
     border-radius: 16px;
     padding: 2rem;
-    box-shadow: var(--shadow);
+    box-shadow: var(--card-shadow, var(--shadow));
     margin-bottom: 3rem;
 }
 
@@ -1678,7 +1681,7 @@ textarea.form-input {
         background: var(--accent-color) !important;
         border: 4px solid var(--primary-bg) !important;
         border-radius: 50% !important;
-        box-shadow: 0 0 0 4px rgba(0, 198, 255, 0.2) !important;
+        box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.2) !important;
         z-index: 10 !important;
         transform: none !important;
     }
@@ -1912,7 +1915,7 @@ textarea.form-input {
         background: var(--accent-color) !important;
         border: 4px solid var(--primary-bg) !important;
         border-radius: 50% !important;
-        box-shadow: 0 0 0 4px rgba(0, 198, 255, 0.2) !important;
+        box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.2) !important;
         z-index: 10 !important;
         transform: none !important;
     }
@@ -1971,7 +1974,7 @@ textarea.form-input {
 .project-card:hover,
 .tech-category:hover {
     transform: translateY(-10px);
-    box-shadow: 0 20px 60px rgba(0, 198, 255, 0.3);
+    box-shadow: 0 20px 60px rgba(var(--accent-rgb), 0.3);
 }
 
 /* Smooth transitions for all interactive elements */
@@ -2126,7 +2129,7 @@ textarea.form-input {
         background: var(--accent-color) !important;
         border: 2px solid var(--primary-bg) !important;
         border-radius: 50% !important;
-        box-shadow: 0 0 0 4px rgba(0, 198, 255, 0.2) !important;
+        box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.2) !important;
         z-index: 10 !important;
         transform: none !important;
     }
@@ -2170,7 +2173,7 @@ textarea.form-input {
         background: var(--accent-color) !important;
         border: 2px solid var(--primary-bg) !important;
         border-radius: 50% !important;
-        box-shadow: 0 0 0 4px rgba(0, 198, 255, 0.2) !important;
+        box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.2) !important;
         z-index: 10 !important;
         transform: none !important;
     }

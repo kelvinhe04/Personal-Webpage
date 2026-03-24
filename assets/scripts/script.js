@@ -21,7 +21,7 @@ function changeLanguage(lang) {
     const icon = languageToggle.querySelector("i");
     if (lang === "es") {
         icon.className = "fas fa-language";
-        icon.style.color = "#00c6ff";
+        icon.style.color = "var(--accent-color)";
     } else {
         icon.className = "fas fa-language";
         icon.style.color = "";
@@ -294,7 +294,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const icon = languageToggle.querySelector("i");
     if (currentLanguage === "es") {
         icon.className = "fas fa-language";
-        icon.style.color = "#00c6ff";
+        icon.style.color = "var(--accent-color)";
     } else {
         icon.className = "fas fa-language";
         icon.style.color = "";
@@ -696,7 +696,7 @@ document.addEventListener("DOMContentLoaded", () => {
     techItems.forEach((item) => {
         item.addEventListener("mouseenter", () => {
             item.style.transform = "translateX(10px)";
-            item.style.background = "rgba(0, 198, 255, 0.15)";
+            item.style.background = "rgba(var(--accent-rgb), 0.15)";
         });
 
         item.addEventListener("mouseleave", () => {
