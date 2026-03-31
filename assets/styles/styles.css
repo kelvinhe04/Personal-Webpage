@@ -796,7 +796,6 @@ body:hover::after {
 .DBeaver-icon {
     width: 20px;
     height: 20px;
-    filter: hue-rotate(180.01deg);
 }
 
 .SQLite-icon {
