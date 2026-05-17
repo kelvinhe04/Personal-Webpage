@@ -1,5 +1,6 @@
 const themeToggle = document.getElementById("themeToggle");
 const languageToggle = document.getElementById("languageToggle");
+const goTopBtn = document.querySelector(".go-top-btn");
 
 // Theme Toggle
 themeToggle.addEventListener("click", () => {
@@ -762,6 +763,16 @@ function throttle(func, wait) {
 }
 
 // Apply throttling to scroll events
+function updateGoTopButtonVisibility() {
+    if (!goTopBtn) return;
+
+    if (window.scrollY > 400) {
+        goTopBtn.classList.add("show");
+    } else {
+        goTopBtn.classList.remove("show");
+    }
+}
+
 const throttledScrollHandler = throttle(() => {
     // Navbar scroll effect
     const navbar = document.querySelector(".navbar");
@@ -793,9 +804,12 @@ const throttledScrollHandler = throttle(() => {
             link.classList.add("active");
         }
     });
+
+    updateGoTopButtonVisibility();
 }, 16); // ~60fps
 
 window.addEventListener("scroll", throttledScrollHandler);
+updateGoTopButtonVisibility();
 
 // ============================
 // PROTECCIÓN CONTRA COPIA
@@ -1089,7 +1103,9 @@ document.addEventListener("DOMContentLoaded", function () {
                         hiddenCertificates[i].offsetHeight; // Forzar reflow
 
                         // Remover la clase hidden-certificate para que updateCertificatesButtonText lo cuente bien
-                        hiddenCertificates[i].classList.remove("hidden-certificate");
+                        hiddenCertificates[i].classList.remove(
+                            "hidden-certificate",
+                        );
 
                         // Agregar delay escalonado para animación suave
                         setTimeout(
@@ -1108,8 +1124,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 loadMoreCertBtn.classList.remove("loading");
 
                 // Actualizar estado del botón basado en los que quedan
-                const remaining = hiddenCertificates.length - currentlyVisibleCerts;
-                
+                const remaining =
+                    hiddenCertificates.length - currentlyVisibleCerts;
+
                 if (remaining <= 0) {
                     loadMoreCertBtn.innerHTML =
                         currentLanguage === "es"

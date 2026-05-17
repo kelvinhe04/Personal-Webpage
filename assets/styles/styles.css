@@ -560,6 +560,51 @@ body:hover::after {
     box-shadow: var(--shadow-hover);
 }
 
+.go-top-btn {
+    position: fixed;
+    right: 2rem;
+    bottom: 2rem;
+    width: 54px;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    color: var(--accent-color);
+    text-decoration: none;
+    font-size: 1.1rem;
+    z-index: 999;
+    box-shadow: var(--card-shadow, var(--shadow));
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(24px);
+    transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease,
+        background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.go-top-btn.show {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.go-top-btn:hover {
+    background: var(--accent-color);
+    color: var(--primary-bg);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+}
+
+.go-top-btn.show:hover {
+    transform: translateY(-4px);
+}
+
 /* Animación de rebote para la flecha */
 @keyframes bounce {
 
@@ -793,6 +838,7 @@ body:hover::after {
     filter: hue-rotate(11.01deg);
     /* Cambia el color del SVG */
 }
+
 .DBeaver-icon {
     width: 20px;
     height: 20px;
@@ -1541,6 +1587,14 @@ textarea.form-input {
     .arrow-link {
         width: 40px;
         height: 40px;
+        font-size: 1rem;
+    }
+
+    .go-top-btn {
+        right: 1rem;
+        bottom: 1rem;
+        width: 48px;
+        height: 48px;
         font-size: 1rem;
     }
 
