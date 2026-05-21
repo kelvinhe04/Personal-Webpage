@@ -436,9 +436,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Form submission handling
 document.addEventListener("DOMContentLoaded", () => {
-    // Initialize EmailJS
-    emailjs.init("fF75M6sSU67LLEEQF"); // Reemplaza con tu PUBLIC KEY de EmailJS (no el service ID)
-
     const form = document.getElementById("contact-form");
     const submitBtn = document.getElementById("submit-btn");
 
@@ -446,7 +443,6 @@ document.addEventListener("DOMContentLoaded", () => {
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
 
-            // Validar campos
             const name = form
                 .querySelector('input[name="from_name"]')
                 .value.trim();
@@ -460,7 +456,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 .querySelector('textarea[name="message"]')
                 .value.trim();
 
-            // Validación básica
             if (!name || !email || !subject || !message) {
                 showNotification(
                     "Por favor, completa todos los campos.",
@@ -469,7 +464,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // Validación de email
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 showNotification(
@@ -479,7 +473,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // Validación de longitud mínima
             if (name.length < 2) {
                 showNotification(
                     "El nombre debe tener al menos 2 caracteres.",
@@ -504,44 +497,42 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // Deshabilitar el botón y mostrar estado de carga
             submitBtn.disabled = true;
             submitBtn.innerHTML =
                 '<i class="fas fa-spinner fa-spin"></i> Enviando...';
 
             try {
-                // Enviar email usando EmailJS
-                const result = await emailjs.sendForm(
-                    "service_9ave0ys", // Tu Service ID va aquí
-                    "template_n9lja1l", // Reemplaza con tu Template ID
-                    form,
-                );
+                const payload = JSON.stringify({
+                    from_name: name,
+                    reply_to: email,
+                    subject,
+                    message,
+                });
 
-                console.log("Email sent successfully:", result);
-                showNotification(
-                    "¡Mensaje enviado exitosamente! Te responderé pronto.",
-                    "success",
-                );
-                form.reset();
+                const response = await fetch("/api/send-contact", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: payload,
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    showNotification(result.message, "success");
+                    form.reset();
+                } else {
+                    showNotification(
+                        result.message || "Error al enviar el mensaje. Inténtalo de nuevo.",
+                        "error",
+                    );
+                }
             } catch (error) {
                 console.error("Error sending email:", error);
-                let errorMessage =
-                    "Error al enviar el mensaje. Inténtalo de nuevo.";
-
-                // Manejo específico de errores
-                if (error.status === 422) {
-                    errorMessage =
-                        "Configuración de EmailJS incorrecta. Contacta al administrador.";
-                } else if (error.status === 400) {
-                    errorMessage = "Datos del formulario inválidos.";
-                } else if (!navigator.onLine) {
-                    errorMessage =
-                        "Sin conexión a internet. Verifica tu conexión.";
-                }
-
-                showNotification(errorMessage, "error");
+                showNotification(
+                    "Error al enviar el mensaje. Inténtalo de nuevo.",
+                    "error",
+                );
             } finally {
-                // Restaurar el botón
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = "Enviar Mensaje";
             }
