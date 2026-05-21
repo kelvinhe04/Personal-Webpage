@@ -18,14 +18,11 @@ function changeLanguage(lang) {
     currentLanguage = lang;
     localStorage.setItem("language", lang);
 
-    // Update language icon
-    const icon = languageToggle.querySelector("i");
-    if (lang === "es") {
-        icon.className = "fas fa-language";
-        icon.style.color = "var(--accent-color)";
-    } else {
-        icon.className = "fas fa-language";
-        icon.style.color = "";
+    // Update language label and active color
+    if (languageToggle) {
+        const label = languageToggle.querySelector(".language-label");
+        if (label) label.textContent = lang === "es" ? "ES" : "EN";
+        languageToggle.style.color = lang === "es" ? "var(--accent-color)" : "";
     }
 
     // Update all elements with language attributes (except hero-greeting)
@@ -130,15 +127,18 @@ function updateComplexElements(lang) {
 }
 
 // Language toggle event listener
-languageToggle.addEventListener("click", () => {
-    const newLang = currentLanguage === "en" ? "es" : "en";
+if (languageToggle) {
+    languageToggle.addEventListener("click", (e) => {
+        e.preventDefault();
+        const newLang = currentLanguage === "en" ? "es" : "en";
 
-    // Allow typing effect for language changes
-    typingInitialized = false;
-    isTypingActive = false;
+        // Allow typing effect for language changes
+        typingInitialized = false;
+        isTypingActive = false;
 
-    changeLanguage(newLang);
-});
+        changeLanguage(newLang);
+    });
+}
 
 // Typing effect for hero title - Optimized
 let typingTimeout;
@@ -291,14 +291,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Update language icon
-    const icon = languageToggle.querySelector("i");
-    if (currentLanguage === "es") {
-        icon.className = "fas fa-language";
-        icon.style.color = "var(--accent-color)";
-    } else {
-        icon.className = "fas fa-language";
-        icon.style.color = "";
+    // Update language label
+    if (languageToggle) {
+        const label = languageToggle.querySelector(".language-label");
+        if (label) label.textContent = currentLanguage === "es" ? "ES" : "EN";
+        languageToggle.style.color =
+            currentLanguage === "es" ? "var(--accent-color)" : "";
     }
 
     // Update complex elements (forms, buttons, etc.)
