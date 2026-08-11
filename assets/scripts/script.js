@@ -192,38 +192,66 @@ function typeWriterFullTitle(titleElement, greetingText, nameText, speed = 40) {
     // Set typing as active to prevent concurrent executions
     isTypingActive = true;
 
-    let greetingIndex = 0;
-    let nameIndex = 0;
-    let isTypingName = false;
-
     // Clear both spans
     greetingSpan.textContent = "";
     nameSpan.textContent = "";
 
-    function type() {
-        if (!isTypingName && greetingIndex < greetingText.length) {
-            // Still typing greeting
-            greetingSpan.textContent += greetingText.charAt(greetingIndex);
-            greetingIndex++;
-            typingTimeout = setTimeout(type, speed);
-        } else if (!isTypingName) {
-            // Pause before starting name (shorter pause)
-            isTypingName = true;
-            typingTimeout = setTimeout(type, speed * 2);
-        } else if (nameIndex < nameText.length) {
-            // Now typing name
-            nameSpan.textContent += nameText.charAt(nameIndex);
-            nameIndex++;
-            typingTimeout = setTimeout(type, speed);
-        } else {
-            // Typing completed
-            isTypingActive = false;
-        }
-    }
+    // Wait for the web font (Inter) to finish loading before measuring
+    // anything. If we measure while the browser is still rendering with
+    // a fallback font, the pixel width we lock in below won't match the
+    // width once Inter swaps in, and the gradient box ends up too
+    // narrow - clipping the last letter of the name.
+    const fontsReady =
+        document.fonts && document.fonts.ready
+            ? document.fonts.ready
+            : Promise.resolve();
 
-    // Use requestAnimationFrame for smoother animation
-    requestAnimationFrame(() => {
-        type();
+    fontsReady.then(() => {
+        let greetingIndex = 0;
+        let nameIndex = 0;
+        let isTypingName = false;
+
+        // Lock the gradient to the FINAL text width before typing starts.
+        // Otherwise, since the span grows with every keystroke, the
+        // background-clip gradient recomputes on each character and the
+        // already-typed letters visibly shift color - this is what reads
+        // as a "stutter" in the animation.
+        nameSpan.textContent = nameText;
+        const finalWidth = nameSpan.offsetWidth;
+        nameSpan.textContent = "";
+        nameSpan.style.backgroundSize = finalWidth + "px 100%";
+
+        // Small random jitter per character so the typing feels human
+        // rather than a robotic, perfectly-uniform metronome.
+        function nextDelay(base) {
+            return base + Math.random() * (base * 0.5);
+        }
+
+        function type() {
+            if (!isTypingName && greetingIndex < greetingText.length) {
+                // Still typing greeting
+                greetingSpan.textContent += greetingText.charAt(greetingIndex);
+                greetingIndex++;
+                typingTimeout = setTimeout(type, nextDelay(speed));
+            } else if (!isTypingName) {
+                // Greeting done - continue straight into the name, no pause.
+                isTypingName = true;
+                typingTimeout = setTimeout(type, nextDelay(speed));
+            } else if (nameIndex < nameText.length) {
+                // Now typing name
+                nameSpan.textContent += nameText.charAt(nameIndex);
+                nameIndex++;
+                typingTimeout = setTimeout(type, nextDelay(speed));
+            } else {
+                // Typing completed
+                isTypingActive = false;
+            }
+        }
+
+        // Use requestAnimationFrame for smoother animation
+        requestAnimationFrame(() => {
+            type();
+        });
     });
 }
 
