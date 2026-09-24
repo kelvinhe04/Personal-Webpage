@@ -341,12 +341,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 100);
 });
 // Mouse glow effect
+let mouseGlowIdleTimeout;
 document.addEventListener("mousemove", (e) => {
     const mouseX = (e.clientX / window.innerWidth) * 100;
     const mouseY = (e.clientY / window.innerHeight) * 100;
 
     document.documentElement.style.setProperty("--mouse-x", `${mouseX}%`);
     document.documentElement.style.setProperty("--mouse-y", `${mouseY}%`);
+
+    // Evita que el glow quede "pegado" con el cursor quieto (se filtra
+    // a través del backdrop-filter de las cards y se ve como una línea)
+    document.body.classList.add("mouse-active");
+    clearTimeout(mouseGlowIdleTimeout);
+    mouseGlowIdleTimeout = setTimeout(() => {
+        document.body.classList.remove("mouse-active");
+    }, 400);
 });
 
 // Navbar scroll effect
@@ -455,7 +464,7 @@ const observer = new IntersectionObserver((entries) => {
 document.addEventListener("DOMContentLoaded", () => {
     // Excluir proyectos ocultos del observer para evitar doble animación
     const animateElements = document.querySelectorAll(
-        ".project-card:not(.hidden-project), .tech-category, .about-content, .contact-content, .timeline-item, .certificate-card",
+        ".project-card:not(.hidden-project), .tech-category, .about-content, .contact-content, .timeline-item, .certificate-card, .honor-card",
     );
     animateElements.forEach((el) => {
         observer.observe(el);
