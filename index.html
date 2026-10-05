@@ -3,56 +3,86 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Kelvin He</title>
+        <title>Kelvin He Wu — Full Stack Developer</title>
 
         <!-- SEO básico -->
         <meta
             name="description"
-            content="Kelvin He - Full Stack Developer. Portafolio profesional con proyectos web, certificaciones y experiencia en desarrollo frontend/backend. Disponible para freelance y colaboraciones."
+            content="Kelvin He Wu, desarrollador Full Stack en Panamá. Construyo aplicaciones web con React, TypeScript, Python y Vue — de la idea a producción. Finalista nacional JIC UTP 2026 con RiskTrail."
         />
         <meta
             name="keywords"
-            content="Kelvin He, Full Stack Developer, desarrollador web, frontend, backend, JavaScript, HTML, CSS, Python, portafolio, freelance, desarrollador freelance"
+            content="Kelvin He, Kelvin He Wu, Full Stack Developer, desarrollador web, Panamá, React, TypeScript, Python, Vue, portafolio, RiskTrail"
         />
-        <meta name="author" content="Kelvin He" />
-        <meta name="robots" content="index, follow" />
+        <meta name="author" content="Kelvin He Wu" />
+        <!-- "noarchive" evita copias en caché; NO usar "nosnippet": oculta
+             la descripción en Google y perjudica el portafolio -->
+        <meta name="robots" content="index, follow, noarchive" />
+        <meta name="theme-color" content="#0a0a0a" />
         <link rel="canonical" href="https://kelvin-he.netlify.app/" />
 
-        <!-- Open Graph -->
+        <!-- Open Graph (vista previa en WhatsApp, LinkedIn, Telegram, etc.) -->
         <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Kelvin He Wu" />
+        <meta property="og:locale" content="es_PA" />
+        <meta property="og:locale:alternate" content="en_US" />
         <meta property="og:url" content="https://kelvin-he.netlify.app/" />
-        <meta property="og:title" content="Kelvin He - Full Stack Developer" />
+        <meta
+            property="og:title"
+            content="Kelvin He Wu — Desarrollador Full Stack en Panamá"
+        />
         <meta
             property="og:description"
-            content="Portafolio profesional de Kelvin He: Full Stack Developer. Explora mis proyectos web, certificaciones y experiencia en desarrollo frontend y backend. Disponible para proyectos freelance."
+            content="Construyo aplicaciones web con React, TypeScript, Python y Vue — de la idea a producción. Proyectos, experiencia y contacto."
         />
         <meta
             property="og:image"
-            content="https://kelvin-he.netlify.app/assets/img/preview.png"
+            content="https://kelvin-he.netlify.app/assets/img/og-cover.jpg"
         />
+        <meta
+            property="og:image:secure_url"
+            content="https://kelvin-he.netlify.app/assets/img/og-cover.jpg"
+        />
+        <meta property="og:image:type" content="image/jpeg" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
+        <meta
+            property="og:image:alt"
+            content="Kelvin He Wu — Desarrollador Full Stack · Panamá"
+        />
 
-        <!-- Twitter Card -->
+        <!-- Twitter / X Card -->
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Kelvin He - Full Stack Developer" />
+        <meta
+            name="twitter:title"
+            content="Kelvin He Wu — Desarrollador Full Stack en Panamá"
+        />
         <meta
             name="twitter:description"
-            content="Portafolio profesional de Kelvin He: Full Stack Developer. Explora mis proyectos web, certificaciones y experiencia en desarrollo frontend y backend."
+            content="Construyo aplicaciones web con React, TypeScript, Python y Vue — de la idea a producción."
         />
         <meta
             name="twitter:image"
-            content="https://kelvin-he.netlify.app/assets/img/preview.png"
+            content="https://kelvin-he.netlify.app/assets/img/og-cover.jpg"
+        />
+        <meta
+            name="twitter:image:alt"
+            content="Kelvin He Wu — Desarrollador Full Stack · Panamá"
         />
 
         <!-- Google Site Verification -->
         <meta name="google-site-verification" content="021a6202487b725a" />
 
-        <!-- Protección contra copia -->
-        <meta name="robots" content="noarchive, nosnippet" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="format-detection" content="telephone=no" />
 
+        <!-- Marca la página como "con JS" antes del primer pintado, para que
+             el título del hero no parpadee antes de la animación de tipeo -->
+        <script>
+            document.documentElement.classList.add("js");
+        </script>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link rel="stylesheet" href="/assets/styles/styles.css" />
         <link
             href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
@@ -62,12 +92,8 @@
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
         />
-        <link
-            rel="icon"
-            type="image/png"
-            sizes="16x16"
-            href="assets/img/Logo.png"
-        />
+        <link rel="icon" type="image/png" href="assets/img/Logo.png" />
+        <link rel="apple-touch-icon" href="assets/img/Logo.png" />
     </head>
     <body>
         <!-- Navbar translúcido -->
@@ -79,7 +105,7 @@
                 </div>
 
                 <div class="nav-links">
-                    <ul class="nav-menu">
+                    <ul class="nav-menu" id="nav-menu">
                         <li class="nav-item">
                             <a
                                 href="#about"
@@ -157,12 +183,24 @@
                             </a>
                         </div>
                         <div>
-                            <a id="themeToggle" class="themeToggle"
-                                ><i class="fas fa-sun"></i
+                            <a
+                                id="themeToggle"
+                                class="themeToggle"
+                                href="#"
+                                role="button"
+                                aria-label="Toggle theme"
+                                ><i class="fas fa-sun" aria-hidden="true"></i
                             ></a>
                         </div>
 
-                        <div class="hamburger">
+                        <div
+                            class="hamburger"
+                            role="button"
+                            tabindex="0"
+                            aria-label="Menu"
+                            aria-controls="nav-menu"
+                            aria-expanded="false"
+                        >
                             <span class="bar"></span>
                             <span class="bar"></span>
                             <span class="bar"></span>
@@ -176,13 +214,20 @@
         <section id="hero" class="hero">
             <div class="hero-container">
                 <div class="hero-content">
-                    <h1 class="hero-title">
+                    <a href="#risktrail" class="hero-badge">
+                        <i class="fas fa-trophy" aria-hidden="true"></i>
                         <span
-                            class="hero-greeting"
-                            data-en="Hello, I'm "
-                            data-es="Hola, soy "
-                        ></span
-                        ><span class="highlight"></span>
+                            data-en="National Finalist · JIC UTP 2026"
+                            data-es="Finalista Nacional · JIC UTP 2026"
+                            >National Finalist · JIC UTP 2026</span
+                        >
+                        <i class="fas fa-arrow-right hero-badge-arrow" aria-hidden="true"></i>
+                    </a>
+                    <!-- El texto se deja en el HTML para SEO / sin JS; el
+                         script lo reconstruye letra por letra para el tipeo -->
+                    <h1 class="hero-title">
+                        <span class="hero-greeting">Hello, I'm </span
+                        ><span class="highlight">Kelvin He</span>
                     </h1>
                     <p
                         class="hero-subtitle"
@@ -243,10 +288,10 @@
                     <div class="about-text">
                         <p
                             class="about-description"
-                            data-en="I'm a third-year student in Software Development and Management at the Technology University of Panama. I'm passionate about technology and eager to become a fullstack developer."
-                            data-es="Soy un estudiante de tercer año en Desarrollo y Gestión de Software en la Universidad Tecnológica de Panamá. Soy apasionado por la tecnología y ansioso por convertirme en un desarrollador fullstack."
+                            data-en="I'm a fourth-year student in Software Development and Management at the Technology University of Panama. I'm passionate about technology and eager to become a fullstack developer."
+                            data-es="Soy un estudiante de cuarto año en Desarrollo y Gestión de Software en la Universidad Tecnológica de Panamá. Soy apasionado por la tecnología y ansioso por convertirme en un desarrollador fullstack."
                         >
-                            I'm a third-year student in Software Development and
+                            I'm a fourth-year student in Software Development and
                             Management at the Technology University of Panama.
                             I'm passionate about technology and eager to become
                             a fullstack developer.
@@ -265,7 +310,7 @@
                     <div class="about-stats-profile">
                         <div class="stats">
                             <div class="stat-item">
-                                <span class="stat-number">6+</span>
+                                <span class="stat-number">15+</span>
                                 <span
                                     class="stat-label"
                                     data-en="Projects"
@@ -274,7 +319,7 @@
                                 >
                             </div>
                             <div class="stat-item">
-                                <span class="stat-number">3+</span>
+                                <span class="stat-number">4+</span>
                                 <span
                                     class="stat-label"
                                     data-en="Years of Study"
@@ -299,7 +344,7 @@
                                         <img
                                             class="profile-img"
                                             src="assets/img/Perfil.png"
-                                            alt=""
+                                            alt="Kelvin He Wu"
                                         />
                                     </div>
                                 </div>
@@ -746,10 +791,100 @@
                     My Projects
                 </h2>
                 <div class="projects-grid">
+                    <!-- Proyecto destacado: RiskTrail (JIC UTP 2026) -->
+                    <div class="project-card project-featured" id="risktrail">
+                        <div class="project-image">
+                            <img
+                                class="project-img"
+                                loading="lazy"
+                                decoding="async"
+                                src="assets/img/proyectos/RiskTrail.webp"
+                                alt="RiskTrail — análisis de riesgo de una ruta de senderismo sobre imagen satelital del Parque Natural Metropolitano"
+                                width="1200"
+                                height="1000"
+                            />
+                        </div>
+                        <div class="project-content">
+                            <span class="project-award">
+                                <i class="fas fa-trophy" aria-hidden="true"></i>
+                                <span
+                                    data-en="National Finalist · JIC UTP 2026"
+                                    data-es="Finalista Nacional · JIC UTP 2026"
+                                    >National Finalist · JIC UTP 2026</span
+                                >
+                            </span>
+                            <h3
+                                class="project-title"
+                                data-en="RiskTrail"
+                                data-es="RiskTrail"
+                            >
+                                RiskTrail
+                            </h3>
+                            <p
+                                class="project-description"
+                                data-en="Geographic information system that computes a dynamic risk index for hiking routes. It combines validated biomechanics (metabolic cost, speed profiles), DEM elevation and live weather (WBGT, rain) to score every trail segment and find the safest path."
+                                data-es="Sistema de información geográfica que calcula un índice dinámico de riesgo para rutas de senderismo. Combina biomecánica validada (costo metabólico, perfiles de velocidad), elevación DEM y clima en tiempo real (WBGT, lluvia) para evaluar cada tramo y encontrar el camino más seguro."
+                            >
+                                Geographic information system that computes a
+                                dynamic risk index for hiking routes. It
+                                combines validated biomechanics (metabolic
+                                cost, speed profiles), DEM elevation and live
+                                weather (WBGT, rain) to score every trail
+                                segment and find the safest path.
+                            </p>
+                            <p
+                                class="project-team"
+                                data-en="Team project with Irvin Benitez and Roy Barrera — I worked on the backend. Selected to represent UTP at the JIC 2026 National Final."
+                                data-es="Proyecto en equipo con Irvin Benitez y Roy Barrera — trabajé en el backend. Seleccionado para representar a la UTP en la Final Nacional de la JIC 2026."
+                            >
+                                Team project with Irvin Benitez and Roy Barrera
+                                — I worked on the backend. Selected to
+                                represent UTP at the JIC 2026 National Final.
+                            </p>
+                            <div class="project-tech">
+                                <span class="tech-tag">Python</span>
+                                <span class="tech-tag">FastAPI</span>
+                                <span class="tech-tag">PostgreSQL</span>
+                                <span class="tech-tag">PostGIS</span>
+                                <span class="tech-tag">pgRouting</span>
+                                <span class="tech-tag">Vue 3</span>
+                                <span class="tech-tag">TypeScript</span>
+                                <span class="tech-tag">MapLibre GL</span>
+                                <span class="tech-tag">Docker</span>
+                            </div>
+                            <div class="project-links">
+                                <a
+                                    href="https://risktrail.irvincodes.dev/"
+                                    class="project-link"
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    <i class="fas fa-external-link-alt"></i>
+                                    <span data-en="Demo" data-es="Demo">
+                                        Demo
+                                    </span>
+                                </a>
+                                <a
+                                    href="https://github.com/IrvinngB/JIC-Geo"
+                                    class="project-link"
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    <i class="fab fa-github"></i>
+                                    <span data-en="Code" data-es="Código">
+                                        Code
+                                    </span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="project-card">
                         <div class="project-image">
                             <img
                                 class="project-img"
+                                loading="lazy"
+                                decoding="async"
                                 src="assets/img/proyectos/Healthora.png"
                                 alt="Healthora Project"
                             />
@@ -810,6 +945,8 @@
                         <div class="project-image">
                             <img
                                 class="project-img"
+                                loading="lazy"
+                                decoding="async"
                                 src="assets/img/proyectos/Checkers.png"
                                 alt="Checkers Project"
                                 onerror="this.onerror=null;this.outerHTML='&lt;div class=&quot;pokemon-battle-banner&quot; style=&quot;background:linear-gradient(135deg,#3a3f47 0%,#1c1c1c 60%,#000000 100%)&quot;&gt;&lt;i class=&quot;fas fa-chess&quot; style=&quot;font-size:3rem&quot;&gt;&lt;/i&gt;&lt;span&gt;Checkers&lt;/span&gt;&lt;/div&gt;';"
@@ -865,6 +1002,8 @@
                         <div class="project-image">
                             <img
                                 class="project-img"
+                                loading="lazy"
+                                decoding="async"
                                 src="assets/img/proyectos/PokemonBattleRooms.png"
                                 alt="Pokémon Battle Rooms"
                             />
@@ -926,6 +1065,8 @@
                         <div class="project-image">
                             <img
                                 class="project-img"
+                                loading="lazy"
+                                decoding="async"
                                 src="assets/img/proyectos/PollClass.png"
                                 alt="PollClass Project"
                             />
@@ -986,6 +1127,8 @@
                         <div class="project-image">
                             <img
                                 class="project-img"
+                                loading="lazy"
+                                decoding="async"
                                 src="assets/img/proyectos/IntelliDocs.png"
                                 alt="IntelliDocs Project"
                             />
@@ -1043,6 +1186,8 @@
                         <div class="project-image">
                             <img
                                 class="project-img"
+                                loading="lazy"
+                                decoding="async"
                                 src="assets/img/proyectos/SeguraTuAuto.png"
                                 alt="SeguraTuAuto Project"
                             />
@@ -1099,6 +1244,8 @@
                         <div class="project-image">
                             <img
                                 class="project-img"
+                                loading="lazy"
+                                decoding="async"
                                 src="assets/img/proyectos/AsistenteAgricultor.png"
                                 alt="Asistente Digital para Agricultores Panameños"
                             />
@@ -1157,6 +1304,8 @@
                         <div class="project-image">
                             <img
                                 class="project-img"
+                                loading="lazy"
+                                decoding="async"
                                 src="assets/img/proyectos/BibliotecaNative.png"
                                 alt="Sistema de Biblioteca Nativa"
                             />
@@ -1214,6 +1363,8 @@
                         <div class="project-image">
                             <img
                                 class="project-img"
+                                loading="lazy"
+                                decoding="async"
                                 src="assets/img/proyectos/NoticiaPTY.png"
                                 alt="Sistema de Noticias para Panamá"
                             />
@@ -1267,9 +1418,10 @@
                         <div class="project-image">
                             <img
                                 class="project-img"
-                                src="assets/img/proyectos/CamaraFotoApp.png
-"
-                                alt=""
+                                loading="lazy"
+                                decoding="async"
+                                src="assets/img/proyectos/CamaraFotoApp.png"
+                                alt="Camera Photo App"
                             />
                         </div>
                         <div class="project-content">
@@ -1327,8 +1479,10 @@
                         <div class="project-image">
                             <img
                                 class="project-img"
+                                loading="lazy"
+                                decoding="async"
                                 src="assets/img/proyectos/RunnerApp.png"
-                                alt=""
+                                alt="Runner Fitness Tracker"
                             />
                         </div>
                         <div class="project-content">
@@ -1386,8 +1540,10 @@
                         <div class="project-image">
                             <img
                                 class="project-img"
+                                loading="lazy"
+                                decoding="async"
                                 src="assets/img/proyectos/ApiAgrodelis.png"
-                                alt=""
+                                alt="ApiAgrodelis REST API"
                             />
                         </div>
                         <div class="project-content">
@@ -1442,8 +1598,10 @@
                         <div class="project-image">
                             <img
                                 class="project-img"
+                                loading="lazy"
+                                decoding="async"
                                 src="assets/img/proyectos/AgroDelis.png"
-                                alt=""
+                                alt="E-Commerce Web Interface"
                             />
                         </div>
                         <div class="project-content">
@@ -1497,8 +1655,10 @@
                         <div class="project-image">
                             <img
                                 class="project-img"
+                                loading="lazy"
+                                decoding="async"
                                 src="assets/img/proyectos/ElRestauranteElParque.png"
-                                alt=""
+                                alt="Restaurant Website"
                             />
                         </div>
                         <div class="project-content">
@@ -1554,8 +1714,6 @@
                     <button
                         id="load-more-btn"
                         class="btn btn-primary load-more-btn"
-                        data-en="Load More Projects"
-                        data-es="Cargar Más Proyectos"
                     >
                         <i class="fas fa-plus"></i>
                         <span class="load-more-text">Load More Projects</span>
@@ -2246,6 +2404,60 @@
                 </h2>
 
                 <div class="honors-grid">
+                    <!-- JIC UTP 2026 - National Final -->
+                    <div class="honor-card">
+                        <div class="honor-icon">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="honor-content">
+                            <h3
+                                class="honor-title"
+                                data-en="National Finalist – Scientific Initiation Conference (JIC) UTP 2026"
+                                data-es="Finalista Nacional – Jornada de Iniciación Científica (JIC) UTP 2026"
+                            >
+                                National Finalist – Scientific Initiation
+                                Conference (JIC) UTP 2026
+                            </h3>
+                            <p
+                                class="honor-issuer"
+                                data-en="Universidad Tecnológica de Panamá · Aug 2026"
+                                data-es="Universidad Tecnológica de Panamá · Ago 2026"
+                            >
+                                Universidad Tecnológica de Panamá · Aug 2026
+                            </p>
+                            <p class="honor-org">
+                                <i class="fas fa-users"></i>
+                                <span
+                                    data-en="With Irvin Benitez and Roy Barrera · Advisor: José Chirú Figueroa"
+                                    data-es="Con Irvin Benitez y Roy Barrera · Asesor: José Chirú Figueroa"
+                                    >With Irvin Benitez and Roy Barrera ·
+                                    Advisor: José Chirú Figueroa</span
+                                >
+                            </p>
+                            <p
+                                class="honor-description"
+                                data-en="RiskTrail was selected at the JIC UTP national round in Coclé (Aug 7, 2026) as one of the projects representing the Technological University of Panama at the National Final, after qualifying in the July 3 selection round."
+                                data-es="RiskTrail fue seleccionado en la Jornada de Iniciación Científica UTP Nacional en Coclé (7 de agosto de 2026) como uno de los proyectos que representarán a la Universidad Tecnológica de Panamá en la Final Nacional, tras clasificar en la selección del 3 de julio."
+                            >
+                                RiskTrail was selected at the JIC UTP national
+                                round in Coclé (Aug 7, 2026) as one of the
+                                projects representing the Technological
+                                University of Panama at the National Final,
+                                after qualifying in the July 3 selection round.
+                            </p>
+                            <div class="honor-actions">
+                                <a href="#risktrail" class="honor-btn">
+                                    <i class="fas fa-route"></i>
+                                    <span
+                                        data-en="View Project"
+                                        data-es="Ver Proyecto"
+                                        >View Project</span
+                                    >
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Honorific Title - Junior Developer -->
                     <div class="honor-card">
                         <div class="honor-icon">
@@ -2391,14 +2603,20 @@
                             opportunities.
                         </p>
                         <div class="contact-methods">
-                            <div class="contact-method">
+                            <a
+                                class="contact-method selectable"
+                                href="mailto:kelvinhe04@gmail.com"
+                            >
                                 <i class="fas fa-envelope"></i>
                                 <span>kelvinhe04@gmail.com</span>
-                            </div>
-                            <div class="contact-method">
+                            </a>
+                            <a
+                                class="contact-method selectable"
+                                href="tel:+50769963888"
+                            >
                                 <i class="fas fa-phone"></i>
                                 <span>+507 6996-3888</span>
-                            </div>
+                            </a>
                             <div class="contact-method">
                                 <i class="fas fa-map-marker-alt"></i>
                                 <span>Panama City, Panama</span>
@@ -2408,6 +2626,8 @@
                             <a
                                 href="https://github.com/kelvinhe04"
                                 class="social-link"
+                                aria-label="GitHub"
+                                rel="noopener"
                                 target="_blank"
                             >
                                 <i class="fab fa-github"></i>
@@ -2415,6 +2635,8 @@
                             <a
                                 href="https://www.linkedin.com/in/kelvin-he-256986289/"
                                 class="social-link"
+                                aria-label="LinkedIn"
+                                rel="noopener"
                                 target="_blank"
                             >
                                 <i class="fab fa-linkedin"></i>
@@ -2423,6 +2645,8 @@
                             <a
                                 href="https://www.instagram.com/khelvinw/"
                                 class="social-link"
+                                aria-label="Instagram"
+                                rel="noopener"
                                 target="_blank"
                             >
                                 <i class="fab fa-instagram"></i>

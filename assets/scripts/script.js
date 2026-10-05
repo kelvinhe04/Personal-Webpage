@@ -1,9 +1,13 @@
 const themeToggle = document.getElementById("themeToggle");
 const languageToggle = document.getElementById("languageToggle");
 const goTopBtn = document.querySelector(".go-top-btn");
+const prefersReducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+).matches;
 
 // Theme Toggle
-themeToggle.addEventListener("click", () => {
+themeToggle.addEventListener("click", (e) => {
+    e.preventDefault();
     document.body.classList.toggle("light-mode");
     const icon = themeToggle.querySelector("i");
     icon.classList.toggle("fa-sun");
@@ -17,6 +21,7 @@ let currentLanguage = localStorage.getItem("language") || "en";
 function changeLanguage(lang) {
     currentLanguage = lang;
     localStorage.setItem("language", lang);
+    document.documentElement.lang = lang;
 
     // Update language label and active color
     if (languageToggle) {
@@ -25,10 +30,8 @@ function changeLanguage(lang) {
         languageToggle.style.color = lang === "es" ? "var(--accent-color)" : "";
     }
 
-    // Update all elements with language attributes (except hero-greeting)
-    const elements = document.querySelectorAll(
-        "[data-en][data-es]:not(.hero-greeting)",
-    );
+    // Update all elements with language attributes
+    const elements = document.querySelectorAll("[data-en][data-es]");
     elements.forEach((element) => {
         const text = element.getAttribute(`data-${lang}`);
         if (text) {
@@ -42,34 +45,14 @@ function changeLanguage(lang) {
 
 // Function to update complex elements that need special handling
 function updateComplexElements(lang) {
-    // Update hero title with typing effect
-    updateHeroTitle();
-
     // Update Load More button
-    const loadMoreBtn = document.getElementById("load-more-btn");
-    if (loadMoreBtn && !loadMoreBtn.style.visibility === "hidden") {
-        const remaining = document.querySelectorAll(
-            ".hidden-project:not(.show)",
-        ).length;
-        if (remaining > 0) {
-            if (lang === "es") {
-                loadMoreBtn.innerHTML = `<i class="fas fa-plus"></i> Cargar Más Proyectos (${remaining} restantes)`;
-            } else {
-                loadMoreBtn.innerHTML = `<i class="fas fa-plus"></i> Load More Projects (${remaining} remaining)`;
-            }
-        } else {
-            if (lang === "es") {
-                loadMoreBtn.innerHTML =
-                    '<i class="fas fa-check"></i> Todos los Proyectos Cargados';
-            } else {
-                loadMoreBtn.innerHTML =
-                    '<i class="fas fa-check"></i> All Projects Loaded';
-            }
-        }
-    }
+    updateProjectsButtonText();
 
     // Update Load More Certificates button
     updateCertificatesButtonText();
+
+    // Update "Show more" buttons in the experience timeline
+    updateReadMoreButtons();
 
     // Update form placeholders
     const formInputs = document.querySelectorAll(".form-input");
@@ -92,38 +75,6 @@ function updateComplexElements(lang) {
         submitBtn.textContent =
             lang === "es" ? "Enviar Mensaje" : "Send Message";
     }
-
-    // Update skill tags in timeline and certificates that use nested spans
-    const skillTags = document.querySelectorAll(".skill-tag, .cert-skill-tag");
-    skillTags.forEach((tag) => {
-        const enText = tag.getAttribute("data-en");
-        const esText = tag.getAttribute("data-es");
-        if (enText && esText) {
-            tag.textContent = lang === "es" ? esText : enText;
-        }
-    });
-
-    // Update project links (Code/Demo buttons)
-    const projectLinks = document.querySelectorAll(
-        ".project-link span[data-en]",
-    );
-    projectLinks.forEach((link) => {
-        const enText = link.getAttribute("data-en");
-        const esText = link.getAttribute("data-es");
-        if (enText && esText) {
-            link.textContent = lang === "es" ? esText : enText;
-        }
-    });
-
-    // Update certificate buttons
-    const certBtns = document.querySelectorAll(".cert-btn span[data-en]");
-    certBtns.forEach((btn) => {
-        const enText = btn.getAttribute("data-en");
-        const esText = btn.getAttribute("data-es");
-        if (enText && esText) {
-            btn.textContent = lang === "es" ? esText : enText;
-        }
-    });
 }
 
 // Language toggle event listener
@@ -131,187 +82,134 @@ if (languageToggle) {
     languageToggle.addEventListener("click", (e) => {
         e.preventDefault();
         const newLang = currentLanguage === "en" ? "es" : "en";
-
-        // Allow typing effect for language changes
-        typingInitialized = false;
-        isTypingActive = false;
-
         changeLanguage(newLang);
+        typeHeroTitle(newLang);
     });
 }
 
-// Typing effect for hero title - Optimized
-let typingTimeout;
-let isTypingActive = false;
-let typingInitialized = false; // Flag to prevent multiple initializations
+// ============================
+// HERO TYPING EFFECT
+// ============================
+//
+// The full title is rendered up front as one <span> per character, all
+// invisible, and the characters are revealed one by one. Because the text
+// already occupies its final space, nothing reflows while typing: words
+// never jump to the next line mid-word and the subtitle/buttons below
+// don't shift down. Timing is driven by requestAnimationFrame against a
+// precomputed schedule, so a busy main thread (images decoding, fonts
+// loading) makes the animation catch up instead of stuttering.
 
-function typeWriter(element, text, speed = 80) {
-    // Clear any existing timeout
-    if (typingTimeout) {
-        clearTimeout(typingTimeout);
-    }
+const HERO_NAME = "Kelvin He";
+const HERO_GREETING = { en: "Hello, I'm ", es: "Hola, soy " };
+const TYPE_SPEED = 62; // ms per character - steady, human cadence
+const TYPE_COMMA_PAUSE = 200; // short beat after "Hello,"
+const TYPE_START_DELAY = 250;
 
-    if (isTypingActive) {
-        return; // Prevent multiple typing animations
-    }
+let typingRun = 0; // bumped on every new run to cancel the previous one
 
-    isTypingActive = true;
-    let i = 0;
-    element.textContent = "";
+function buildHeroTitle(greeting) {
+    const title = document.querySelector(".hero-title");
+    if (!title) return null;
 
-    function type() {
-        if (i < text.length) {
-            element.textContent += text.charAt(i);
-            i++;
-            typingTimeout = setTimeout(type, speed);
-        } else {
-            isTypingActive = false;
+    title.setAttribute("aria-label", greeting + HERO_NAME);
+    title.textContent = "";
+
+    const chars = [];
+    [
+        [greeting, "hero-greeting"],
+        [HERO_NAME, "highlight"],
+    ].forEach(([text, className]) => {
+        const group = document.createElement("span");
+        group.className = className;
+        group.setAttribute("aria-hidden", "true");
+        for (const ch of text) {
+            const charEl = document.createElement("span");
+            charEl.className = "hero-char";
+            charEl.textContent = ch;
+            group.appendChild(charEl);
+            chars.push(charEl);
         }
-    }
+        title.appendChild(group);
+    });
 
-    type();
+    title.classList.add("is-ready");
+    return { title, chars };
 }
 
-// Typing effect for full hero title (greeting + name) - Optimized version
-function typeWriterFullTitle(titleElement, greetingText, nameText, speed = 40) {
-    // Prevent multiple executions
-    if (isTypingActive) {
+function moveCaret(chars, index) {
+    chars.forEach((c) => c.classList.remove("has-caret", "has-caret-start"));
+    if (index < 0) {
+        chars[0].classList.add("has-caret-start");
+    } else {
+        chars[index].classList.add("has-caret");
+    }
+}
+
+function typeHeroTitle(lang) {
+    const run = ++typingRun;
+    const built = buildHeroTitle(HERO_GREETING[lang] || HERO_GREETING.en);
+    if (!built) return;
+    const { title, chars } = built;
+
+    if (prefersReducedMotion) {
+        chars.forEach((c) => c.classList.add("is-typed"));
+        moveCaret(chars, chars.length - 1);
         return;
     }
 
-    // Clear any existing timeout
-    if (typingTimeout) {
-        clearTimeout(typingTimeout);
-    }
+    // Precompute when each character appears (ms from start)
+    const schedule = [];
+    let t = 0;
+    chars.forEach((c, i) => {
+        schedule.push(t);
+        t += TYPE_SPEED;
+        if (c.textContent === "," && i < chars.length - 1) {
+            t += TYPE_COMMA_PAUSE;
+        }
+    });
 
-    const greetingSpan = titleElement.querySelector(".hero-greeting");
-    const nameSpan = titleElement.querySelector(".highlight");
+    title.classList.add("is-typing");
+    moveCaret(chars, -1);
 
-    if (!greetingSpan || !nameSpan) return;
-
-    // Set typing as active to prevent concurrent executions
-    isTypingActive = true;
-
-    // Clear both spans
-    greetingSpan.textContent = "";
-    nameSpan.textContent = "";
-
-    // Wait for the web font (Inter) to finish loading before measuring
-    // anything. If we measure while the browser is still rendering with
-    // a fallback font, the pixel width we lock in below won't match the
-    // width once Inter swaps in, and the gradient box ends up too
-    // narrow - clipping the last letter of the name.
-    const fontsReady =
-        document.fonts && document.fonts.ready
-            ? document.fonts.ready
-            : Promise.resolve();
+    // Wait for Inter (capped, so a slow font never blocks the hero)
+    const fontsReady = Promise.race([
+        document.fonts ? document.fonts.ready : Promise.resolve(),
+        new Promise((resolve) => setTimeout(resolve, 800)),
+    ]);
 
     fontsReady.then(() => {
-        let greetingIndex = 0;
-        let nameIndex = 0;
-        let isTypingName = false;
+        if (run !== typingRun) return;
+        let start = null;
+        let shown = 0;
 
-        // Lock the gradient to the FINAL text width before typing starts.
-        // Otherwise, since the span grows with every keystroke, the
-        // background-clip gradient recomputes on each character and the
-        // already-typed letters visibly shift color - this is what reads
-        // as a "stutter" in the animation.
-        nameSpan.textContent = nameText;
-        const finalWidth = nameSpan.offsetWidth;
-        nameSpan.textContent = "";
-        nameSpan.style.backgroundSize = finalWidth + "px 100%";
+        function frame(now) {
+            if (run !== typingRun) return;
+            if (start === null) start = now + TYPE_START_DELAY;
+            const elapsed = now - start;
 
-        // Small random jitter per character so the typing feels human
-        // rather than a robotic, perfectly-uniform metronome.
-        function nextDelay(base) {
-            return base + Math.random() * (base * 0.5);
-        }
+            while (shown < chars.length && schedule[shown] <= elapsed) {
+                chars[shown].classList.add("is-typed");
+                shown++;
+            }
+            if (shown > 0) moveCaret(chars, shown - 1);
 
-        function type() {
-            if (!isTypingName && greetingIndex < greetingText.length) {
-                // Still typing greeting
-                greetingSpan.textContent += greetingText.charAt(greetingIndex);
-                greetingIndex++;
-                typingTimeout = setTimeout(type, nextDelay(speed));
-            } else if (!isTypingName) {
-                // Greeting done - continue straight into the name, no pause.
-                isTypingName = true;
-                typingTimeout = setTimeout(type, nextDelay(speed));
-            } else if (nameIndex < nameText.length) {
-                // Now typing name
-                nameSpan.textContent += nameText.charAt(nameIndex);
-                nameIndex++;
-                typingTimeout = setTimeout(type, nextDelay(speed));
+            if (shown < chars.length) {
+                requestAnimationFrame(frame);
             } else {
-                // Typing completed
-                isTypingActive = false;
+                title.classList.remove("is-typing");
             }
         }
 
-        // Use requestAnimationFrame for smoother animation
-        requestAnimationFrame(() => {
-            type();
-        });
+        requestAnimationFrame(frame);
     });
-}
-
-// Function to update hero title based on current language
-function updateHeroTitle() {
-    const heroTitle = document.querySelector(".hero-title");
-
-    if (heroTitle) {
-        const greetingText =
-            currentLanguage === "es" ? "Hola, soy " : "Hello, I'm ";
-
-        // Check if structure already exists to prevent flash
-        let greetingSpan = heroTitle.querySelector(".hero-greeting");
-        let nameSpan = heroTitle.querySelector(".highlight");
-
-        if (!greetingSpan || !nameSpan) {
-            // Only recreate structure if it doesn't exist
-            heroTitle.innerHTML =
-                '<span class="hero-greeting" data-en="Hello, I\'m " data-es="Hola, soy "></span><span class="highlight"></span>';
-            greetingSpan = heroTitle.querySelector(".hero-greeting");
-            nameSpan = heroTitle.querySelector(".highlight");
-        }
-
-        // Only run typing effect if not already initialized or if explicitly changing language
-        if (!typingInitialized) {
-            // Clear content before typing
-            if (greetingSpan) greetingSpan.textContent = "";
-            if (nameSpan) nameSpan.textContent = "";
-
-            // Apply typing effect to the entire title with optimized speed
-            typeWriterFullTitle(heroTitle, greetingText, "Kelvin He", 40);
-            typingInitialized = true;
-        } else {
-            // Just update the text directly for language changes (no typing effect)
-            if (greetingSpan) greetingSpan.textContent = greetingText;
-            if (nameSpan) nameSpan.textContent = "Kelvin He";
-        }
-    }
 }
 
 // Initialize language and typing effect on page load
 document.addEventListener("DOMContentLoaded", () => {
-    // Initialize hero title structure FIRST to prevent flash
-    const heroTitle = document.querySelector(".hero-title");
-    if (heroTitle) {
-        // Set up the HTML structure immediately with empty content
-        heroTitle.innerHTML =
-            '<span class="hero-greeting" data-en="Hello, I\'m " data-es="Hola, soy "></span><span class="highlight"></span>';
+    document.documentElement.lang = currentLanguage;
 
-        // Clear both spans to prevent any flash
-        const greetingSpan = heroTitle.querySelector(".hero-greeting");
-        const nameSpan = heroTitle.querySelector(".highlight");
-        if (greetingSpan) greetingSpan.textContent = "";
-        if (nameSpan) nameSpan.textContent = "";
-    }
-
-    // Initialize language for all OTHER elements (excluding hero-greeting)
-    const elements = document.querySelectorAll(
-        "[data-en][data-es]:not(.hero-greeting)",
-    );
+    // Initialize language for all elements
+    const elements = document.querySelectorAll("[data-en][data-es]");
     elements.forEach((element) => {
         const text = element.getAttribute(`data-${currentLanguage}`);
         if (text) {
@@ -327,36 +225,102 @@ document.addEventListener("DOMContentLoaded", () => {
             currentLanguage === "es" ? "var(--accent-color)" : "";
     }
 
+    setupReadMore();
+
     // Update complex elements (forms, buttons, etc.)
     updateComplexElements(currentLanguage);
 
-    // Start typing effect immediately with correct language
-    setTimeout(() => {
-        if (heroTitle && !typingInitialized) {
-            const greetingText =
-                currentLanguage === "es" ? "Hola, soy " : "Hello, I'm ";
-            typeWriterFullTitle(heroTitle, greetingText, "Kelvin He", 40);
-            typingInitialized = true;
+    typeHeroTitle(currentLanguage);
+});
+
+// ============================
+// MOUSE GLOW EFFECT
+// ============================
+//
+// A single fixed element moved with transform (compositor-only). The old
+// version wrote CSS variables on <html> on every mousemove, which forced a
+// style recalculation of the whole page each time and made other
+// animations (like the hero typing) drop frames.
+
+if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    const glow = document.createElement("div");
+    glow.className = "cursor-glow";
+    glow.setAttribute("aria-hidden", "true");
+    document.body.appendChild(glow);
+
+    let glowX = 0;
+    let glowY = 0;
+    let glowFrame = null;
+
+    document.addEventListener(
+        "mousemove",
+        (e) => {
+            glowX = e.clientX;
+            glowY = e.clientY;
+            if (glowFrame === null) {
+                glowFrame = requestAnimationFrame(() => {
+                    glow.style.transform = `translate3d(${glowX}px, ${glowY}px, 0)`;
+                    glowFrame = null;
+                });
+            }
+
+            // Always on once the cursor has been seen (stays where the
+            // cursor last was, also when it rests or leaves the window)
+            glow.classList.add("is-active");
+        },
+        { passive: true },
+    );
+}
+
+// ============================
+// EXPERIENCE "SHOW MORE"
+// ============================
+
+function setupReadMore() {
+    document.querySelectorAll(".timeline-description").forEach((desc) => {
+        if (desc.nextElementSibling?.classList.contains("read-more-btn")) {
+            return;
         }
-    }, 100);
-});
-// Mouse glow effect
-let mouseGlowIdleTimeout;
-document.addEventListener("mousemove", (e) => {
-    const mouseX = (e.clientX / window.innerWidth) * 100;
-    const mouseY = (e.clientY / window.innerHeight) * 100;
+        desc.classList.add("is-clamped");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "read-more-btn";
+        btn.setAttribute("aria-expanded", "false");
+        desc.after(btn);
 
-    document.documentElement.style.setProperty("--mouse-x", `${mouseX}%`);
-    document.documentElement.style.setProperty("--mouse-y", `${mouseY}%`);
+        btn.addEventListener("click", () => {
+            const expanded = desc.classList.toggle("is-clamped") === false;
+            btn.setAttribute("aria-expanded", String(expanded));
+            updateReadMoreButtons();
+        });
+    });
 
-    // Evita que el glow quede "pegado" con el cursor quieto (se filtra
-    // a través del backdrop-filter de las cards y se ve como una línea)
-    document.body.classList.add("mouse-active");
-    clearTimeout(mouseGlowIdleTimeout);
-    mouseGlowIdleTimeout = setTimeout(() => {
-        document.body.classList.remove("mouse-active");
-    }, 400);
-});
+    // Only show the button where the text actually overflows the clamp
+    const refresh = () => {
+        document.querySelectorAll(".read-more-btn").forEach((btn) => {
+            const desc = btn.previousElementSibling;
+            const clamped = desc.classList.contains("is-clamped");
+            btn.hidden = clamped && desc.scrollHeight <= desc.clientHeight + 2;
+        });
+    };
+    refresh();
+    window.addEventListener("resize", refresh);
+    if (document.fonts) document.fonts.ready.then(refresh);
+}
+
+function updateReadMoreButtons() {
+    document.querySelectorAll(".read-more-btn").forEach((btn) => {
+        const expanded = btn.getAttribute("aria-expanded") === "true";
+        const label = expanded
+            ? currentLanguage === "es"
+                ? "Mostrar menos"
+                : "Show less"
+            : currentLanguage === "es"
+              ? "Mostrar más"
+              : "Show more";
+        btn.innerHTML = `<span>${label}</span> <i class="fas fa-chevron-${expanded ? "up" : "down"}" aria-hidden="true"></i>`;
+    });
+}
 
 // Navbar scroll effect
 window.addEventListener("scroll", () => {
@@ -372,29 +336,49 @@ window.addEventListener("scroll", () => {
 const hamburger = document.querySelector(".hamburger");
 const navMenu = document.querySelector(".nav-menu");
 
+function setMenuOpen(open) {
+    hamburger.classList.toggle("active", open);
+    navMenu.classList.toggle("active", open);
+    hamburger.setAttribute("aria-expanded", String(open));
+    // Lock page scroll behind the full-screen mobile menu
+    document.body.classList.toggle("menu-open", open);
+}
+
 hamburger.addEventListener("click", () => {
-    hamburger.classList.toggle("active");
-    navMenu.classList.toggle("active");
+    setMenuOpen(!navMenu.classList.contains("active"));
+});
+
+hamburger.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        setMenuOpen(!navMenu.classList.contains("active"));
+    }
 });
 
 // Close mobile menu when clicking on a link
 document.querySelectorAll(".nav-link").forEach((link) => {
-    link.addEventListener("click", () => {
-        hamburger.classList.remove("active");
-        navMenu.classList.remove("active");
-    });
+    link.addEventListener("click", () => setMenuOpen(false));
 });
 
 // Smooth scrolling for navigation links
 document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
     anchor.addEventListener("click", function (e) {
+        const href = this.getAttribute("href");
+        if (href === "#") return; // buttons like the theme/language toggles
         e.preventDefault();
-        const target = document.querySelector(this.getAttribute("href"));
+        const target = document.querySelector(href);
         if (target) {
-            const offsetTop = target.offsetTop - 70; // Account for fixed navbar
+            // getBoundingClientRect works for nested targets too (offsetTop
+            // is relative to the nearest positioned ancestor, not the page)
+            // The navbar itself (logo and "go to top" button link to it) is
+            // position:fixed, so its rect is always 0 - scroll to the top.
+            const offsetTop =
+                target.id === "navbar"
+                    ? 0
+                    : target.getBoundingClientRect().top + window.scrollY - 70; // Account for fixed navbar
             window.scrollTo({
                 top: offsetTop,
-                behavior: "smooth",
+                behavior: prefersReducedMotion ? "auto" : "smooth",
             });
         }
     });
@@ -770,8 +754,7 @@ window.addEventListener("load", () => {
 document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
         // Close mobile menu if open
-        hamburger.classList.remove("active");
-        navMenu.classList.remove("active");
+        setMenuOpen(false);
     }
 });
 
@@ -843,6 +826,7 @@ updateGoTopButtonVisibility();
 
 // Prevenir clic derecho
 document.addEventListener("contextmenu", function (e) {
+    if (isCopyAllowed(e.target)) return;
     e.preventDefault();
     return false;
 });
@@ -855,8 +839,18 @@ document.addEventListener("dragstart", function (e) {
     }
 });
 
+// Campos de formulario y datos de contacto siempre se pueden seleccionar/copiar
+function isCopyAllowed(target) {
+    return (
+        target instanceof Element &&
+        (target.closest("input, textarea, select") ||
+            target.closest(".selectable"))
+    );
+}
+
 // Prevenir teclas de desarrollador comunes
 document.addEventListener("keydown", function (e) {
+    if (isCopyAllowed(e.target)) return;
     // F12 - PERMITIDO para desarrollo
     // if (e.keyCode === 123) {
     //     e.preventDefault();
@@ -902,8 +896,8 @@ document.addEventListener("keydown", function (e) {
 
 // Prevenir selección de texto con mouse
 document.addEventListener("selectstart", function (e) {
-    // Permitir selección en campos de formulario
-    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
+    // Permitir selección en campos de formulario y datos de contacto
+    if (isCopyAllowed(e.target.nodeType === 3 ? e.target.parentElement : e.target)) {
         return true;
     }
     e.preventDefault();
@@ -936,6 +930,7 @@ setInterval(function () {
     }
 }, 500);
 
+
 // Limpiar consola periódicamente
 setInterval(function () {
     console.clear();
@@ -945,6 +940,28 @@ setInterval(function () {
 // LOAD MORE PROJECTS FUNCTIONALITY
 // ============================
 
+function updateProjectsButtonText() {
+    const loadMoreBtn = document.getElementById("load-more-btn");
+    if (!loadMoreBtn || loadMoreBtn.style.visibility === "hidden") return;
+    if (loadMoreBtn.classList.contains("loading")) return;
+
+    const remaining = Array.from(
+        document.querySelectorAll(".hidden-project"),
+    ).filter((p) => p.style.display !== "block").length;
+
+    if (remaining > 0) {
+        loadMoreBtn.innerHTML =
+            currentLanguage === "es"
+                ? `<i class="fas fa-plus"></i> Cargar Más Proyectos (${remaining})`
+                : `<i class="fas fa-plus"></i> Load More Projects (${remaining})`;
+    } else {
+        loadMoreBtn.innerHTML =
+            currentLanguage === "es"
+                ? '<i class="fas fa-check"></i> Todos los Proyectos Cargados'
+                : '<i class="fas fa-check"></i> All Projects Loaded';
+    }
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     const loadMoreBtn = document.getElementById("load-more-btn");
     const hiddenProjects = document.querySelectorAll(".hidden-project");
@@ -953,6 +970,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (loadMoreBtn && hiddenProjects.length > 0) {
         loadMoreBtn.addEventListener("click", function () {
+            if (loadMoreBtn.classList.contains("loading")) return;
             // Agregar clase loading
             loadMoreBtn.classList.add("loading");
             loadMoreBtn.innerHTML =
@@ -1013,11 +1031,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     }, 1500);
                 } else {
                     // Aún hay más proyectos por cargar
-                    const remaining = hiddenProjects.length - currentlyVisible;
-                    loadMoreBtn.innerHTML =
-                        currentLanguage === "es"
-                            ? `<i class="fas fa-plus"></i> Cargar Más Proyectos (${remaining} restantes)`
-                            : `<i class="fas fa-plus"></i> Load More Projects (${remaining} remaining)`;
+                    updateProjectsButtonText();
                 }
             }, 300); // Delay reducido a 300ms
         });

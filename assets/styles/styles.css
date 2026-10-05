@@ -125,28 +125,34 @@ select {
     user-select: text;
 }
 
-/* Mouse glow effect */
-body::before {
-    content: "";
+/* Mouse glow effect - one element that follows the cursor via transform
+   (GPU-composited, no full-page style recalculation per mousemove) */
+.cursor-glow {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    top: -400px;
+    left: -400px;
+    width: 800px;
+    height: 800px;
+    background:
+        radial-gradient(circle 160px at center,
+            var(--mouse-glow-after),
+            transparent),
+        radial-gradient(circle 400px at center,
             var(--mouse-glow-before),
-            transparent 50%);
+            transparent);
     pointer-events: none;
     z-index: 1;
     opacity: 0;
-    transition: opacity 0.5s ease;
+    transition: opacity 0.4s ease;
+    will-change: transform;
 }
 
-body:hover.mouse-active::before {
+.cursor-glow.is-active {
     opacity: 1;
 }
 
-/* Additional glow effect for better visibility */
+/* Efecto de iluminación estático en móvil */
+body::before,
 body::after {
     content: "";
     position: fixed;
@@ -154,21 +160,17 @@ body::after {
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-            var(--mouse-glow-after),
-            transparent 40%);
     pointer-events: none;
     z-index: 1;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    display: none;
 }
 
-body:hover.mouse-active::after {
-    opacity: 1;
-}
-
-/* Efecto de iluminación estático en móvil */
 @media (max-width: 768px) {
+    body::before,
+    body::after {
+        display: block;
+    }
+
     body::before {
         background: radial-gradient(600px circle at 80% 20%,
                 var(--mouse-glow-before),
@@ -241,7 +243,7 @@ body:hover.mouse-active::after {
     align-items: center;
 }
 
-@media (min-width: 769px) {
+@media (min-width: 1025px) {
     .nav-menu {
         position: absolute;
         left: 50%;
@@ -435,10 +437,15 @@ body:hover.mouse-active::after {
     font-weight: 700;
     line-height: 1.2;
     margin-bottom: 1.5rem;
-    word-wrap: break-word;
     overflow-wrap: break-word;
-    hyphens: auto;
     max-width: 100%;
+}
+
+/* Until the script has rebuilt the title letter by letter, keep it
+   invisible but still taking its space - no flash of the full text and
+   no layout shift when typing starts. */
+.js .hero-title:not(.is-ready) {
+    visibility: hidden;
 }
 
 .hero-greeting {
@@ -446,33 +453,102 @@ body:hover.mouse-active::after {
 }
 
 .highlight {
-    background: linear-gradient(135deg,
-            var(--accent-color),
-            var(--accent-secondary));
-    background-repeat: no-repeat;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--accent-color);
     display: inline;
-    /* Blinking typing cursor as a border, not a separate element - this
-       way it's always exactly the height of this box's own line, no
-       manual height/vertical-align guessing that drifts across fonts. */
-    border-right: 3px solid var(--accent-color);
-    animation: blink-caret 0.9s step-end infinite;
-    padding-right: 2px;
 }
 
-@keyframes blink-caret {
+/* Every character is already laid out at its final position; typing just
+   reveals them, so nothing reflows while the animation runs. */
+.hero-char {
+    opacity: 0;
+    transition: opacity 0.08s linear;
+}
+
+.hero-char.is-typed {
+    opacity: 1;
+}
+
+.hero-char.has-caret,
+.hero-char.has-caret-start {
+    position: relative;
+}
+
+/* Caret drawn as an absolutely positioned pseudo-element, so moving it
+   between letters never changes the line's width or wrapping. */
+.hero-char.has-caret::after,
+.hero-char.has-caret-start::before {
+    content: "";
+    position: absolute;
+    top: 0.14em;
+    bottom: 0.1em;
+    width: max(3px, 0.055em);
+    border-radius: 2px;
+    background: var(--accent-color);
+    opacity: 1;
+    animation: caret-blink 1.05s ease-in-out infinite;
+}
+
+.hero-char.has-caret::after {
+    right: -0.09em;
+}
+
+.hero-char.has-caret-start::before {
+    left: 0;
+}
+
+/* Solid caret while typing, like a real editor; it only blinks at rest */
+.hero-title.is-typing .hero-char::after,
+.hero-title.is-typing .hero-char::before {
+    animation: none;
+}
+
+@keyframes caret-blink {
 
     0%,
-    49% {
-        border-color: var(--accent-color);
+    45% {
+        opacity: 1;
     }
 
-    50%,
+    55%,
     100% {
-        border-color: transparent;
+        opacity: 0;
     }
+}
+
+/* Social-proof pill above the hero title */
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-bottom: 1.5rem;
+    padding: 0.45rem 0.95rem;
+    border-radius: 999px;
+    border: 1px solid rgba(var(--accent-rgb), 0.35);
+    background: rgba(var(--accent-rgb), 0.08);
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: border-color 0.25s ease, background 0.25s ease;
+}
+
+.hero-badge .fa-trophy {
+    color: #fbbf24;
+}
+
+.hero-badge-arrow {
+    font-size: 0.75rem;
+    color: var(--accent-color);
+    transition: transform 0.25s ease;
+}
+
+.hero-badge:hover {
+    border-color: var(--accent-color);
+    background: rgba(var(--accent-rgb), 0.14);
+}
+
+.hero-badge:hover .hero-badge-arrow {
+    transform: translateX(3px);
 }
 
 .hero-subtitle {
@@ -495,6 +571,7 @@ body:hover.mouse-active::after {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    font-family: inherit;
     padding: 0.75rem 1.5rem;
     border-radius: 12px;
     text-decoration: none;
@@ -813,6 +890,7 @@ body:hover.mouse-active::after {
 }
 
 .tech-category {
+    min-width: 0;
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -841,7 +919,24 @@ body:hover.mouse-active::after {
     gap: 1rem;
 }
 
-@media (min-width: 769px) {
+/* Tablet: the third-width cards below were too narrow for their items
+   ("phpMyAdmin", the Tools card) and overflowed off-screen. Use two
+   columns and let the 5th card take the full row. */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .tech-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .tech-category:nth-child(5) {
+        grid-column: 1 / -1;
+    }
+
+    .tech-category:nth-child(5) .tech-items {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1025px) {
 
     /* 5 category cards don't divide evenly into 2 columns, so the last
        one used to sit alone next to an empty gap. Lay them out on a
@@ -974,6 +1069,12 @@ body:hover.mouse-active::after {
     z-index: 10 !important;
     transform: translateY(-50%) !important;
     /* Centra el punto verticalmente en la tarjeta, en vez de solo arriba */
+}
+
+/* The last item's bottom margin made the line stick out ~4rem below the
+   last card, while at the top it only overshoots by the 2rem padding */
+.timeline .timeline-item:last-child {
+    margin-bottom: 0;
 }
 
 .timeline::before {
@@ -1329,9 +1430,8 @@ body:hover.mouse-active::after {
 
 .project-image {
     height: 200px;
-    background: linear-gradient(135deg,
-            var(--accent-color),
-            var(--accent-color));
+    /* Neutral placeholder while the lazy-loaded screenshot arrives */
+    background: var(--secondary-bg);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1418,7 +1518,7 @@ body:hover.mouse-active::after {
 }
 
 .project-title {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     font-weight: 600;
     margin-bottom: 0.75rem;
     color: var(--text-primary);
@@ -1427,7 +1527,8 @@ body:hover.mouse-active::after {
 .project-description {
     color: var(--text-secondary);
     margin-bottom: 1rem;
-    line-height: 1.6;
+    font-size: 0.9rem;
+    line-height: 1.55;
 }
 
 .project-tech {
@@ -1705,7 +1806,9 @@ textarea.form-input {
     }
 }
 
-@media (max-width: 768px) {
+/* Hamburger menu from tablet down: at ~820px the 7 centered links
+   overlapped the logo and the language/theme buttons */
+@media (max-width: 1024px) {
     .themeToggle {
         padding: 9px;
         font-size: 15px;
@@ -1763,6 +1866,9 @@ textarea.form-input {
         font-weight: 700;
         padding: 0.75rem 0;
     }
+}
+
+@media (max-width: 768px) {
 
     .hero-container {
         grid-template-columns: 1fr;
@@ -1773,8 +1879,9 @@ textarea.form-input {
         overflow: hidden;
     }
 
-    .floating-card {
-        margin-top: 3rem;
+    /* The decorative </> card only pushed the content down on phones */
+    .hero-image {
+        display: none;
     }
 
     .section {
@@ -1878,13 +1985,30 @@ textarea.form-input {
         border-radius: 10px;
     }
 
+    /* Two items per row: one-per-row made this section very long */
     .tech-items {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.6rem;
     }
 
     .tech-grid {
         grid-template-columns: 1fr;
         gap: 1.5rem;
+    }
+
+    .tech-category {
+        padding: 1.5rem 1.25rem;
+    }
+
+    .tech-item {
+        padding: 0.6rem;
+        gap: 0.55rem;
+        min-width: 0;
+    }
+
+    .tech-item span {
+        font-size: 0.9rem;
+        overflow-wrap: anywhere;
     }
 
     .projects-grid {
@@ -2078,18 +2202,15 @@ textarea.form-input {
     }
 
     .hero-title {
-        font-size: 1.8rem;
+        font-size: 2rem;
         line-height: 1.3;
         margin-bottom: 1rem;
         padding: 0 0.5rem;
         text-align: center;
-        word-break: break-word;
-        overflow-wrap: break-word;
-        hyphens: auto;
     }
 
     .hero-subtitle {
-        font-size: 0.85rem;
+        font-size: 0.95rem;
         margin-bottom: 1.5rem;
         padding: 0 0.5rem;
         text-align: center;
@@ -2577,5 +2698,181 @@ textarea.form-input {
         /* Remover limitación de ancho máximo */
         margin-right: 0.25rem;
         /* Reducir margin derecho para más espacio */
+    }
+}
+
+/* ============================
+   PROYECTO DESTACADO (RiskTrail)
+   ============================ */
+.project-featured {
+    grid-column: 1 / -1;
+    border: none;
+}
+
+.project-featured .project-image {
+    height: auto;
+    /* same ratio as the 1200x1000 thumbnail, so nothing gets cropped */
+    aspect-ratio: 6 / 5;
+}
+
+.project-award {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0.75rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    background: rgba(251, 191, 36, 0.12);
+    border: 1px solid rgba(251, 191, 36, 0.35);
+    color: #fbbf24;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+body.light-mode .project-award {
+    color: #92400e;
+    background: rgba(251, 191, 36, 0.18);
+}
+
+.project-team {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+    padding-left: 0.75rem;
+    border-left: 2px solid rgba(var(--accent-rgb), 0.5);
+}
+
+/* The thumbnail is the full screenshot framed over a background with
+   generous margins, so a centered "cover" crop never cuts the app UI */
+.project-featured .project-img {
+    object-position: center;
+}
+
+/* Two columns only on wide screens: below ~1200px the text
+   column got too narrow and the card turned very tall */
+@media (min-width: 1200px) {
+    .project-featured {
+        display: grid;
+        grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    }
+
+    /* The image fills whatever height the text column needs (absolute
+       <img>), so it can never push the card wider than its column */
+    /* Keep the 6:5 ratio here too: if the box followed the text height
+       (taller in Spanish) "cover" would crop the top/bottom of the shot */
+    .project-featured .project-image {
+        aspect-ratio: 6 / 5;
+        height: auto;
+    }
+
+    .project-featured .project-img {
+        position: absolute;
+        inset: 0;
+    }
+
+    .project-featured .project-content {
+        padding: 2rem 2.25rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+    }
+
+    .project-featured .project-title {
+        font-size: 1.45rem;
+    }
+}
+
+/* The featured card is wide: a gentler hover than the 1.1x image zoom */
+.project-featured:hover .project-img {
+    transform: scale(1.04);
+}
+
+/* Honors: the JIC card spans the full row (3 cards in a 2-column grid) */
+.honors-grid .honor-card:first-child {
+    grid-column: 1 / -1;
+}
+
+/* ============================
+   CONTACTO: email y teléfono clicables y seleccionables
+   ============================ */
+a.contact-method {
+    text-decoration: none;
+    width: fit-content;
+    transition: color 0.2s ease;
+}
+
+a.contact-method:hover {
+    color: var(--accent-color);
+}
+
+.selectable,
+.selectable * {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
+}
+
+/* ============================
+   EXPERIENCIA: "Mostrar más"
+   ============================ */
+.timeline-description.is-clamped {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+    overflow: hidden;
+}
+
+.read-more-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: -0.75rem 0 1.25rem;
+    padding: 0.35rem 0;
+    border: none;
+    background: none;
+    color: var(--accent-color);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.read-more-btn i {
+    font-size: 0.7rem;
+}
+
+.read-more-btn:hover span {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+/* ============================
+   ACCESIBILIDAD
+   ============================ */
+body.menu-open {
+    overflow: hidden;
+}
+
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+.form-input:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
     }
 }
