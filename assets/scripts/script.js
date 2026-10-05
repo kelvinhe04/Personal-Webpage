@@ -67,6 +67,11 @@ function changeLanguage(lang) {
 
 // Function to update complex elements that need special handling
 function updateComplexElements(lang) {
+    // Point the CV download button to the CV in the current language
+    document.querySelectorAll("[data-cv-en][data-cv-es]").forEach((link) => {
+        link.setAttribute("href", link.getAttribute(`data-cv-${lang}`));
+    });
+
     // Update Load More button
     updateProjectsButtonText();
 
