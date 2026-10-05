@@ -15,12 +15,34 @@ themeToggle.addEventListener("click", (e) => {
 });
 
 // Language Toggle - Initialize immediately
-let currentLanguage = localStorage.getItem("language") || "en";
+// Saved choice first; otherwise the browser's preferred language (Spanish
+// if any of the user's languages is Spanish, English for everyone else)
+function detectLanguage() {
+    try {
+        const saved = localStorage.getItem("language");
+        if (saved === "es" || saved === "en") return saved;
+    } catch (e) {
+        // storage blocked (private mode): fall through to the browser language
+    }
+    const prefs =
+        navigator.languages && navigator.languages.length
+            ? navigator.languages
+            : [navigator.language || "en"];
+    return prefs.some((l) => String(l).toLowerCase().startsWith("es"))
+        ? "es"
+        : "en";
+}
+
+let currentLanguage = detectLanguage();
 
 // Function to change language
 function changeLanguage(lang) {
     currentLanguage = lang;
-    localStorage.setItem("language", lang);
+    try {
+        localStorage.setItem("language", lang);
+    } catch (e) {
+        // storage blocked: the choice just won't persist
+    }
     document.documentElement.lang = lang;
 
     // Update language label and active color
