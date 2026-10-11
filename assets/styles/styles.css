@@ -1228,6 +1228,66 @@ body::after {
     color: white;
 }
 
+/* Issuer logo tiles (same look as LinkedIn's licenses & certifications) */
+.certificate-icon--logo {
+    background: var(--logo-bg, #fff); /* color or gradient */
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.certificate-icon--logo img {
+    width: 62%;
+    height: 62%;
+    object-fit: contain;
+}
+
+.certificate-icon--kaggle {
+    --logo-bg: #fff;
+}
+
+.certificate-icon--cisco {
+    --logo-bg: #0d2540;
+}
+
+.certificate-icon--oracle {
+    --logo-bg: #c74634;
+}
+
+.certificate-icon--sic {
+    --logo-bg: #061538;
+}
+
+.certificate-icon--sic img {
+    width: 84%;
+    height: auto;
+}
+
+.certificate-icon--alura {
+    --logo-bg: linear-gradient(135deg, #0b3b49 0%, #03080c 55%);
+}
+
+.certificate-icon--alura img {
+    width: 66%;
+    height: auto;
+}
+
+.certificate-icon--progenios {
+    --logo-bg: #fff;
+}
+
+.certificate-icon--progenios img {
+    width: 78%;
+    height: 78%;
+}
+
+.certificate-icon--clec {
+    --logo-bg: #fff;
+}
+
+.certificate-icon--clec img {
+    width: 80%;
+    height: 80%;
+}
+
 .certificate-content {
     flex: 1;
 }
