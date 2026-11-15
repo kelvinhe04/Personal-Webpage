@@ -813,6 +813,22 @@ body::after {
     text-align: center;
 }
 
+.stat-link {
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.stat-link:hover,
+.stat-link:focus-visible {
+    transform: translateY(-3px);
+}
+
+.stat-link:hover .stat-label,
+.stat-link:focus-visible .stat-label {
+    color: var(--accent-color);
+}
+
 .stat-number {
     display: block;
     font-size: 2rem;
@@ -1486,6 +1502,10 @@ body::after {
 .project-card:hover {
     box-shadow: var(--shadow-hover);
 
+}
+
+.project-card.has-demo {
+    cursor: pointer;
 }
 
 .project-image {
