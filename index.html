@@ -84,16 +84,19 @@
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link rel="stylesheet" href="/assets/styles/styles.css" />
+        <link rel="stylesheet" href="/assets/styles/redesign.css" />
+        <link rel="stylesheet" href="/assets/styles/motion.css" />
         <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Geist:wght@300..700&family=Geist+Mono:wght@400..600&display=swap"
             rel="stylesheet"
         />
         <link
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
         />
-        <link rel="icon" type="image/png" href="assets/img/Logo.png" />
-        <link rel="apple-touch-icon" href="assets/img/Logo.png" />
+        <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg" />
+        <link rel="icon" type="image/png" sizes="180x180" href="assets/img/favicon-180.png" />
+        <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png" />
     </head>
     <body>
         <!-- Navbar translúcido -->
@@ -212,6 +215,9 @@
 
         <!-- Hero Section -->
         <section id="hero" class="hero">
+            <div class="hero-art" aria-hidden="true">
+                <svg class="hero-topo" viewBox="0 0 1000 760" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><g class="topo-minor"><path d="M0 303L25 300L31 297L36 292L45 237L64 171L73 151L85 139L129 116L146 103L206 28L214 15L219 0M845 0L849 10L859 20L870 25L884 28L899 26L917 20L930 10L935 0M953 0L952 20L953 35L958 55L964 70L970 81L980 93L990 98L1000 101M0 599L30 596L45 593L55 588L65 579L111 508L119 488L122 468L120 448L104 398L94 347L90 337L85 328L75 319L65 315L55 317L50 322L40 347L30 362L15 374L0 378M761 760L741 745L734 742L724 740L719 740L711 745L707 750L701 760M0 618L60 619L70 616L80 609L86 599L95 569L101 554L128 498L134 478L136 463L135 448L129 408L128 393L129 377L135 347L136 332L132 317L121 292L111 277L91 252L86 242L83 226L84 211L90 196L95 186L101 180L111 171L126 165L166 158L176 153L183 146L186 141L190 131L194 96L200 75L211 55L235 20L240 10L243 0M627 0L638 9L648 15L663 22L709 38L739 56L749 60L759 61L764 59L773 50L784 32L789 27L794 24L799 24L809 27L839 43L854 49L869 53L905 59L915 63L925 70L930 75L940 96L943 116L940 146L944 156L955 165L965 168L1000 170M214 352L220 347L223 342L224 332L221 325L216 319L206 315L196 317L191 319L183 327L181 332L181 342L184 347L190 352L196 354L206 355L214 352ZM797 760L739 724L724 719L714 718L704 721L694 730L688 743L684 760M314 760L291 748L271 744L259 745L246 748L231 754L222 760M403 760L394 745L382 733L367 725L337 715L312 708L291 705L236 707L216 706L201 703L186 696L166 679L147 659L136 644L121 615L113 589L113 574L116 554L138 503L146 478L150 458L153 418L158 403L161 398L171 392L211 383L231 374L240 367L250 357L257 342L259 327L255 307L248 292L226 257L223 247L223 237L226 226L233 216L266 186L272 176L273 166L271 156L266 146L241 120L232 106L228 96L227 81L230 65L241 45L256 25L279 0M319 0L337 5L357 7L380 5L402 0M600 0L610 10L624 20L686 55L720 86L734 96L749 104L779 116L794 124L804 132L824 151L834 158L849 164L879 169L894 173L910 180L945 201L960 207L975 210L1000 213M1000 377L990 388L981 403L977 418L976 433L983 488L987 549L992 569L1000 593M0 641L25 642L56 649L90 659L109 669L125 685L149 715L155 725L160 740L160 750L157 760M1000 678L985 725L975 740L965 748L955 753L929 760M899 760L859 751L819 745L799 741L779 732L729 704L714 699L704 698L693 701L688 704L680 715L675 730L668 760M554 0L586 25L635 55L653 68L667 81L709 122L759 157L804 194L829 206L870 216L884 221L892 226L901 237L904 242L906 252L898 287L899 307L904 322L922 362L927 377L937 443L952 508L968 589L971 614L971 629L968 644L964 659L957 674L947 690L940 699L930 708L920 714L905 720L884 722L839 720L809 716L794 711L774 703L719 669L704 662L688 657L678 657L670 659L663 663L653 673L647 685L633 716L628 724L618 731L608 732L588 725L548 701L528 693L508 692L462 696L447 696L387 681L307 670L256 666L236 662L216 653L199 639L175 614L156 589L148 569L147 559L148 544L154 523L177 463L187 443L196 432L211 420L297 372L312 359L319 342L335 247L337 221L337 201L332 176L323 151L312 129L291 96L286 86L285 75L289 65L296 59L312 53L377 43L422 31L449 20L480 0M899 705L879 709L849 708L819 706L794 699L779 693L759 682L709 646L693 636L678 630L663 627L618 625L605 629L600 634L599 639L600 659L599 664L593 667L578 661L563 660L497 669L467 670L410 664L347 661L256 652L241 648L226 641L211 630L196 615L179 594L170 579L165 564L163 549L165 534L172 513L186 477L195 458L202 448L212 438L236 421L266 405L315 388L327 381L337 372L343 357L348 312L358 252L360 216L357 196L351 176L325 116L319 101L318 91L319 86L322 81L326 75L334 70L348 65L407 50L435 40L503 8L518 5L533 8L553 18L618 57L638 70L658 89L699 131L750 171L784 200L809 217L845 237L858 247L866 262L874 297L879 312L904 362L911 383L916 403L924 453L942 523L954 574L958 599L959 619L957 634L952 649L945 664L936 679L925 691L913 700L899 705ZM879 695L854 696L824 695L799 689L779 682L759 670L739 654L719 634L683 594L673 585L664 579L653 575L628 569L603 569L588 574L573 588L550 619L538 631L528 638L518 642L497 647L477 647L442 643L427 642L377 647L352 648L271 642L251 637L236 631L221 621L206 606L194 589L185 574L181 559L179 544L181 528L187 508L197 483L209 463L226 443L246 429L276 415L338 398L353 388L358 383L362 372L365 357L365 317L375 247L377 216L375 201L371 186L351 136L345 116L344 101L349 91L354 86L371 75L437 52L497 26L518 23L538 27L558 36L598 58L618 70L633 81L650 96L683 133L704 152L774 212L822 247L838 262L848 277L865 317L888 362L897 383L903 403L912 458L938 549L947 594L947 614L945 629L940 645L930 664L920 676L909 685L894 691L879 695ZM859 670L834 672L809 669L789 662L768 649L753 634L743 619L736 604L725 569L719 559L714 552L704 545L693 540L678 536L603 525L588 524L578 525L569 528L563 533L553 544L536 574L526 589L513 600L497 606L482 607L447 604L432 605L357 621L332 622L296 621L276 619L256 613L240 604L226 590L219 579L213 564L209 549L209 534L211 518L218 498L225 483L236 468L252 453L261 446L276 439L296 433L347 423L367 416L377 410L386 403L395 388L398 377L398 367L396 332L396 312L404 237L405 211L402 191L387 146L384 126L387 111L392 104L401 96L418 86L457 68L482 58L503 52L518 51L533 53L548 57L568 65L598 81L619 96L634 111L669 151L693 175L755 232L804 269L819 285L836 312L865 367L874 388L880 413L890 468L917 549L925 584L925 604L922 619L916 634L910 644L899 654L889 661L874 667L859 670ZM864 654L839 659L814 657L794 651L775 639L762 624L753 609L749 594L742 564L736 549L729 539L719 531L709 527L695 523L643 517L588 506L568 507L553 514L543 525L526 559L518 573L508 582L492 589L477 591L432 591L417 594L362 607L337 610L312 610L286 608L266 604L251 596L238 584L231 573L225 559L223 549L222 534L224 518L229 503L236 488L247 473L261 460L281 449L302 443L354 433L381 423L392 416L401 408L411 393L414 372L410 327L410 307L418 232L418 211L416 191L404 146L402 131L406 116L412 108L420 101L437 90L467 75L487 68L508 63L523 63L538 66L558 72L577 81L598 93L614 106L629 121L663 161L683 181L749 241L799 281L814 297L835 332L856 372L864 393L869 413L880 473L906 549L913 579L914 594L913 604L910 616L905 627L899 634L889 643L879 649L864 654ZM839 645L819 645L804 641L790 634L778 624L771 614L765 599L761 584L757 554L753 539L747 528L736 518L725 513L714 511L643 504L578 489L558 490L548 493L539 498L533 505L528 513L516 544L508 558L497 568L482 575L427 580L357 595L312 597L286 595L271 591L256 583L246 572L241 563L236 549L235 539L236 523L240 508L244 498L251 486L261 474L276 463L291 457L312 451L357 443L387 433L402 425L412 418L421 408L426 398L429 388L429 372L425 327L425 302L431 232L431 211L429 191L421 151L420 136L422 126L428 116L444 101L462 90L482 81L497 77L513 75L528 75L543 78L563 85L578 93L593 103L608 116L647 161L672 186L744 250L790 287L809 308L829 342L844 372L852 393L859 418L864 458L868 478L894 549L901 579L901 594L899 604L894 615L887 624L874 634L864 639L839 645ZM844 610L829 613L819 611L806 604L799 595L795 584L794 574L796 534L795 518L791 508L787 503L773 493L754 486L734 482L668 481L643 479L623 474L573 459L548 454L523 454L510 458L503 464L497 471L495 478L488 513L483 528L472 541L457 550L437 555L387 566L367 569L342 571L317 571L296 568L281 562L271 554L264 539L263 528L264 518L267 508L273 498L286 485L298 478L312 474L372 460L429 443L450 433L459 423L463 413L464 398L458 342L457 317L462 221L454 151L455 141L459 131L466 121L477 111L497 102L508 99L523 98L538 101L548 104L568 114L586 131L610 161L625 176L693 230L739 270L774 299L794 320L812 352L829 393L836 423L837 478L839 493L844 508L864 546L870 564L871 579L869 587L866 594L857 604L844 610ZM794 473L739 468L668 470L638 466L613 459L520 428L508 422L497 414L491 403L484 383L478 357L476 337L477 312L484 252L485 232L483 211L473 171L472 156L475 141L480 131L485 126L492 120L502 116L518 113L538 115L553 122L569 136L590 166L603 179L620 191L658 215L683 233L763 302L779 317L793 337L806 362L817 393L822 418L822 438L816 458L809 468L804 471L794 473ZM387 554L367 556L342 557L317 555L302 551L291 546L285 539L281 528L283 513L289 503L296 496L310 488L325 483L397 466L422 462L442 462L452 465L457 468L464 478L467 488L468 498L466 513L462 523L458 528L447 536L432 543L412 549L387 554ZM834 577L829 576L826 569L829 561L834 560L838 564L840 569L839 574L834 577ZM673 458L648 457L628 452L603 444L576 433L544 418L528 408L517 398L506 383L502 372L498 357L497 342L498 327L503 302L523 242L527 221L525 211L523 206L504 181L498 166L497 156L500 146L504 141L511 136L518 134L528 134L534 136L543 141L548 147L553 156L562 181L566 186L573 191L618 207L638 215L663 229L683 244L764 315L778 332L787 347L800 377L804 393L806 408L805 428L801 438L797 443L789 448L774 452L673 458ZM392 539L362 540L332 536L323 534L315 528L312 523L311 518L313 513L317 509L324 503L337 498L372 487L392 483L412 481L426 483L435 488L439 493L442 503L440 513L436 518L431 523L422 529L412 534L392 539ZM709 433L683 436L663 436L643 434L623 429L603 421L579 408L559 393L546 377L540 367L536 352L535 337L538 322L547 297L559 272L569 257L583 244L598 236L618 235L638 239L658 248L678 261L697 277L743 322L759 342L767 357L773 377L774 393L769 408L760 418L751 423L734 428L709 433ZM698 423L678 425L658 425L640 423L623 418L603 409L585 398L573 387L561 372L556 362L552 347L552 337L554 322L561 302L571 282L582 267L593 256L608 249L623 248L638 250L658 258L678 272L695 287L728 322L744 342L753 357L757 372L757 388L753 398L744 408L736 413L719 419L698 423ZM688 413L668 415L653 414L638 411L623 406L608 399L593 388L582 377L575 367L570 357L567 342L568 332L571 317L577 302L585 287L593 277L605 267L618 262L633 262L648 265L663 273L678 285L696 302L718 327L732 347L738 362L740 372L739 383L734 392L729 398L719 404L704 409L688 413ZM678 384L658 387L638 384L623 376L609 362L602 347L601 332L603 322L608 312L618 300L623 297L633 294L648 296L658 301L666 307L683 327L695 347L697 362L693 373L688 379L678 384Z"/></g><g class="topo-major"><path d="M0 30L10 33L20 39L70 76L85 81L101 81L111 78L126 70L161 44L184 20L190 10L193 0M0 220L8 216L15 209L19 201L21 191L20 186L15 178L10 174L0 172M0 579L30 573L45 565L55 556L80 528L95 508L104 488L106 473L105 458L96 438L80 413L70 403L65 400L55 398L20 405L0 407M552 760L547 750L537 740L523 731L513 727L497 727L467 734L452 735L437 730L397 706L377 699L307 686L241 682L226 679L216 675L206 669L191 657L156 621L146 608L137 594L131 574L131 559L134 544L154 493L168 443L176 425L182 418L189 413L236 390L263 372L278 357L284 347L288 337L291 317L293 257L308 201L309 186L309 176L306 161L296 141L286 127L264 101L258 91L254 75L256 65L260 55L266 47L274 40L281 35L291 32L307 30L352 30L387 25L423 15L437 9L451 0M578 0L588 10L603 22L653 53L671 65L719 110L769 141L806 171L819 180L839 188L879 194L894 199L910 206L940 228L955 235L970 238L1000 241M1000 328L990 332L965 337L960 339L955 346L952 357L951 408L953 438L964 493L972 549L985 604L987 624L985 644L980 664L968 690L955 711L945 721L935 728L925 733L910 737L884 738L829 732L809 729L789 722L714 683L698 679L688 679L678 683L673 687L665 700L658 720L649 760M0 684L20 682L35 684L50 691L61 700L67 710L71 725L69 740L60 760M879 680L854 684L824 683L799 678L779 670L756 654L737 634L724 614L706 579L699 569L694 564L683 558L673 554L628 546L598 544L588 545L578 549L572 554L563 564L544 594L531 609L518 619L508 623L497 626L482 626L437 621L422 622L382 631L357 634L332 635L286 632L266 629L246 622L231 613L217 599L207 584L200 569L195 554L195 539L197 523L203 503L211 483L221 467L236 451L256 436L271 429L286 424L337 413L353 408L369 398L374 393L379 383L382 367L381 312L390 247L392 221L391 206L388 191L370 141L365 121L367 106L370 101L377 93L387 86L402 78L477 47L497 41L513 38L523 38L538 41L553 47L593 66L623 86L639 101L678 144L698 164L763 221L809 256L825 272L841 297L877 367L886 388L891 408L901 463L927 549L935 584L936 604L935 619L931 634L925 646L915 659L905 669L894 675L879 680ZM839 630L824 631L809 627L795 619L786 609L781 599L777 584L774 544L771 528L764 515L754 506L739 499L724 496L668 494L643 491L568 472L553 472L543 473L533 476L523 483L513 498L503 528L496 544L487 554L472 561L372 581L327 585L302 584L281 580L269 574L258 564L253 554L250 544L249 523L253 508L257 498L264 488L271 481L286 471L302 465L367 451L404 438L417 431L429 423L434 418L441 408L444 398L446 383L441 332L440 307L446 216L444 196L438 161L437 146L438 136L442 126L449 116L461 106L472 98L487 92L503 87L518 86L533 87L546 91L559 96L573 103L596 121L630 161L650 181L739 258L781 292L794 305L804 317L813 332L826 357L843 398L848 423L852 463L856 483L862 503L882 549L888 574L888 584L886 594L879 609L864 621L854 626L839 630ZM719 443L688 446L663 447L643 445L623 440L593 428L564 413L543 398L529 383L521 367L517 352L517 337L520 322L528 297L544 262L556 242L568 230L583 222L603 220L628 224L653 234L673 247L698 267L752 317L769 337L780 357L788 383L790 403L787 418L780 428L769 434L754 439L719 443ZM688 399L673 402L658 402L633 397L622 393L608 384L592 367L587 357L584 347L583 337L584 327L588 314L594 302L603 289L612 282L623 277L633 276L643 277L658 284L670 292L683 305L709 337L719 357L720 367L719 377L716 383L709 390L698 396L688 399Z"/></g></svg>
+            </div>
             <div class="hero-container">
                 <div class="hero-content">
                     <a href="#risktrail" class="hero-badge">
@@ -229,6 +235,11 @@
                         <span class="hero-greeting">Hello, I'm </span
                         ><span class="highlight">Kelvin He</span>
                     </h1>
+                    <p class="hero-roles" aria-hidden="true">
+                        <span class="roles-prompt">&gt;</span
+                        ><span class="roles-text"></span
+                        ><span class="roles-caret"></span>
+                    </p>
                     <p
                         class="hero-subtitle"
                         data-en="Full Stack Developer passionate about creating exceptional digital experiences"
@@ -253,7 +264,7 @@
                             data-cv-en="assets/Kelvin_He_CV_EN.pdf"
                             data-cv-es="assets/Kelvin_He_CV_ES.pdf"
                             download
-                            class="btn btn-secondary"
+                            class="btn btn-secondary btn-cv"
                         >
                             <i class="fas fa-download" aria-hidden="true"></i>
                             <span data-en="Download CV" data-es="Descargar CV"
@@ -311,7 +322,7 @@
                     </div>
                     <div class="about-stats-profile">
                         <div class="stats">
-                            <div class="stat-item">
+                            <a href="#projects" class="stat-item stat-link">
                                 <span class="stat-number">15+</span>
                                 <span
                                     class="stat-label"
@@ -319,7 +330,7 @@
                                     data-es="Proyectos"
                                     >Projects</span
                                 >
-                            </div>
+                            </a>
                             <div class="stat-item">
                                 <span class="stat-number">4+</span>
                                 <span
@@ -345,13 +356,51 @@
                                     <div class="profile-avatar">
                                         <img
                                             class="profile-img"
-                                            src="assets/img/Perfil.png"
+                                            src="assets/img/retrato.webp"
+                                            width="1120"
+                                            height="2024"
+                                            decoding="async"
                                             alt="Kelvin He Wu"
                                         />
                                     </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+                <div class="moments">
+                    <p
+                        class="moments-label"
+                        data-en="Beyond the screen"
+                        data-es="Fuera de la pantalla"
+                    >
+                        Beyond the screen
+                    </p>
+                    <div class="moments-row">
+                        <figure class="moment">
+                            <img loading="lazy" decoding="async" src="assets/img/fotos/iestec.webp" alt="Kelvin He en el Congreso IESTEC" draggable="false" />
+                            <figcaption>Congreso IESTEC</figcaption>
+                        </figure>
+                        <figure class="moment is-wide">
+                            <img loading="lazy" decoding="async" src="assets/img/fotos/jic-premiacion.webp" alt="Kelvin He y su equipo recibiendo el certificado en la Jornada de Iniciación Científica" draggable="false" />
+                            <figcaption>Premiación JIC</figcaption>
+                        </figure>
+                        <figure class="moment">
+                            <img loading="lazy" decoding="async" src="assets/img/fotos/devfest.webp" alt="Kelvin He en DevFest" draggable="false" />
+                            <figcaption>DevFest</figcaption>
+                        </figure>
+                        <figure class="moment">
+                            <img loading="lazy" decoding="async" src="assets/img/fotos/copa-airlines.webp" alt="Kelvin He en las oficinas de Copa Airlines" draggable="false" />
+                            <figcaption>Copa Airlines</figcaption>
+                        </figure>
+                        <figure class="moment is-wide">
+                            <img loading="lazy" decoding="async" src="assets/img/fotos/honor-merito-utp.webp" alt="Kelvin He con el Certificado de Honor al Mérito en la UTP" draggable="false" />
+                            <figcaption>Honor al Mérito</figcaption>
+                        </figure>
+                        <figure class="moment">
+                            <img loading="lazy" decoding="async" src="assets/img/fotos/junior-dev-pin.webp" alt="Pin de Desarrollador Junior del Departamento de Programación de la UTP" draggable="false" />
+                            <figcaption>Desarrollador Jr.</figcaption>
+                        </figure>
                     </div>
                 </div>
             </div>
@@ -421,19 +470,11 @@
                         </h3>
                         <div class="tech-items">
                             <div class="tech-item">
-                                <img
-                                    src="assets/icons/flask.png"
-                                    alt=""
-                                    class="Flask-icon"
-                                />
+                                <span class="tech-ico" style="--ico: url('/assets/icons/mono/flask.svg')" aria-hidden="true"></span>
                                 <span>Flask</span>
                             </div>
                             <div class="tech-item">
-                                <img
-                                    src="assets/icons/Tailwind CSS.svg"
-                                    alt=""
-                                    class="Tailwind-icon"
-                                />
+                                <span class="tech-ico" style="--ico: url('/assets/icons/mono/tailwindcss.svg')" aria-hidden="true"></span>
                                 <span>Tailwind</span>
                             </div>
                             <div class="tech-item">
@@ -464,27 +505,15 @@
                                 <span>SQL Server</span>
                             </div>
                             <div class="tech-item">
-                                <img
-                                    src="assets/icons/mysql.svg"
-                                    alt=""
-                                    class="tech-icon"
-                                />
+                                <span class="tech-ico" style="--ico: url('/assets/icons/mono/mysql.svg')" aria-hidden="true"></span>
                                 <span>MySQL</span>
                             </div>
                             <div class="tech-item">
-                                <img
-                                    src="assets/icons/mariadb.svg"
-                                    alt=""
-                                    class="tech-icon"
-                                />
+                                <span class="tech-ico" style="--ico: url('/assets/icons/mono/mariadb.svg')" aria-hidden="true"></span>
                                 <span>MariaDB</span>
                             </div>
                             <div class="tech-item">
-                                <img
-                                    src="assets/icons/sqlite.svg"
-                                    alt=""
-                                    class="SQLite-icon"
-                                />
+                                <span class="tech-ico" style="--ico: url('/assets/icons/mono/sqlite.svg')" aria-hidden="true"></span>
                                 <span>SQLite</span>
                             </div>
                         </div>
@@ -499,11 +528,7 @@
                         </h3>
                         <div class="tech-items">
                             <div class="tech-item">
-                                <img
-                                    src="assets/icons/HeidiSQL.png"
-                                    alt=""
-                                    class="HeidiSQL-icon"
-                                />
+                                <i class="fas fa-database" aria-hidden="true"></i>
                                 <span>HeidiSQL</span>
                             </div>
                             <div class="tech-item">
@@ -511,11 +536,7 @@
                                 <span>phpMyAdmin</span>
                             </div>
                             <div class="tech-item">
-                                <img
-                                    src="assets/icons/DBeaver.svg"
-                                    alt=""
-                                    class="DBeaver-icon"
-                                />
+                                <span class="tech-ico" style="--ico: url('/assets/icons/mono/dbeaver.svg')" aria-hidden="true"></span>
                                 <span>DBeaver</span>
                             </div>
                         </div>
@@ -542,11 +563,7 @@
                                 <span>Figma</span>
                             </div>
                             <div class="tech-item">
-                                <img
-                                    src="assets/icons/firebase.svg"
-                                    alt=""
-                                    class="Firebase-icon"
-                                />
+                                <span class="tech-ico" style="--ico: url('/assets/icons/mono/firebase.svg')" aria-hidden="true"></span>
                                 <span>Firebase</span>
                             </div>
                         </div>
@@ -800,10 +817,10 @@
                                 class="project-img"
                                 loading="lazy"
                                 decoding="async"
-                                src="assets/img/proyectos/RiskTrail.webp"
+                                src="assets/img/proyectos/v2/RiskTrail.webp"
                                 alt="RiskTrail — análisis de riesgo de una ruta de senderismo sobre imagen satelital del Parque Natural Metropolitano"
-                                width="1200"
-                                height="1000"
+                                width="1280"
+                                height="720"
                             />
                         </div>
                         <div class="project-content">
@@ -887,7 +904,8 @@
                                 class="project-img"
                                 loading="lazy"
                                 decoding="async"
-                                src="assets/img/proyectos/Healthora.png"
+                                src="assets/img/proyectos/v2/Healthora.webp"
+                                data-video="assets/video/healthora.mp4"
                                 alt="Healthora Project"
                             />
                         </div>
@@ -920,16 +938,6 @@
                             </div>
                             <div class="project-links">
                                 <a
-                                    href="https://github.com/kelvinhe04/healthora"
-                                    class="project-link"
-                                    target="_blank"
-                                >
-                                    <i class="fab fa-github"></i>
-                                    <span data-en="Code" data-es="Código">
-                                        Code
-                                    </span>
-                                </a>
-                                <a
                                     href="https://healthora-shop.vercel.app/"
                                     class="project-link"
                                     target="_blank"
@@ -937,6 +945,16 @@
                                     <i class="fas fa-external-link-alt"></i>
                                     <span data-en="Demo" data-es="Demo">
                                         Demo
+                                    </span>
+                                </a>
+                                <a
+                                    href="https://github.com/kelvinhe04/healthora"
+                                    class="project-link"
+                                    target="_blank"
+                                >
+                                    <i class="fab fa-github"></i>
+                                    <span data-en="Code" data-es="Código">
+                                        Code
                                     </span>
                                 </a>
                             </div>
@@ -949,7 +967,7 @@
                                 class="project-img"
                                 loading="lazy"
                                 decoding="async"
-                                src="assets/img/proyectos/Checkers.png"
+                                src="assets/img/proyectos/v2/Checkers.webp"
                                 alt="Checkers Project"
                                 onerror="this.onerror=null;this.outerHTML='&lt;div class=&quot;pokemon-battle-banner&quot; style=&quot;background:linear-gradient(135deg,#3a3f47 0%,#1c1c1c 60%,#000000 100%)&quot;&gt;&lt;i class=&quot;fas fa-chess&quot; style=&quot;font-size:3rem&quot;&gt;&lt;/i&gt;&lt;span&gt;Checkers&lt;/span&gt;&lt;/div&gt;';"
                             />
@@ -1006,7 +1024,8 @@
                                 class="project-img"
                                 loading="lazy"
                                 decoding="async"
-                                src="assets/img/proyectos/PokemonBattleRooms.png"
+                                src="assets/img/proyectos/v2/PokemonBattleRooms.webp"
+                                data-video="assets/video/pokemon.mp4"
                                 alt="Pokémon Battle Rooms"
                             />
                         </div>
@@ -1040,16 +1059,6 @@
                             </div>
                             <div class="project-links">
                                 <a
-                                    href="https://github.com/kelvinhe04/pokemon-battle-rooms"
-                                    class="project-link"
-                                    target="_blank"
-                                >
-                                    <i class="fab fa-github"></i>
-                                    <span data-en="Code" data-es="Código">
-                                        Code
-                                    </span>
-                                </a>
-                                <a
                                     href="https://pokemon-battle-rooms-frontend.onrender.com/"
                                     class="project-link"
                                     target="_blank"
@@ -1059,17 +1068,28 @@
                                         Demo
                                     </span>
                                 </a>
+                                <a
+                                    href="https://github.com/kelvinhe04/pokemon-battle-rooms"
+                                    class="project-link"
+                                    target="_blank"
+                                >
+                                    <i class="fab fa-github"></i>
+                                    <span data-en="Code" data-es="Código">
+                                        Code
+                                    </span>
+                                </a>
                             </div>
                         </div>
                     </div>
 
-                    <div class="project-card hidden-project">
+                    <div class="project-card">
                         <div class="project-image">
                             <img
                                 class="project-img"
                                 loading="lazy"
                                 decoding="async"
-                                src="assets/img/proyectos/PollClass.png"
+                                src="assets/img/proyectos/v2/PollClass.webp"
+                                data-video="assets/video/pollclass.mp4"
                                 alt="PollClass Project"
                             />
                         </div>
@@ -1102,16 +1122,6 @@
                             </div>
                             <div class="project-links">
                                 <a
-                                    href="https://github.com/kelvinhe04/pollclass"
-                                    class="project-link"
-                                    target="_blank"
-                                >
-                                    <i class="fab fa-github"></i>
-                                    <span data-en="Code" data-es="Código">
-                                        Code
-                                    </span>
-                                </a>
-                                <a
                                     href="https://pollclass.vercel.app/"
                                     class="project-link"
                                     target="_blank"
@@ -1121,17 +1131,28 @@
                                         Demo
                                     </span>
                                 </a>
+                                <a
+                                    href="https://github.com/kelvinhe04/pollclass"
+                                    class="project-link"
+                                    target="_blank"
+                                >
+                                    <i class="fab fa-github"></i>
+                                    <span data-en="Code" data-es="Código">
+                                        Code
+                                    </span>
+                                </a>
                             </div>
                         </div>
                     </div>
 
-                    <div class="project-card hidden-project">
+                    <div class="project-card">
                         <div class="project-image">
                             <img
                                 class="project-img"
                                 loading="lazy"
                                 decoding="async"
-                                src="assets/img/proyectos/IntelliDocs.png"
+                                src="assets/img/proyectos/v2/IntelliDocs.webp"
+                                data-video="assets/video/intellidocs.mp4"
                                 alt="IntelliDocs Project"
                             />
                         </div>
@@ -1161,16 +1182,6 @@
                             </div>
                             <div class="project-links">
                                 <a
-                                    href="https://github.com/kelvinhe04/IntelliDocs"
-                                    target="_blank"
-                                    class="project-link"
-                                >
-                                    <i class="fab fa-github"></i>
-                                    <span data-en="Code" data-es="Código"
-                                        >Code</span
-                                    >
-                                </a>
-                                <a
                                     href="https://intellidocs-1.onrender.com/"
                                     target="_blank"
                                     class="project-link"
@@ -1180,17 +1191,27 @@
                                         >Demo</span
                                     >
                                 </a>
+                                <a
+                                    href="https://github.com/kelvinhe04/IntelliDocs"
+                                    target="_blank"
+                                    class="project-link"
+                                >
+                                    <i class="fab fa-github"></i>
+                                    <span data-en="Code" data-es="Código"
+                                        >Code</span
+                                    >
+                                </a>
                             </div>
                         </div>
                     </div>
 
-                    <div class="project-card hidden-project">
+                    <div class="project-card">
                         <div class="project-image">
                             <img
                                 class="project-img"
                                 loading="lazy"
                                 decoding="async"
-                                src="assets/img/proyectos/SeguraTuAuto.png"
+                                src="assets/img/proyectos/v2/SeguraTuAuto.webp"
                                 alt="SeguraTuAuto Project"
                             />
                         </div>
@@ -1219,16 +1240,6 @@
                             </div>
                             <div class="project-links">
                                 <a
-                                    href="https://github.com/IrvinngB/segura-tu-auto/tree/actualizada"
-                                    class="project-link"
-                                    target="_blank"
-                                >
-                                    <i class="fab fa-github"></i>
-                                    <span data-en="Code" data-es="Código"
-                                        >Code</span
-                                    >
-                                </a>
-                                <a
                                     href="#"
                                     class="project-link"
                                     target="_blank"
@@ -1238,17 +1249,27 @@
                                         >Demo</span
                                     >
                                 </a>
+                                <a
+                                    href="https://github.com/IrvinngB/segura-tu-auto/tree/actualizada"
+                                    class="project-link"
+                                    target="_blank"
+                                >
+                                    <i class="fab fa-github"></i>
+                                    <span data-en="Code" data-es="Código"
+                                        >Code</span
+                                    >
+                                </a>
                             </div>
                         </div>
                     </div>
 
-                    <div class="project-card hidden-project">
+                    <div class="project-card">
                         <div class="project-image">
                             <img
                                 class="project-img"
                                 loading="lazy"
                                 decoding="async"
-                                src="assets/img/proyectos/AsistenteAgricultor.png"
+                                src="assets/img/proyectos/v2/AgroAssistant.webp"
                                 alt="Asistente Digital para Agricultores Panameños"
                             />
                         </div>
@@ -1277,16 +1298,6 @@
                             </div>
                             <div class="project-links">
                                 <a
-                                    href="https://github.com/SukisDev/AgroAssistant"
-                                    class="project-link"
-                                    target="_blank"
-                                >
-                                    <i class="fab fa-github"></i>
-                                    <span data-en="Code" data-es="Código"
-                                        >Code</span
-                                    >
-                                </a>
-                                <a
                                     href="https://github.com/SukisDev/AgroAssistant/releases/tag/v1.0-demo"
                                     class="project-link"
                                     target="_blank"
@@ -1298,17 +1309,27 @@
                                         >Download .exe</span
                                     >
                                 </a>
+                                <a
+                                    href="https://github.com/SukisDev/AgroAssistant"
+                                    class="project-link"
+                                    target="_blank"
+                                >
+                                    <i class="fab fa-github"></i>
+                                    <span data-en="Code" data-es="Código"
+                                        >Code</span
+                                    >
+                                </a>
                             </div>
                         </div>
                     </div>
 
-                    <div class="project-card hidden-project">
+                    <div class="project-card">
                         <div class="project-image">
                             <img
                                 class="project-img"
                                 loading="lazy"
                                 decoding="async"
-                                src="assets/img/proyectos/BibliotecaNative.png"
+                                src="assets/img/proyectos/v2/BibliotecaNative.webp"
                                 alt="Sistema de Biblioteca Nativa"
                             />
                         </div>
@@ -1337,16 +1358,6 @@
                             </div>
                             <div class="project-links">
                                 <a
-                                    href="https://github.com/N0oCh1/BibliotecaNative"
-                                    class="project-link"
-                                    target="_blank"
-                                >
-                                    <i class="fab fa-github"></i>
-                                    <span data-en="Code" data-es="Código"
-                                        >Code</span
-                                    >
-                                </a>
-                                <a
                                     href="https://github.com/N0oCh1/BibliotecaNative/releases/tag/Release-1"
                                     class="project-link"
                                     target="_blank"
@@ -1358,16 +1369,27 @@
                                         >Mobile App</span
                                     >
                                 </a>
+                                <a
+                                    href="https://github.com/N0oCh1/BibliotecaNative"
+                                    class="project-link"
+                                    target="_blank"
+                                >
+                                    <i class="fab fa-github"></i>
+                                    <span data-en="Code" data-es="Código"
+                                        >Code</span
+                                    >
+                                </a>
                             </div>
                         </div>
                     </div>
-                    <div class="project-card hidden-project">
+                    <div class="project-card">
                         <div class="project-image">
                             <img
                                 class="project-img"
                                 loading="lazy"
                                 decoding="async"
-                                src="assets/img/proyectos/NoticiaPTY.png"
+                                src="assets/img/proyectos/v2/NoticiaPTY.webp"
+                                data-video="assets/video/noticiapty.mp4"
                                 alt="Sistema de Noticias para Panamá"
                             />
                         </div>
@@ -1394,16 +1416,6 @@
                             </div>
                             <div class="project-links">
                                 <a
-                                    href="https://github.com/N0oCh1/noticiapty/tree/kelvin"
-                                    class="project-link"
-                                    target="_blank"
-                                >
-                                    <i class="fab fa-github"></i>
-                                    <span data-en="Code" data-es="Código"
-                                        >Code</span
-                                    >
-                                </a>
-                                <a
                                     href="https://noticiapty.free.nf/app/index.php"
                                     class="project-link"
                                     target="_blank"
@@ -1413,16 +1425,26 @@
                                         >Demo</span
                                     >
                                 </a>
+                                <a
+                                    href="https://github.com/N0oCh1/noticiapty/tree/kelvin"
+                                    class="project-link"
+                                    target="_blank"
+                                >
+                                    <i class="fab fa-github"></i>
+                                    <span data-en="Code" data-es="Código"
+                                        >Code</span
+                                    >
+                                </a>
                             </div>
                         </div>
                     </div>
-                    <div class="project-card hidden-project">
+                    <div class="project-card">
                         <div class="project-image">
                             <img
                                 class="project-img"
                                 loading="lazy"
                                 decoding="async"
-                                src="assets/img/proyectos/CamaraFotoApp.png"
+                                src="assets/img/proyectos/v2/CamaraFotoApp.webp"
                                 alt="Camera Photo App"
                             />
                         </div>
@@ -1452,16 +1474,6 @@
                             </div>
                             <div class="project-links">
                                 <a
-                                    href="https://github.com/kelvinhe04/CamaraFotoApp"
-                                    class="project-link"
-                                    target="_blank"
-                                >
-                                    <i class="fab fa-github"></i>
-                                    <span data-en="Code" data-es="Código"
-                                        >Code</span
-                                    >
-                                </a>
-                                <a
                                     href="https://github.com/kelvinhe04/CamaraFotoApp/releases/tag/v1.0.0"
                                     class="project-link"
                                     target="_blank"
@@ -1473,17 +1485,27 @@
                                         >Mobile App</span
                                     >
                                 </a>
+                                <a
+                                    href="https://github.com/kelvinhe04/CamaraFotoApp"
+                                    class="project-link"
+                                    target="_blank"
+                                >
+                                    <i class="fab fa-github"></i>
+                                    <span data-en="Code" data-es="Código"
+                                        >Code</span
+                                    >
+                                </a>
                             </div>
                         </div>
                     </div>
 
-                    <div class="project-card hidden-project">
+                    <div class="project-card">
                         <div class="project-image">
                             <img
                                 class="project-img"
                                 loading="lazy"
                                 decoding="async"
-                                src="assets/img/proyectos/RunnerApp.png"
+                                src="assets/img/proyectos/v2/RunnerApp.webp"
                                 alt="Runner Fitness Tracker"
                             />
                         </div>
@@ -1512,16 +1534,6 @@
                             </div>
                             <div class="project-links">
                                 <a
-                                    href="https://github.com/kelvinhe04/Runner-App-SoftVII-Parcial-2"
-                                    target="_blank"
-                                    class="project-link"
-                                >
-                                    <i class="fab fa-github"></i>
-                                    <span data-en="Code" data-es="Código"
-                                        >Code</span
-                                    >
-                                </a>
-                                <a
                                     href="https://github.com/kelvinhe04/Runner-App-SoftVII-Parcial-2/releases/tag/v1.1"
                                     class="project-link"
                                     target="_blank"
@@ -1533,18 +1545,28 @@
                                         >Mobile App</span
                                     >
                                 </a>
+                                <a
+                                    href="https://github.com/kelvinhe04/Runner-App-SoftVII-Parcial-2"
+                                    target="_blank"
+                                    class="project-link"
+                                >
+                                    <i class="fab fa-github"></i>
+                                    <span data-en="Code" data-es="Código"
+                                        >Code</span
+                                    >
+                                </a>
                             </div>
                         </div>
                     </div>
 
                     <!-- Proyectos adicionales (ocultos inicialmente) -->
-                    <div class="project-card hidden-project">
+                    <div class="project-card">
                         <div class="project-image">
                             <img
                                 class="project-img"
                                 loading="lazy"
                                 decoding="async"
-                                src="assets/img/proyectos/ApiAgrodelis.png"
+                                src="assets/img/proyectos/v2/ApiAgrodelis.webp"
                                 alt="ApiAgrodelis REST API"
                             />
                         </div>
@@ -1572,16 +1594,6 @@
                             </div>
                             <div class="project-links">
                                 <a
-                                    href="https://github.com/kelvinhe04/ApiAgrodelis"
-                                    class="project-link"
-                                    target="_blank"
-                                >
-                                    <i class="fab fa-github"></i>
-                                    <span data-en="Code" data-es="Código"
-                                        >Code</span
-                                    >
-                                </a>
-                                <a
                                     href="https://github.com/kelvinhe04/ApiAgrodelis/releases/tag/v1.0"
                                     class="project-link"
                                     target="_blank"
@@ -1593,16 +1605,27 @@
                                         >Download .exe</span
                                     >
                                 </a>
+                                <a
+                                    href="https://github.com/kelvinhe04/ApiAgrodelis"
+                                    class="project-link"
+                                    target="_blank"
+                                >
+                                    <i class="fab fa-github"></i>
+                                    <span data-en="Code" data-es="Código"
+                                        >Code</span
+                                    >
+                                </a>
                             </div>
                         </div>
                     </div>
-                    <div class="project-card hidden-project">
+                    <div class="project-card">
                         <div class="project-image">
                             <img
                                 class="project-img"
                                 loading="lazy"
                                 decoding="async"
-                                src="assets/img/proyectos/AgroDelis.png"
+                                src="assets/img/proyectos/v2/AgroDelis.webp"
+                                data-video="assets/video/ecommerce.mp4"
                                 alt="E-Commerce Web Interface"
                             />
                         </div>
@@ -1630,16 +1653,6 @@
                             </div>
                             <div class="project-links">
                                 <a
-                                    href="https://github.com/kelvinhe04/Semestral-SoftV-MercaPanama-InterfazWeb"
-                                    class="project-link"
-                                    target="_blank"
-                                >
-                                    <i class="fab fa-github"></i>
-                                    <span data-en="Code" data-es="Código"
-                                        >Code</span
-                                    >
-                                </a>
-                                <a
                                     href="https://semestral-softv.netlify.app/"
                                     target="_blank"
                                     class="project-link"
@@ -1649,17 +1662,28 @@
                                         >Demo</span
                                     >
                                 </a>
+                                <a
+                                    href="https://github.com/kelvinhe04/Semestral-SoftV-MercaPanama-InterfazWeb"
+                                    class="project-link"
+                                    target="_blank"
+                                >
+                                    <i class="fab fa-github"></i>
+                                    <span data-en="Code" data-es="Código"
+                                        >Code</span
+                                    >
+                                </a>
                             </div>
                         </div>
                     </div>
 
-                    <div class="project-card hidden-project">
+                    <div class="project-card">
                         <div class="project-image">
                             <img
                                 class="project-img"
                                 loading="lazy"
                                 decoding="async"
-                                src="assets/img/proyectos/ElRestauranteElParque.png"
+                                src="assets/img/proyectos/v2/ElRestauranteElParque.webp"
+                                data-video="assets/video/restaurante.mp4"
                                 alt="Restaurant Website"
                             />
                         </div>
@@ -1687,16 +1711,6 @@
                             </div>
                             <div class="project-links">
                                 <a
-                                    href="https://github.com/kelvinhe04/ElRestauranteElParque"
-                                    target="_blank"
-                                    class="project-link"
-                                >
-                                    <i class="fab fa-github"></i>
-                                    <span data-en="Code" data-es="Código"
-                                        >Code</span
-                                    >
-                                </a>
-                                <a
                                     href="https://elrestauranteelparque.netlify.app/"
                                     target="_blank"
                                     class="project-link"
@@ -1706,20 +1720,19 @@
                                         >Demo</span
                                     >
                                 </a>
+                                <a
+                                    href="https://github.com/kelvinhe04/ElRestauranteElParque"
+                                    target="_blank"
+                                    class="project-link"
+                                >
+                                    <i class="fab fa-github"></i>
+                                    <span data-en="Code" data-es="Código"
+                                        >Code</span
+                                    >
+                                </a>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Botón Load More -->
-                <div class="load-more-container">
-                    <button
-                        id="load-more-btn"
-                        class="btn btn-primary load-more-btn"
-                    >
-                        <i class="fas fa-plus"></i>
-                        <span class="load-more-text">Load More Projects</span>
-                    </button>
                 </div>
             </div>
         </section>
@@ -1880,7 +1893,7 @@
                         </div>
                     </div>
                     <!-- Machine Learning Explainability Certificate -->
-                    <div class="certificate-card hidden-certificate">
+                    <div class="certificate-card">
                         <div class="certificate-icon certificate-icon--logo certificate-icon--kaggle">
                             <img src="assets/icons/kaggle.svg" alt="Kaggle" />
                         </div>
@@ -1958,7 +1971,7 @@
                         </div>
                     </div>
                     <!-- Intro to Machine Learning Certificate -->
-                    <div class="certificate-card hidden-certificate">
+                    <div class="certificate-card">
                         <div class="certificate-icon certificate-icon--logo certificate-icon--kaggle">
                             <img src="assets/icons/kaggle.svg" alt="Kaggle" />
                         </div>
@@ -2036,7 +2049,7 @@
                         </div>
                     </div>
                     <!-- Intro to Programming Certificate -->
-                    <div class="certificate-card hidden-certificate">
+                    <div class="certificate-card">
                         <div class="certificate-icon certificate-icon--logo certificate-icon--kaggle">
                             <img src="assets/icons/kaggle.svg" alt="Kaggle" />
                         </div>
@@ -2108,7 +2121,7 @@
                         </div>
                     </div>
                     <!-- Python Kaggle Certificate -->
-                    <div class="certificate-card hidden-certificate">
+                    <div class="certificate-card">
                         <div class="certificate-icon certificate-icon--logo certificate-icon--kaggle">
                             <img src="assets/icons/kaggle.svg" alt="Kaggle" />
                         </div>
@@ -2174,7 +2187,7 @@
                         </div>
                     </div>
                     <!-- Linux Unhatched Certificate -->
-                    <div class="certificate-card hidden-certificate">
+                    <div class="certificate-card">
                         <div class="certificate-icon certificate-icon--logo certificate-icon--cisco">
                             <img src="assets/icons/cisco.svg" alt="Cisco" />
                         </div>
@@ -2241,7 +2254,7 @@
                         </div>
                     </div>
                     <!-- Oracle Cloud Infrastructure Certificate -->
-                    <div class="certificate-card hidden-certificate">
+                    <div class="certificate-card">
                         <div class="certificate-icon certificate-icon--logo certificate-icon--oracle">
                             <img src="assets/icons/oracle.svg" alt="Oracle" />
                         </div>
@@ -2315,7 +2328,7 @@
                     </div>
 
                     <!-- Computer Forensics Certificate -->
-                    <div class="certificate-card hidden-certificate">
+                    <div class="certificate-card">
                         <div class="certificate-icon certificate-icon--logo certificate-icon--progenios">
                             <img src="assets/icons/progenios.png" alt="Academia Progenios" />
                         </div>
@@ -2382,7 +2395,7 @@
                         </div>
                     </div>
                     <!-- HSK Level 4 Certificate -->
-                    <div class="certificate-card hidden-certificate">
+                    <div class="certificate-card">
                         <div class="certificate-icon certificate-icon--logo certificate-icon--clec">
                             <img src="assets/icons/clec.png" alt="Center for Language Education and Cooperation" />
                         </div>
@@ -2444,22 +2457,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Load More Certificates Button -->
-                <div class="load-more-container">
-                    <button
-                        id="load-more-certificates-btn"
-                        class="btn btn-primary load-more-btn"
-                    >
-                        <i class="fas fa-plus"></i>
-                        <span
-                            class="cert-btn-text"
-                            data-en="Load More Certificates"
-                            data-es="Cargar Más Certificados"
-                            >Load More Certificates</span
-                        >
-                    </button>
-                </div>
             </div>
         </section>
 
@@ -2477,6 +2474,9 @@
                 <div class="honors-grid">
                     <!-- JIC UTP 2026 - National Final -->
                     <div class="honor-card">
+                        <figure class="honor-shot">
+                            <img loading="lazy" decoding="async" src="assets/img/fotos/jic-banner.webp" alt="Kelvin He junto al cartel de la Jornada de Iniciación Científica" width="480" height="640" />
+                        </figure>
                         <div class="honor-icon">
                             <i class="fas fa-trophy"></i>
                         </div>
@@ -2531,6 +2531,9 @@
 
                     <!-- Honorific Title - Junior Developer -->
                     <div class="honor-card">
+                        <figure class="honor-shot">
+                            <img loading="lazy" decoding="async" src="assets/img/fotos/junior-dev-certificado.webp" alt="Certificado de reconocimiento: Desarrollador Junior" width="480" height="640" />
+                        </figure>
                         <div class="honor-icon">
                             <i class="fas fa-award"></i>
                         </div>
@@ -2589,6 +2592,9 @@
 
                     <!-- Honor Certificate of Merit - Chapter of Honor 2025 -->
                     <div class="honor-card">
+                        <figure class="honor-shot">
+                            <img loading="lazy" decoding="async" src="assets/img/fotos/honor-merito-solo.webp" alt="Kelvin He con el Certificado de Honor al Mérito" width="480" height="640" />
+                        </figure>
                         <div class="honor-icon">
                             <i class="fas fa-medal"></i>
                         </div>
@@ -2791,6 +2797,9 @@
             <i class="fas fa-arrow-up"></i>
         </a>
 
+        <script src="assets/vendor/lenis.min.js"></script>
         <script src="assets/scripts/script.js"></script>
+        <script src="assets/scripts/redesign.js"></script>
+        <script src="assets/scripts/motion.js"></script>
     </body>
 </html>

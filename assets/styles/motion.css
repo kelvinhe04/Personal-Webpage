@@ -1,0 +1,2001 @@
+/* ==========================================================================
+   Motion + glass layer - loaded after redesign.css, driven by motion.js.
+
+   Idea: the topographic map stops being a hero decoration and becomes the
+   world the whole page floats over. A 3D katana travels across it, and every
+   panel is frosted glass - so the blur always has something moving behind
+   it to show for itself. (The only glow on the page is the pointer's.)
+
+   Rules that depend on the script are scoped to .fx (set on <html> by
+   motion.js) or to a state class it toggles (.stack-on, .hscroll), so the
+   page still reads fine with JavaScript off.
+   ========================================================================== */
+
+/* ---------- Glass tokens ---------- */
+:root {
+    --glass-fill: linear-gradient(
+        140deg,
+        rgba(170, 200, 240, 0.12),
+        rgba(170, 200, 240, 0.035) 55%,
+        rgba(0, 198, 255, 0.05)
+    );
+    --glass-solid: rgba(10, 14, 21, 0.5);
+    --glass-dense: rgba(10, 14, 21, 0.9);
+    --glass-blur: blur(18px) saturate(150%);
+    --glass-rim: inset 0 1px 0 rgba(255, 255, 255, 0.17),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.03);
+    --glass-drop: 0 30px 60px -34px rgba(0, 0, 0, 0.8);
+    --glass-line: rgba(190, 215, 250, 0.17);
+    --sheen: rgba(0, 198, 255, 0.1);
+    --page-pad: clamp(1.25rem, 4vw, 2.5rem);
+    --hs-gutter: max(var(--page-pad), calc((100vw - 1120px) / 2 + var(--page-pad)));
+}
+
+/* Slow machine (set by motion.js when scrolling cannot hold its frame rate):
+   the panels stop blurring what is behind them and go nearly solid. */
+.lite {
+    --glass-blur: none;
+    --glass-solid: rgba(10, 14, 21, 0.84);
+}
+
+.lite body.light-mode {
+    --glass-solid: rgba(255, 255, 255, 0.88);
+}
+
+body.light-mode {
+    --glass-fill: linear-gradient(140deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.42));
+    --glass-solid: rgba(255, 255, 255, 0.28);
+    --glass-dense: rgba(248, 250, 252, 0.94);
+    --glass-rim: inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    --glass-drop: 0 30px 60px -36px rgba(10, 18, 32, 0.38);
+    --glass-line: rgba(10, 18, 32, 0.11);
+    --sheen: rgba(0, 119, 182, 0.09);
+}
+
+/* position: sticky dies inside a scroll container, and overflow-x: hidden
+   on <body> makes it one. clip cuts the overflow without that side effect. */
+html,
+body {
+    overflow-x: clip;
+}
+
+/* inertial scrolling (Lenis) drives the real scroll position itself */
+html.lenis,
+html.lenis body {
+    height: auto;
+}
+
+/* Lenis writes the scroll position every frame; a native smooth scroll on
+   top of that would animate each of those writes again */
+html.lenis {
+    scroll-behavior: auto !important;
+}
+
+html.lenis.lenis-stopped {
+    overflow: clip;
+}
+
+/* ---------- World: the fixed backdrop ---------- */
+.world {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.world-map {
+    position: absolute;
+    inset: 0;
+    will-change: transform, opacity;
+}
+
+.fx .hero {
+    background: transparent;
+}
+
+.fx .hero-content {
+    transform-origin: 0 50%;
+    will-change: translate, scale, opacity;
+}
+
+.arrow-link {
+    background: var(--glass-fill), var(--glass-solid);
+    border-color: rgba(var(--accent-rgb), 0.5);
+    box-shadow: var(--glass-rim);
+}
+
+/* ---------- The katana canvas (blade.js) ---------- */
+.blade-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 1.4s ease;
+}
+
+.blade-canvas.is-live {
+    opacity: 1;
+}
+
+/* ---------- Glass surfaces ---------- */
+.project-card,
+.certificate-card,
+.honor-card,
+.timeline-content,
+.contact-form .form {
+    position: relative;
+    background: var(--glass-fill), var(--glass-solid);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-line);
+    border-radius: 22px;
+    box-shadow: var(--glass-rim), var(--glass-drop);
+    transition:
+        border-color 0.25s ease,
+        box-shadow 0.25s ease,
+        rotate 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) !important;
+}
+
+body .project-card:hover,
+body .certificate-card:hover,
+body .honor-card:hover,
+body .timeline-content:hover {
+    border-color: rgba(var(--accent-rgb), 0.5);
+    box-shadow:
+        var(--glass-rim),
+        var(--glass-drop),
+        0 0 0 1px rgba(var(--accent-rgb), 0.18);
+}
+
+/* a soft light that follows the pointer across the pane */
+.project-card::before,
+.certificate-card::before,
+.honor-card::before,
+.timeline-content::before,
+.contact-form .form::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border-radius: inherit;
+    background: radial-gradient(
+        380px circle at var(--mx, 50%) var(--my, 0%),
+        var(--sheen),
+        transparent 62%
+    );
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+}
+
+.project-card:hover::before,
+.certificate-card:hover::before,
+.honor-card:hover::before,
+.timeline-content:hover::before,
+.contact-form .form:hover::before {
+    opacity: 1;
+}
+
+.certificates-grid {
+    perspective: 1100px;
+}
+
+.project-image {
+    border-bottom-color: var(--glass-line);
+}
+
+.form-input {
+    background: rgba(var(--accent-rgb), 0.03);
+    border-color: var(--glass-line);
+}
+
+/* A field the browser filled in keeps the page's look. The browser's own
+   white (or yellow) fill cannot be overridden, only postponed - for ever. */
+.form-input:-webkit-autofill,
+.form-input:-webkit-autofill:hover,
+.form-input:-webkit-autofill:focus,
+.form-input:-webkit-autofill:active {
+    -webkit-text-fill-color: var(--text-primary);
+    caret-color: var(--text-primary);
+    box-shadow: inset 0 0 0 100px rgba(var(--accent-rgb), 0.05);
+    transition:
+        background-color 100000s ease-out,
+        color 100000s ease-out,
+        border-color 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.form-input:autofill {
+    -webkit-text-fill-color: var(--text-primary);
+    caret-color: var(--text-primary);
+    box-shadow: inset 0 0 0 100px rgba(var(--accent-rgb), 0.05);
+    transition:
+        background-color 100000s ease-out,
+        color 100000s ease-out,
+        border-color 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.form-input:-webkit-autofill:focus {
+    box-shadow:
+        inset 0 0 0 100px rgba(var(--accent-rgb), 0.05),
+        0 0 0 3px rgba(var(--accent-rgb), 0.16);
+}
+
+.btn-secondary,
+.social-link,
+.languageToggle,
+.themeToggle {
+    background: var(--glass-fill);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border-color: var(--glass-line);
+}
+
+.btn-secondary:hover {
+    background: var(--glass-fill);
+}
+
+body .tech-category .tech-item {
+    background: var(--glass-fill);
+    border-color: var(--glass-line);
+}
+
+.tech-items,
+.tech-category-title {
+    transition:
+        opacity 0.45s ease,
+        color 0.45s ease;
+}
+
+/* the row at reading height is in focus; the others step back */
+.fx .tech-grid.has-focus .tech-category:not(.is-focus) .tech-items,
+.fx .tech-grid.has-focus .tech-category:not(.is-focus) .tech-category-title {
+    opacity: 0.42;
+}
+
+.fx .tech-category.is-focus .tech-category-title {
+    color: var(--accent-secondary);
+}
+
+/* ---------- Navbar: a floating glass capsule on desktop ---------- */
+/* --nav-p runs 0 -> 1 over the first stretch of scroll (motion.js writes it
+   on .navbar every frame). The bar narrows and the glass fades in with it,
+   so there is no switch between two states to animate. */
+@media (min-width: 1025px) {
+    .navbar,
+    .navbar.scrolled {
+        padding-top: 12px;
+        background: transparent;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        border-bottom-color: transparent;
+        pointer-events: none;
+        transition: none;
+    }
+
+    /* without the script the class set by script.js is the whole story */
+    .navbar.scrolled {
+        --nav-p: 1;
+    }
+
+    .nav-container {
+        isolation: isolate;
+        width: calc(100% - 2.5rem);
+        max-width: calc(1120px - 100px * var(--nav-p, 0));
+        height: 56px;
+        padding: 0 0.65rem 0 1.5rem;
+        border-radius: 999px;
+        pointer-events: auto;
+    }
+
+    .nav-container::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        border: 1px solid var(--glass-line);
+        border-radius: inherit;
+        background: var(--glass-fill), var(--glass-solid);
+        -webkit-backdrop-filter: var(--glass-blur);
+        backdrop-filter: var(--glass-blur);
+        box-shadow: var(--glass-rim), var(--glass-drop);
+        opacity: var(--nav-p, 0);
+    }
+
+    html:not(.fx) .nav-container {
+        transition: max-width 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    html:not(.fx) .nav-container::before {
+        transition: opacity 0.35s ease;
+    }
+
+    /* three round buttons live on the right now: the centred menu leans
+       left a little so "Contact" never slides under them */
+    .nav-menu {
+        left: calc(50% - 1.6rem);
+        gap: clamp(1.1rem, 2vw, 2rem);
+    }
+
+    .languageToggle,
+    .themeToggle {
+        border-radius: 999px;
+    }
+
+    .themeToggle {
+        width: 40px;
+        height: 40px;
+        padding: 0;
+    }
+
+    .nav-burger-mode-toggle-container {
+        gap: 10px;
+    }
+}
+
+/* ---------- Section titles: cut in ---------- */
+.fx .section-title {
+    clip-path: inset(-25% 100% -25% -5%);
+}
+
+.fx .section-title.is-cut {
+    animation: title-cut 0.95s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes title-cut {
+    from {
+        clip-path: inset(-25% 100% -25% -5%);
+        transform: translateX(-28px) skewX(-9deg);
+    }
+
+    to {
+        clip-path: inset(-25% -5% -25% -5%);
+        transform: none;
+    }
+}
+
+/* one oversized character behind each section */
+.sec-glyph {
+    position: absolute;
+    top: clamp(0.5rem, 5vw, 4rem);
+    right: clamp(0.25rem, 5vw, 5rem);
+    z-index: -1;
+    font-family: "Yu Mincho", "Songti SC", "Noto Serif CJK SC", "Source Han Serif SC",
+        "SimSun", serif;
+    font-size: clamp(9rem, 25vw, 22rem);
+    font-weight: 700;
+    line-height: 1;
+    color: transparent;
+    /* filled, not stroked: a stroke exposes the overlapping contours these
+       fonts are drawn with */
+    background: linear-gradient(
+        200deg,
+        rgba(var(--accent-rgb), 0.16),
+        rgba(var(--mint-rgb), 0.03) 78%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    pointer-events: none;
+    user-select: none;
+    will-change: transform;
+}
+
+/* ---------- About ---------- */
+.fx .about-description .w {
+    opacity: 0.22;
+    transition: opacity 0.45s ease;
+}
+
+.fx .about-description .w.on {
+    opacity: 1;
+}
+
+.about-image {
+    perspective: 900px;
+}
+
+.profile-card {
+    transition: rotate 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.profile-avatar {
+    overflow: hidden;
+    box-shadow: var(--glass-drop);
+}
+
+.fx .profile-img {
+    scale: 1.15;
+    will-change: translate;
+}
+
+/* ---------- Kinetic band ---------- */
+.kinetic {
+    position: relative;
+    display: grid;
+    /* the gap is where the blade passes through */
+    gap: clamp(2.4rem, 6.5vw, 5.5rem);
+    padding: clamp(2.5rem, 7vw, 6rem) 0;
+    overflow: clip;
+}
+
+.kinetic-row {
+    display: flex;
+    width: max-content;
+    will-change: transform;
+}
+
+.kinetic-unit {
+    display: flex;
+    flex: none;
+    align-items: center;
+}
+
+.kinetic-unit span {
+    padding: 0 0.1em;
+    font-family: var(--font-display);
+    font-size: clamp(3.2rem, 9.5vw, 8.5rem);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    white-space: nowrap;
+    /* outlined words: the fill is painted over the stroke, which hides the
+       overlapping inner contours of the variable font */
+    color: var(--primary-bg);
+    -webkit-text-stroke: 3px rgba(var(--accent-rgb), 0.6);
+    paint-order: stroke fill;
+}
+
+.kinetic-unit span.is-solid {
+    color: transparent;
+    -webkit-text-stroke: 0;
+    background: linear-gradient(90deg, var(--accent-color), var(--accent-secondary));
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+.kinetic-unit i {
+    flex: none;
+    width: 0.85rem;
+    height: 0.85rem;
+    margin: 0 clamp(1rem, 3vw, 2.4rem);
+    background: var(--accent-secondary);
+    rotate: 45deg;
+}
+
+/* ---------- Experience: glass cards that pile up ---------- */
+.timeline {
+    display: grid;
+    gap: 1.4rem;
+    /* the old mobile rules narrowed the list to leave room for its rail */
+    width: 100%;
+    border-top: 0;
+}
+
+.timeline-item {
+    border-bottom: 0;
+}
+
+.timeline-content {
+    grid-template-columns: 10rem minmax(0, 1fr);
+    padding: clamp(1.4rem, 3vw, 2.3rem);
+}
+
+.timeline.stack-on {
+    gap: 2.4rem;
+    padding-bottom: 12vh;
+}
+
+.timeline.stack-on .timeline-item {
+    position: sticky;
+    top: calc(96px + var(--i, 0) * 16px);
+}
+
+.timeline.stack-on .timeline-content {
+    min-height: var(--stack-h);
+    background: var(--glass-fill), var(--glass-dense);
+    /* nearly opaque: blurring what is behind would cost a lot and show nothing */
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    transform-origin: 50% 0;
+    will-change: scale;
+}
+
+/* "Show more": a grid item stretches to the column, which made the whole row
+   clickable and hover-sensitive; and display would otherwise beat [hidden] */
+.read-more-btn {
+    justify-self: start;
+    width: fit-content;
+}
+
+.read-more-btn[hidden] {
+    display: none;
+}
+
+/* a covered card empties out, so only a sliver of glass peeks above */
+.timeline.stack-on .timeline-content > * {
+    opacity: calc(1 - var(--dim, 0) * 3.6);
+}
+
+/* ---------- Cards: every project is the same size ---------- */
+.project-featured {
+    grid-column: auto;
+    display: block;
+    border: 1px solid rgba(var(--mint-rgb), 0.4);
+}
+
+.project-featured .project-img {
+    position: static;
+}
+
+.project-featured .project-content {
+    display: block;
+    padding: 1.4rem 1.5rem 1.6rem;
+}
+
+.project-featured .project-title {
+    font-size: 1.35rem;
+}
+
+/* the award sits on the screenshot, so the card's text starts where every
+   other card's does */
+.project-featured .project-award {
+    position: absolute;
+    top: 0.8rem;
+    left: 0.8rem;
+    z-index: 3;
+    margin: 0;
+    background: rgba(8, 11, 17, 0.78);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+}
+
+body.light-mode .project-featured .project-award {
+    background: rgba(255, 255, 255, 0.86);
+}
+
+.honors-grid .honor-card:first-child {
+    grid-column: auto;
+}
+
+.certificate-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.certificate-actions {
+    margin-top: auto;
+    padding-top: 0.4rem;
+}
+
+/* ---------- Pinned section: Projects scroll sideways ---------- */
+/* .hscroll is set by motion.js while the section is pinned. The section is
+   made taller by the width of its track and the container sticks to the
+   viewport while the vertical scroll moves the track. */
+.hscroll {
+    --hs-card: clamp(300px, min(27vw, 50vh), 400px);
+    padding: 0;
+}
+
+.hscroll > .container {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-width: none;
+    height: 100vh;
+    height: 100dvh;
+    padding: 78px 0 14px;
+    overflow: clip;
+}
+
+.hscroll .section-title {
+    margin: 0 var(--hs-gutter) clamp(0.9rem, 3vh, 2rem);
+    font-size: clamp(2rem, 4.2vw, 3.2rem);
+}
+
+.hscroll .projects-grid {
+    display: flex;
+    align-items: stretch;
+    gap: 1.4rem;
+    width: max-content;
+    max-width: none;
+    margin: 0;
+    padding: 0 var(--hs-gutter);
+    will-change: transform;
+}
+
+/* width, not flex-basis: the track is sized by max-content, which ignores
+   flex-basis and would measure every card with its text on one line */
+#projects.hscroll .project-card {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    width: var(--hs-card);
+    /* dealt in from the right: they swing up around their bottom corner */
+    transform: none;
+    transform-origin: 0 100%;
+    opacity: 1;
+    animation: none;
+    will-change: translate, opacity;
+}
+
+/* the screenshot keeps the framing it was captured for: no zoom, no shift */
+#projects.hscroll .project-image {
+    flex: none;
+    height: auto;
+    aspect-ratio: 16 / 9;
+}
+
+#projects.hscroll .project-content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+}
+
+#projects.hscroll .project-links {
+    margin-top: auto;
+}
+
+#projects.hscroll .project-description {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+    overflow: hidden;
+}
+
+/* two full rows of tags at most, so no card dictates the height of the rest */
+#projects.hscroll .project-tech {
+    max-height: 4.1rem;
+    overflow: hidden;
+}
+
+#projects.hscroll .project-team {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+}
+
+.hs-ui {
+    display: none;
+    align-items: center;
+    gap: 1.1rem;
+    margin: clamp(0.9rem, 2.6vh, 1.8rem) var(--hs-gutter) 0;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.hscroll .hs-ui {
+    display: flex;
+}
+
+.hs-count {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+}
+
+.hs-count b {
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--accent-secondary);
+}
+
+.hs-count i,
+.hs-count em {
+    font-style: normal;
+}
+
+.hs-bar {
+    position: relative;
+    flex: 1;
+    height: 2px;
+    max-width: 22rem;
+    background: var(--glass-line);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.hs-bar span {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, var(--accent-color), var(--accent-secondary));
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+}
+
+.hs-hint {
+    transition: opacity 0.4s ease;
+}
+
+.hs-ui.is-moving .hs-hint {
+    opacity: 0;
+}
+
+/* ---------- Certificates: a pile the sword cuts through ---------- */
+/* .deck is set by motion.js while the section is pinned. The cards share one
+   cell of the grid, so they lie on top of each other and the pile is as tall
+   as its tallest card; the script moves them and cuts the one on top. */
+#certificates.deck {
+    padding: 0;
+}
+
+#certificates.deck > .container {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100vh;
+    height: 100dvh;
+    padding-top: 78px;
+    padding-bottom: 14px;
+    overflow: clip;
+}
+
+#certificates.deck .section-title {
+    margin-bottom: clamp(0.9rem, 3vh, 2rem);
+    font-size: clamp(2rem, 4.2vw, 3.2rem);
+}
+
+#certificates.deck .certificates-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    gap: 0;
+    margin: 0;
+    /* room for the cards that show under the one on top */
+    padding-bottom: 3.6rem;
+    perspective: 1400px;
+}
+
+#certificates.deck .certificate-card {
+    grid-area: 1 / 1;
+    width: min(100%, 620px);
+    margin: 0;
+    padding: clamp(1.4rem, 2.6vw, 2.2rem);
+    /* solid: neither the cards underneath nor the sword behind the pile may
+       read through the one on top */
+    background: var(--glass-fill), var(--surface);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    opacity: 1;
+    animation: none;
+    transform-origin: 50% 100%;
+    will-change: transform, opacity;
+}
+
+#certificates.deck .hs-ui {
+    display: flex;
+    justify-content: center;
+    margin: clamp(0.5rem, 1.8vh, 1.3rem) 0 0;
+}
+
+#certificates.deck .hs-bar {
+    flex: 0 1 22rem;
+}
+
+/* the light along the line a card parts on */
+.cert-slash {
+    position: absolute;
+    z-index: 5;
+    display: block;
+    height: 2px;
+    margin-top: -1px;
+    visibility: visible;
+    background: linear-gradient(90deg, transparent, #fff 25%, var(--accent-color) 50%, #fff 75%, transparent);
+    box-shadow: 0 0 14px 1px rgba(var(--accent-rgb), 0.85);
+    opacity: 0;
+    pointer-events: none;
+    translate: -50% 0;
+}
+
+.cert-slash {
+    top: 50%;
+    left: 50%;
+    width: 135%;
+    rotate: var(--cut-angle, -30deg);
+}
+
+body.light-mode .cert-slash {
+    background: linear-gradient(90deg, transparent, var(--accent-color) 25%, #06263f 50%, var(--accent-color) 75%, transparent);
+    box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.5);
+}
+
+/* The card on top of the pile, shown as two halves of itself: motion.js puts
+   two copies of it inside it, each clipped to its side of the line (the
+   card's own content is hidden meanwhile). A copy fills the box of the
+   original and drops whatever was moving it. */
+cut-piece {
+    position: absolute;
+    z-index: 3;
+    display: block;
+    visibility: visible;
+    pointer-events: none;
+    will-change: transform;
+}
+
+.cut-copy {
+    position: absolute !important;
+    inset: 0 !important;
+    box-sizing: border-box !important;
+    flex: none !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    clip-path: none !important;
+    transform: none !important;
+    translate: none !important;
+    rotate: none !important;
+    scale: none !important;
+    animation: none !important;
+    transition: none !important;
+}
+
+.cut-copy::before,
+.cut-copy::after {
+    animation: none !important;
+}
+
+@media (max-height: 860px) {
+    #projects.hscroll .project-team {
+        display: none;
+    }
+
+    #projects.hscroll .project-content {
+        padding: 1.1rem 1.25rem 1.2rem;
+    }
+
+}
+
+@media (max-height: 720px) {
+    .hscroll > .container {
+        padding-top: 70px;
+    }
+
+    .hscroll .section-title {
+        padding-top: 1.5rem;
+        font-size: 1.9rem;
+    }
+
+    #projects.hscroll .project-description {
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        margin-bottom: 0.7rem;
+    }
+
+    #projects.hscroll .project-tech {
+        margin-bottom: 0.9rem;
+    }
+
+    .hs-ui {
+        margin-top: 0.7rem;
+    }
+
+    #projects.hscroll .project-title {
+        margin-bottom: 0.4rem;
+        font-size: 1.2rem;
+    }
+}
+
+/* ---------- Small screens: the same tracks as swipe carousels ---------- */
+@media (max-width: 899px) {
+    .projects-grid,
+    .certificates-grid {
+        display: flex;
+        align-items: stretch;
+        gap: 1rem;
+        width: auto;
+        max-width: none;
+        margin: 0 calc(-1 * var(--page-pad));
+        padding: 0.4rem var(--page-pad) 1.1rem;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scroll-snap-type: x mandatory;
+        scroll-padding-inline: var(--page-pad);
+        scrollbar-width: none;
+    }
+
+    .projects-grid::-webkit-scrollbar,
+    .certificates-grid::-webkit-scrollbar {
+        display: none;
+    }
+
+    body .projects-grid > .project-card,
+    body .certificates-grid > .certificate-card {
+        flex: 0 0 min(82vw, 360px);
+        margin: 0;
+        scroll-snap-align: start;
+        opacity: 1;
+        transform: none;
+        animation: none;
+    }
+
+    .projects-grid > .project-card {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .projects-grid .project-content {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+    }
+
+    .projects-grid .project-links {
+        margin-top: auto;
+    }
+
+    /* every card is as tall as the tallest: keep the long ones in check */
+    .projects-grid .project-description {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 5;
+        line-clamp: 5;
+        overflow: hidden;
+    }
+
+    .hs-ui {
+        display: flex;
+        margin: 0.4rem 0 0;
+        /* clear of the fixed "back to top" button */
+        padding-right: 4.2rem;
+    }
+}
+
+/* a mouse cannot swipe: give it a scrollbar to drag */
+@media (max-width: 899px) and (hover: hover) and (pointer: fine) {
+    .projects-grid,
+    .certificates-grid {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(var(--accent-rgb), 0.5) transparent;
+    }
+}
+
+/* ---------- Trail: the altimeter rail ---------- */
+.trail {
+    position: fixed;
+    top: 50%;
+    right: 18px;
+    z-index: 900;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.95rem 0.45rem;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    line-height: 1.15;
+    color: var(--text-muted);
+    background: var(--glass-fill), var(--glass-solid);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-line);
+    border-radius: 999px;
+    box-shadow: var(--glass-rim), var(--glass-drop);
+    translate: 12px -50%;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+        opacity 0.45s ease,
+        translate 0.45s cubic-bezier(0.2, 0.8, 0.2, 1),
+        visibility 0.45s;
+}
+
+.trail.is-on {
+    translate: 0 -50%;
+    opacity: 1;
+    visibility: visible;
+}
+
+/* "04 / 07" set on a diagonal: the section above the slash, on the left,
+   and how many there are below it, on the right */
+.trail-alt {
+    position: relative;
+    display: block;
+    width: 1.75rem;
+    height: 1.85rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.trail-alt b,
+.trail-alt em {
+    position: absolute;
+    font-style: normal;
+    line-height: 1;
+}
+
+.trail-alt b {
+    top: 0;
+    left: 0;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--accent-secondary);
+}
+
+.trail-alt em {
+    right: 0;
+    bottom: 0;
+    font-size: 0.6rem;
+}
+
+/* the slash */
+.trail-alt i {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1px;
+    height: 1.5rem;
+    background: var(--text-muted);
+    opacity: 0.7;
+    translate: -50% -50%;
+    rotate: 38deg;
+}
+
+.trail-track {
+    position: relative;
+}
+
+.trail-track::before,
+.trail-fill {
+    content: "";
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    left: 50%;
+    width: 1px;
+    background: var(--glass-line);
+    translate: -50% 0;
+}
+
+.trail-fill {
+    width: 2px;
+    background: linear-gradient(var(--accent-color), var(--accent-secondary));
+    transform: scaleY(0);
+    transform-origin: 50% 0;
+}
+
+.trail ol {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.trail a {
+    position: relative;
+    display: block;
+    width: 26px;
+    height: 12px;
+}
+
+.trail-dot {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 7px;
+    height: 7px;
+    background: var(--primary-bg);
+    border: 1px solid var(--text-muted);
+    border-radius: 50%;
+    translate: -50% -50%;
+    transition:
+        scale 0.3s ease,
+        background-color 0.3s ease,
+        border-color 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.trail a.is-past .trail-dot {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.trail a.is-active .trail-dot {
+    background: var(--accent-secondary);
+    border-color: var(--accent-secondary);
+    box-shadow: 0 0 0 4px rgba(var(--mint-rgb), 0.2);
+    scale: 1.5;
+}
+
+.trail-label {
+    position: absolute;
+    top: 50%;
+    right: calc(100% + 14px);
+    padding: 0.3rem 0.65rem;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    color: var(--text-primary);
+    background: var(--glass-dense);
+    border: 1px solid var(--glass-line);
+    border-radius: 8px;
+    translate: 8px -50%;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+        opacity 0.25s ease,
+        translate 0.25s ease;
+}
+
+.trail a:hover .trail-label,
+.trail a:focus-visible .trail-label {
+    translate: 0 -50%;
+    opacity: 1;
+}
+
+/* small screens get a thin progress line instead of the rail */
+.trail-bar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 1001;
+    display: none;
+    height: 2px;
+    pointer-events: none;
+}
+
+.trail-bar span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-color), var(--accent-secondary));
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+}
+
+@media (max-width: 1279px) {
+    .trail {
+        display: none;
+    }
+
+    .trail-bar {
+        display: block;
+    }
+}
+
+/* ---------- CV button: feedback for the download ---------- */
+.btn-cv {
+    isolation: isolate;
+}
+
+/* a bar of colour fills the button while "downloading" */
+.btn-cv::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(
+        90deg,
+        rgba(var(--accent-rgb), 0.3),
+        rgba(var(--mint-rgb), 0.3)
+    );
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+}
+
+.btn-cv.is-loading::before {
+    transform: scaleX(1);
+    transition: transform 1.1s cubic-bezier(0.3, 0.6, 0.2, 1);
+}
+
+.btn-cv.is-done::before {
+    transform: scaleX(1);
+    opacity: 0;
+    transition: opacity 0.7s ease 1s;
+}
+
+/* the cut: a blade of light crosses it */
+.btn-cv::after {
+    content: "";
+    position: absolute;
+    top: -40%;
+    bottom: -40%;
+    left: -30%;
+    width: 22%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.btn-cv.is-loading::after {
+    animation: cv-cut 0.75s cubic-bezier(0.3, 0.7, 0.2, 1) forwards;
+}
+
+.btn-cv.is-loading i {
+    animation: cv-drop 0.55s ease-in-out infinite;
+}
+
+.btn-cv.is-done,
+.btn-cv.is-done:hover {
+    border-color: var(--accent-secondary);
+    color: var(--accent-secondary);
+}
+
+.btn-cv.is-done i {
+    animation: cv-pop 0.5s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+@keyframes cv-cut {
+    0% {
+        opacity: 0;
+        transform: skewX(-24deg) translateX(-200%);
+    }
+
+    20% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+        transform: skewX(-24deg) translateX(760%);
+    }
+}
+
+@keyframes cv-drop {
+    0% {
+        translate: 0 -80%;
+        opacity: 0;
+    }
+
+    40% {
+        opacity: 1;
+    }
+
+    100% {
+        translate: 0 80%;
+        opacity: 0;
+    }
+}
+
+@keyframes cv-pop {
+    from {
+        scale: 0.2;
+        rotate: -40deg;
+    }
+
+    to {
+        scale: 1;
+        rotate: 0deg;
+    }
+}
+
+.cv-sparks {
+    position: fixed;
+    z-index: 1300;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+.cv-sparks i {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 16px;
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-color), #fff);
+    rotate: var(--r);
+    opacity: 0;
+    animation: cv-spark 0.85s cubic-bezier(0.1, 0.7, 0.2, 1) forwards;
+}
+
+@keyframes cv-spark {
+    0% {
+        opacity: 1;
+        translate: 0 0;
+        scale: 0.3 1;
+    }
+
+    60% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+        translate: var(--dx) var(--dy);
+        scale: 1.5 1;
+    }
+}
+
+/* ---------- Footer: the wordmark ---------- */
+.footer {
+    position: relative;
+    padding: clamp(3rem, 9vw, 7rem) 0 1.2rem;
+    border-top: 0;
+    overflow: clip;
+}
+
+.footer-mark {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 0.6rem;
+    pointer-events: none;
+    user-select: none;
+}
+
+.footer-mark span {
+    display: block;
+    font-family: var(--font-display);
+    font-size: clamp(3.6rem, 17.5vw, 17rem);
+    font-weight: 800;
+    line-height: 0.82;
+    letter-spacing: -0.06em;
+    white-space: nowrap;
+    color: transparent;
+    background: linear-gradient(
+        180deg,
+        rgba(var(--accent-rgb), 0.55),
+        rgba(var(--accent-rgb), 0.04) 94%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    will-change: transform;
+}
+
+/* ---------- Links: an underline that loads in ---------- */
+/* It grows from the left on hover and leaves towards the right. */
+.read-more-btn span,
+.project-link span,
+a.contact-method span {
+    position: relative;
+}
+
+.read-more-btn span::after,
+.project-link span::after,
+a.contact-method span::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: -3px;
+    left: 0;
+    height: 1.5px;
+    background: linear-gradient(90deg, var(--accent-color), var(--accent-secondary));
+    transform: scaleX(0);
+    transform-origin: right center;
+    transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.read-more-btn:hover span::after,
+.project-link:hover span::after,
+a.contact-method:hover span::after {
+    transform: scaleX(1);
+    transform-origin: left center;
+}
+
+.read-more-btn:hover span {
+    text-decoration: none;
+}
+
+/* ---------- Project media ---------- */
+/* Every thumbnail is the same 16:9 composition, so nothing is cropped. */
+.project-image,
+.project-featured .project-image {
+    z-index: 3; /* above the pointer sheen, which would wash the picture out */
+    height: auto;
+    aspect-ratio: 16 / 9;
+}
+
+.project-card:hover .project-img,
+.project-featured:hover .project-img {
+    transform: none;
+}
+
+/* the recording sits exactly on the screen drawn inside the thumbnail */
+.project-video {
+    position: absolute;
+    top: 11.53%;
+    left: 13.125%;
+    z-index: 1;
+    width: 73.75%;
+    height: 81.94%;
+    object-fit: cover;
+    border-radius: 0 0 6px 6px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+}
+
+.project-image.is-playing .project-video {
+    opacity: 1;
+}
+
+/* PollClass's thumbnail has its window further left and a phone drawn over
+   the window's right edge: the recording sits on that window and stops
+   short of the phone (the notch in its outline is the phone's corner) */
+.project-img[data-video$="pollclass.mp4"] ~ .project-video {
+    left: 7.5%;
+    clip-path: polygon(
+        0 0,
+        100% 0,
+        100% 17%,
+        93.8% 17%,
+        91.4% 18.3%,
+        89.9% 20.8%,
+        89.3% 24.2%,
+        89.3% 100%,
+        0 100%
+    );
+}
+
+/* a small "this one plays" mark */
+.project-image.has-video::before {
+    content: "\25B6";
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 1.7rem;
+    height: 1.7rem;
+    padding-left: 2px;
+    font-size: 0.6rem;
+    color: var(--on-accent);
+    background: var(--accent-color);
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.5);
+    animation: play-pulse 2.4s ease-out infinite;
+    transition: opacity 0.3s ease;
+}
+
+.project-image.is-playing::before {
+    opacity: 0;
+    animation: none;
+}
+
+@keyframes play-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.5);
+    }
+
+    70%,
+    100% {
+        box-shadow: 0 0 0 10px rgba(var(--accent-rgb), 0);
+    }
+}
+
+/* ---------- Honors: a list, each with the photo of the day ---------- */
+.honors-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    margin: 0;
+    perspective: none;
+    counter-reset: honor;
+    border-top: 1px solid var(--glass-line);
+}
+
+.honor-card {
+    display: grid;
+    grid-template-columns: 5.5rem minmax(0, 1fr) clamp(150px, 20vw, 220px);
+    gap: 0 clamp(1.2rem, 3vw, 2.8rem);
+    align-items: center;
+    margin: 0;
+    padding: clamp(1.7rem, 3.4vw, 2.7rem) clamp(0.6rem, 2vw, 1.6rem);
+    counter-increment: honor;
+    background: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border: 0;
+    border-bottom: 1px solid var(--glass-line);
+    border-radius: 0;
+    box-shadow: none;
+    transition: background-color 0.4s ease !important;
+}
+
+body .honor-card:hover {
+    background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.08), transparent 75%);
+    border-color: var(--glass-line);
+    box-shadow: none;
+}
+
+.honor-card::before {
+    display: none;
+}
+
+.honor-icon {
+    grid-row: 1;
+    grid-column: 1;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8rem;
+    width: auto;
+    height: auto;
+    font-size: 1.2rem;
+    color: var(--accent-secondary);
+    background: none;
+}
+
+/* the big outlined number fills in when the row is hovered */
+.honor-icon::before {
+    content: counter(honor, decimal-leading-zero);
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 4.6vw, 3.7rem);
+    font-weight: 800;
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    color: transparent;
+    -webkit-text-stroke: 1.5px rgba(var(--accent-rgb), 0.75);
+    transition: color 0.4s ease;
+}
+
+.honor-card:hover .honor-icon::before {
+    color: var(--accent-color);
+}
+
+.honor-content {
+    grid-row: 1;
+    grid-column: 2;
+}
+
+.honor-title {
+    font-size: clamp(1.25rem, 2.3vw, 1.8rem);
+    line-height: 1.15;
+    transition: translate 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.honor-card:hover .honor-title {
+    translate: 0.5rem 0;
+}
+
+.honor-description {
+    max-width: 46rem;
+}
+
+.honor-shot {
+    grid-row: 1;
+    grid-column: 3;
+    margin: 0;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border: 1px solid var(--glass-line);
+    border-radius: 14px;
+    box-shadow: var(--glass-drop);
+    rotate: 4deg;
+    transition:
+        scale 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
+        box-shadow 0.5s ease;
+    will-change: translate, rotate;
+}
+
+.honor-shot img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.honor-card:hover .honor-shot {
+    scale: 1.08;
+    box-shadow:
+        var(--glass-drop),
+        0 0 0 1px rgba(var(--accent-rgb), 0.55);
+}
+
+@media (max-width: 760px) {
+    .honor-card {
+        grid-template-columns: 3.6rem minmax(0, 1fr);
+    }
+
+    .honor-icon,
+    .honor-content {
+        text-align: left;
+    }
+
+    .honor-shot {
+        grid-row: 2;
+        grid-column: 2;
+        width: min(62%, 220px);
+        margin-top: 1.2rem;
+    }
+}
+
+/* ---------- Moments: photos to pick up and throw ---------- */
+.moments {
+    margin-top: clamp(3.5rem, 8vw, 6.5rem);
+}
+
+.moments-label {
+    margin-bottom: clamp(1.4rem, 3.5vw, 2.6rem);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+}
+
+.moments-label::before {
+    content: "// ";
+    color: var(--accent-color);
+}
+
+/* a strip of prints lying over each other's edges; more of them wrap on to
+   a second row */
+.moments-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: center;
+    gap: clamp(1.2rem, 3vw, 2.2rem) 0;
+    padding-bottom: clamp(2rem, 5vw, 4rem);
+}
+
+.moment {
+    position: relative;
+    flex: 0 0 17%;
+    margin: 0 -1.5%;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    background: var(--surface);
+    border: 1px solid var(--glass-line);
+    border-radius: 16px;
+    box-shadow: var(--glass-drop);
+    /* --r: resting tilt; --dx / --dy / --dr: where the pointer has taken it */
+    transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(calc(var(--r, 0deg) + var(--dr, 0deg)));
+    touch-action: pan-y;
+    transition:
+        scale 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+        box-shadow 0.3s ease;
+    will-change: transform, translate;
+}
+
+/* a photo taken sideways keeps its shape */
+.moment.is-wide {
+    flex-basis: 22%;
+    aspect-ratio: 4 / 3;
+}
+
+.moment:nth-child(even) {
+    margin-top: clamp(1.6rem, 5vw, 4rem);
+}
+
+.moment:hover {
+    z-index: 4;
+    scale: 1.03;
+}
+
+.moment.is-held {
+    z-index: 5;
+    scale: 1.06;
+    box-shadow:
+        0 40px 70px -30px rgba(0, 0, 0, 0.85),
+        0 0 0 1px rgba(var(--accent-rgb), 0.55);
+}
+
+.moment img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+}
+
+.moment figcaption {
+    position: absolute;
+    bottom: 0.6rem;
+    left: 0.6rem;
+    padding: 0.28rem 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    color: var(--text-primary);
+    background: var(--glass-dense);
+    border: 1px solid var(--glass-line);
+    border-radius: 999px;
+}
+
+@media (max-width: 620px) {
+    .moments-row {
+        gap: 1.2rem;
+    }
+
+    .moment {
+        flex-basis: 40%;
+        margin: 0;
+    }
+
+    .moment.is-wide {
+        flex-basis: 52%;
+    }
+}
+
+/* ---------- Cursor: point, ring and trail ---------- */
+html.has-cursor,
+html.has-cursor * {
+    cursor: none !important;
+}
+
+html.has-cursor input,
+html.has-cursor textarea {
+    cursor: text !important;
+}
+
+.cur-dot,
+.cur-ring,
+.cur-trail {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1400;
+    pointer-events: none;
+}
+
+.cur-trail {
+    z-index: 1390;
+    width: 100%;
+    height: 100%;
+}
+
+.cur-dot,
+.cur-ring {
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+html.cursor-on .cur-dot,
+html.cursor-on .cur-ring {
+    opacity: 1;
+}
+
+.cur-dot::before {
+    content: "";
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    margin: -4px 0 0 -4px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.8);
+    transition:
+        scale 0.25s ease,
+        opacity 0.25s ease;
+}
+
+.cur-ring::before {
+    content: "";
+    position: absolute;
+    width: 38px;
+    height: 38px;
+    margin: -19px 0 0 -19px;
+    border: 1.5px solid rgba(var(--accent-rgb), 0.55);
+    border-radius: 50%;
+    transition:
+        scale 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+        background-color 0.3s ease,
+        border-color 0.3s ease,
+        opacity 0.3s ease;
+}
+
+/* the label rides on the point itself, so it never lags behind */
+.cur-label {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    padding: 0.42rem 0.8rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    white-space: nowrap;
+    color: var(--on-accent);
+    background: var(--accent-color);
+    border-radius: 999px;
+    opacity: 0;
+    scale: 0.5;
+    transform-origin: 0 0;
+    transition:
+        opacity 0.2s ease,
+        scale 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+html[data-cursor="demo"] .cur-label,
+html[data-cursor="over"] .cur-label,
+html[data-cursor="held"] .cur-label {
+    opacity: 1;
+    scale: 1;
+}
+
+html[data-cursor="link"] .cur-ring::before {
+    scale: 1.55;
+    background: rgba(var(--accent-rgb), 0.12);
+    border-color: var(--accent-color);
+}
+
+html[data-cursor="link"] .cur-dot::before {
+    scale: 0.5;
+}
+
+html[data-cursor="demo"] .cur-ring::before {
+    scale: 0.4;
+    opacity: 0;
+}
+
+html[data-cursor="over"] .cur-ring::before {
+    scale: 1.3;
+    border-color: var(--accent-secondary);
+    border-style: dashed;
+}
+
+html[data-cursor="held"] .cur-ring::before {
+    scale: 0.7;
+    background: rgba(var(--mint-rgb), 0.2);
+    border-color: var(--accent-secondary);
+}
+
+html[data-cursor="held"] .cur-label {
+    background: var(--accent-secondary);
+}
+
+/* over a text field the native caret takes over */
+html[data-cursor="text"] .cur-ring::before,
+html[data-cursor="text"] .cur-dot::before {
+    opacity: 0;
+}
+
+html.cursor-down .cur-dot::before {
+    scale: 1.6;
+}
+
+/* ---------- Letters lean towards the pointer ---------- */
+/* --p (0..1) is how close the pointer is to each letter (motion.js) */
+.fx .hero-title .highlight {
+    white-space: nowrap;
+}
+
+.fx .hero-title .highlight .hero-char,
+.section-title .ch {
+    display: inline-block;
+    white-space: pre;
+    translate: 0 calc(var(--p, 0) * -0.1em);
+    color: color-mix(in oklab, currentColor, var(--accent-color) calc(var(--p, 0) * 100%));
+    transition:
+        opacity 0.08s linear,
+        translate 0.45s cubic-bezier(0.2, 0.8, 0.2, 1),
+        color 0.45s ease;
+}
+
+.section-title .wd {
+    display: inline-block;
+    white-space: nowrap;
+}
+
+/* the index line is the cut: it flashes across as the title appears */
+.section-title::after {
+    transform-origin: 0 50%;
+}
+
+.fx .section-title.is-cut::after {
+    animation: title-slash 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s both;
+}
+
+@keyframes title-slash {
+    0% {
+        transform: scaleX(0);
+        filter: brightness(2.6);
+    }
+
+    55% {
+        transform: scaleX(2.4);
+        filter: brightness(2.6);
+    }
+
+    100% {
+        transform: scaleX(1);
+        filter: none;
+    }
+}
+
+/* ---------- Theme switch: the sword cuts the page open ---------- */
+/* The new theme lies on top of the old one, clipped to nothing; motion.js
+   opens that clip along the diagonal the blade comes down. */
+html.theme-cut::view-transition-old(root),
+html.theme-cut::view-transition-new(root) {
+    mix-blend-mode: normal;
+    animation: none;
+}
+
+html.theme-cut::view-transition-new(root) {
+    clip-path: polygon(0 0, 0 0, 0 0, 0 0);
+}
+
+/* For the cut the sword leaves the page: it is drawn live on a layer of its
+   own, above both themes, instead of frozen into the picture of the old one. */
+html.theme-cut-blade .blade-canvas {
+    view-transition-name: blade;
+}
+
+html.theme-cut-blade::view-transition-group(blade) {
+    animation: none;
+}
+
+html.theme-cut-blade::view-transition-old(blade) {
+    display: none;
+}
+
+html.theme-cut-blade::view-transition-new(blade) {
+    mix-blend-mode: normal;
+    animation: none;
+}
+
+.soundToggle i {
+    font-size: 0.92rem;
+}
+
+/* ---------- Small screens ---------- */
+@media (max-width: 899px) {
+    /* the sword stays in the margins and behind the text here */
+    .blade-canvas.is-live {
+        opacity: 0.6;
+    }
+
+    .timeline-content {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* keep the copyright line clear of the fixed "back to top" button */
+    .footer {
+        padding-bottom: 5.5rem;
+    }
+
+    .sec-glyph {
+        opacity: 0.7;
+    }
+}
+
+/* Phones: the line being typed under the name is longer than the screen is
+   wide, so it wraps (hanging under its own first word, not under the ">")
+   and keeps room for two lines so nothing below it jumps. */
+@media (max-width: 480px) {
+    .hero-roles {
+        display: block;
+        min-height: 3em;
+        padding-left: 1.5em;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        text-align: left;
+        text-indent: -1.5em;
+    }
+
+    /* the buttons start where the text does, not a step further in */
+    .hero-buttons {
+        padding: 0;
+    }
+
+    .roles-prompt {
+        display: inline-block;
+        width: 1.5em;
+        margin-right: 0;
+        text-indent: 0;
+    }
+
+    .roles-text {
+        white-space: pre-wrap;
+    }
+
+    .roles-caret {
+        height: 1.1em;
+        vertical-align: text-bottom;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fx .section-title {
+        clip-path: none;
+    }
+
+    .fx .about-description .w {
+        opacity: 1;
+    }
+}

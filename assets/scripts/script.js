@@ -8,10 +8,15 @@ const prefersReducedMotion = window.matchMedia(
 // Theme Toggle
 themeToggle.addEventListener("click", (e) => {
     e.preventDefault();
-    document.body.classList.toggle("light-mode");
-    const icon = themeToggle.querySelector("i");
-    icon.classList.toggle("fa-sun");
-    icon.classList.toggle("fa-moon");
+    const apply = () => {
+        document.body.classList.toggle("light-mode");
+        const icon = themeToggle.querySelector("i");
+        icon.classList.toggle("fa-sun");
+        icon.classList.toggle("fa-moon");
+    };
+    // motion.js reveals the new theme with a cut across the page, if loaded
+    if (window.portfolioThemeCut) window.portfolioThemeCut(apply);
+    else apply();
 });
 
 // Language Toggle - Initialize immediately
@@ -72,14 +77,10 @@ function updateComplexElements(lang) {
         link.setAttribute("href", link.getAttribute(`data-cv-${lang}`));
     });
 
-    // Update Load More button
-    updateProjectsButtonText();
-
-    // Update Load More Certificates button
-    updateCertificatesButtonText();
-
-    // Update "Show more" buttons in the experience timeline
+    // Update "Show more" buttons in the experience timeline (the text
+    // length changes with the language, so re-check which ones are needed)
     updateReadMoreButtons();
+    refreshReadMore();
 
     // Update form placeholders
     const formInputs = document.querySelectorAll(".form-input");
@@ -322,17 +323,25 @@ function setupReadMore() {
         });
     });
 
-    // Only show the button where the text actually overflows the clamp
-    const refresh = () => {
-        document.querySelectorAll(".read-more-btn").forEach((btn) => {
-            const desc = btn.previousElementSibling;
-            const clamped = desc.classList.contains("is-clamped");
-            btn.hidden = clamped && desc.scrollHeight <= desc.clientHeight + 2;
-        });
-    };
-    refresh();
-    window.addEventListener("resize", refresh);
-    if (document.fonts) document.fonts.ready.then(refresh);
+    refreshReadMore();
+    window.addEventListener("resize", refreshReadMore);
+    window.addEventListener("load", refreshReadMore);
+    if (document.fonts) document.fonts.ready.then(refreshReadMore);
+}
+
+// Only show the button where the text actually overflows the clamp. An
+// expanded description is clamped for the measurement and put back.
+function refreshReadMore() {
+    document.querySelectorAll(".read-more-btn").forEach((btn) => {
+        const desc = btn.previousElementSibling;
+        if (!desc) return;
+        const expanded = !desc.classList.contains("is-clamped");
+        if (expanded) desc.classList.add("is-clamped");
+        const fits = desc.scrollHeight <= desc.clientHeight + 2;
+        if (expanded && !fits) desc.classList.remove("is-clamped");
+        if (expanded && fits) btn.setAttribute("aria-expanded", "false");
+        btn.hidden = fits;
+    });
 }
 
 function updateReadMoreButtons() {
@@ -348,16 +357,6 @@ function updateReadMoreButtons() {
         btn.innerHTML = `<span>${label}</span> <i class="fas fa-chevron-${expanded ? "up" : "down"}" aria-hidden="true"></i>`;
     });
 }
-
-// Navbar scroll effect
-window.addEventListener("scroll", () => {
-    const navbar = document.querySelector(".navbar");
-    if (window.scrollY > 50) {
-        navbar.classList.add("scrolled");
-    } else {
-        navbar.classList.remove("scrolled");
-    }
-});
 
 // Mobile menu toggle
 const hamburger = document.querySelector(".hamburger");
@@ -393,6 +392,8 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
         const href = this.getAttribute("href");
         if (href === "#") return; // buttons like the theme/language toggles
         e.preventDefault();
+        // motion.js (smooth scrolling, pinned sections) takes over if loaded
+        if (window.portfolioGoTo && window.portfolioGoTo(href)) return;
         const target = document.querySelector(href);
         if (target) {
             // getBoundingClientRect works for nested targets too (offsetTop
@@ -407,31 +408,6 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
                 top: offsetTop,
                 behavior: prefersReducedMotion ? "auto" : "smooth",
             });
-        }
-    });
-});
-
-// Active navigation link highlighting
-window.addEventListener("scroll", () => {
-    const sections = document.querySelectorAll("section[id]");
-    const navLinks = document.querySelectorAll(".nav-link");
-
-    let current = "";
-    sections.forEach((section) => {
-        const sectionTop = section.offsetTop - 100;
-        const sectionHeight = section.clientHeight;
-        if (
-            window.scrollY >= sectionTop &&
-            window.scrollY < sectionTop + sectionHeight
-        ) {
-            current = section.getAttribute("id");
-        }
-    });
-
-    navLinks.forEach((link) => {
-        link.classList.remove("active");
-        if (link.getAttribute("href") === `#${current}`) {
-            link.classList.add("active");
         }
     });
 });
@@ -462,7 +438,7 @@ const observer = new IntersectionObserver((entries) => {
 
                 setTimeout(() => {
                     entry.target.classList.add("fade-in-up");
-                }, index * 150); // 150ms delay entre cada elemento
+                }, Math.min(index, 3) * 150); // 150ms delay entre cada elemento
             }
 
             // Desconectar el observer para este elemento después de animar
@@ -475,7 +451,7 @@ const observer = new IntersectionObserver((entries) => {
 document.addEventListener("DOMContentLoaded", () => {
     // Excluir proyectos ocultos del observer para evitar doble animación
     const animateElements = document.querySelectorAll(
-        ".project-card:not(.hidden-project), .tech-category, .about-content, .contact-content, .timeline-item, .certificate-card, .honor-card",
+        ".project-card, .tech-category, .about-content, .contact-content, .timeline-item, .certificate-card, .honor-card",
     );
     animateElements.forEach((el) => {
         observer.observe(el);
@@ -712,49 +688,22 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// Hover effects for project cards
+// Clicking a project card opens its live demo (cards with a real Demo link only)
 document.addEventListener("DOMContentLoaded", () => {
-    const projectCards = document.querySelectorAll(".project-card");
+    document.querySelectorAll(".project-card").forEach((card) => {
+        const demoLink = [...card.querySelectorAll(".project-link")].find(
+            (link) =>
+                link.querySelector('span[data-en="Demo"]') &&
+                link.getAttribute("href") !== "#",
+        );
+        if (!demoLink) return;
 
-    projectCards.forEach((card) => {
-        card.addEventListener("mouseenter", () => {
-            card.style.transform = "translateY(-10px) scale(1.02)";
-        });
-
-        card.addEventListener("mouseleave", () => {
-            card.style.transform = "translateY(0) scale(1)";
-        });
-    });
-});
-
-// Tech items hover effect
-document.addEventListener("DOMContentLoaded", () => {
-    const techItems = document.querySelectorAll(".tech-item");
-
-    techItems.forEach((item) => {
-        item.addEventListener("mouseenter", () => {
-            item.style.transform = "translateX(10px)";
-            item.style.background = "rgba(var(--accent-rgb), 0.15)";
-        });
-
-        item.addEventListener("mouseleave", () => {
-            item.style.transform = "translateX(0)";
-            item.style.background = "rgba(255, 255, 255, 0.02)";
-        });
-    });
-});
-
-// Social links hover effect
-document.addEventListener("DOMContentLoaded", () => {
-    const socialLinks = document.querySelectorAll(".social-link");
-
-    socialLinks.forEach((link) => {
-        link.addEventListener("mouseenter", () => {
-            link.style.transform = "translateY(-5px) scale(1.1)";
-        });
-
-        link.addEventListener("mouseleave", () => {
-            link.style.transform = "translateY(0) scale(1)";
+        card.classList.add("has-demo");
+        card.addEventListener("click", (event) => {
+            // Let the card's own links/buttons work normally and don't hijack text selection
+            if (event.target.closest("a, button")) return;
+            if (window.getSelection().toString()) return;
+            window.open(demoLink.href, "_blank", "noopener");
         });
     });
 });
@@ -785,67 +734,73 @@ document.addEventListener("keydown", (e) => {
     }
 });
 
-// Performance optimization: Throttle scroll events
-function throttle(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
+// Scroll state: navbar style, active link and the "go to top" button.
+// One pass per frame, and nothing is queried from the DOM while scrolling.
+const navbarEl = document.querySelector(".navbar");
+const navLinkEls = [...document.querySelectorAll(".nav-link")];
+const navSections = navLinkEls
+    .map((link) => document.querySelector(link.getAttribute("href")))
+    .filter(Boolean);
+let activeSection = null;
+let scrollQueued = false;
 
-// Apply throttling to scroll events
-function updateGoTopButtonVisibility() {
-    if (!goTopBtn) return;
+function updateScrollState() {
+    scrollQueued = false;
+    const y = window.scrollY;
+    navbarEl.classList.toggle("scrolled", y > 50);
+    if (goTopBtn) goTopBtn.classList.toggle("show", y > 400);
 
-    if (window.scrollY > 400) {
-        goTopBtn.classList.add("show");
-    } else {
-        goTopBtn.classList.remove("show");
+    let current = null;
+    for (const section of navSections) {
+        if (section.getBoundingClientRect().top <= 110) current = section;
+    }
+    if (current !== activeSection) {
+        const from = navSections.indexOf(activeSection);
+        const to = navSections.indexOf(current);
+        activeSection = current;
+        const hash = current ? `#${current.id}` : "";
+        navLinkEls.forEach((link) =>
+            link.classList.toggle("active", link.getAttribute("href") === hash),
+        );
+        // Every section on the way from the old one to the new one gets its
+        // dot lit for a moment, one after the other. A jump across the page
+        // is over a section in a frame or two - too short to see otherwise.
+        const step = to > from ? 1 : -1;
+        let order = 0;
+        for (let i = from + step; i !== to + step; i += step) {
+            if (i >= 0 && i !== to) flashNavLink(i, order++);
+            if (i === to && i >= 0) flashNavLink(i, order);
+        }
     }
 }
 
-const throttledScrollHandler = throttle(() => {
-    // Navbar scroll effect
-    const navbar = document.querySelector(".navbar");
-    if (window.scrollY > 50) {
-        navbar.classList.add("scrolled");
-    } else {
-        navbar.classList.remove("scrolled");
-    }
+// `navSections` and `navLinkEls` are in the same order
+const navFlashTimers = [];
 
-    // Active navigation link highlighting
-    const sections = document.querySelectorAll("section[id]");
-    const navLinks = document.querySelectorAll(".nav-link");
+function flashNavLink(index, order) {
+    const section = navSections[index];
+    const link = navLinkEls.find(
+        (l) => l.getAttribute("href") === `#${section.id}`,
+    );
+    if (!link) return;
+    clearTimeout(navFlashTimers[index]);
+    setTimeout(() => link.classList.add("is-passed"), order * 45);
+    navFlashTimers[index] = setTimeout(
+        () => link.classList.remove("is-passed"),
+        order * 45 + 330,
+    );
+}
 
-    let current = "";
-    sections.forEach((section) => {
-        const sectionTop = section.offsetTop - 100;
-        const sectionHeight = section.clientHeight;
-        if (
-            window.scrollY >= sectionTop &&
-            window.scrollY < sectionTop + sectionHeight
-        ) {
-            current = section.getAttribute("id");
-        }
-    });
-
-    navLinks.forEach((link) => {
-        link.classList.remove("active");
-        if (link.getAttribute("href") === `#${current}`) {
-            link.classList.add("active");
-        }
-    });
-
-    updateGoTopButtonVisibility();
-}, 16); // ~60fps
-
-window.addEventListener("scroll", throttledScrollHandler);
-updateGoTopButtonVisibility();
+window.addEventListener(
+    "scroll",
+    () => {
+        if (scrollQueued) return;
+        scrollQueued = true;
+        requestAnimationFrame(updateScrollState);
+    },
+    { passive: true },
+);
+updateScrollState();
 
 // ============================
 // PROTECCIÓN CONTRA COPIA
@@ -962,269 +917,6 @@ setInterval(function () {
 setInterval(function () {
     console.clear();
 }, 2000);
-
-// ============================
-// LOAD MORE PROJECTS FUNCTIONALITY
-// ============================
-
-function updateProjectsButtonText() {
-    const loadMoreBtn = document.getElementById("load-more-btn");
-    if (!loadMoreBtn || loadMoreBtn.style.visibility === "hidden") return;
-    if (loadMoreBtn.classList.contains("loading")) return;
-
-    const remaining = Array.from(
-        document.querySelectorAll(".hidden-project"),
-    ).filter((p) => p.style.display !== "block").length;
-
-    if (remaining > 0) {
-        loadMoreBtn.innerHTML =
-            currentLanguage === "es"
-                ? `<i class="fas fa-plus"></i> Cargar Más Proyectos (${remaining})`
-                : `<i class="fas fa-plus"></i> Load More Projects (${remaining})`;
-    } else {
-        loadMoreBtn.innerHTML =
-            currentLanguage === "es"
-                ? '<i class="fas fa-check"></i> Todos los Proyectos Cargados'
-                : '<i class="fas fa-check"></i> All Projects Loaded';
-    }
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-    const loadMoreBtn = document.getElementById("load-more-btn");
-    const hiddenProjects = document.querySelectorAll(".hidden-project");
-    let currentlyVisible = 0;
-    const projectsPerLoad = 3; // Cargar 3 proyectos a la vez
-
-    if (loadMoreBtn && hiddenProjects.length > 0) {
-        loadMoreBtn.addEventListener("click", function () {
-            if (loadMoreBtn.classList.contains("loading")) return;
-            // Agregar clase loading
-            loadMoreBtn.classList.add("loading");
-            loadMoreBtn.innerHTML =
-                currentLanguage === "es"
-                    ? '<i class="fas fa-spinner fa-spin"></i> Cargando...'
-                    : '<i class="fas fa-spinner fa-spin"></i> Loading...';
-
-            // Simular delay de carga
-            setTimeout(() => {
-                // Determinar cuántos proyectos mostrar
-                const projectsToShow = Math.min(
-                    projectsPerLoad,
-                    hiddenProjects.length - currentlyVisible,
-                );
-
-                // Mostrar los próximos proyectos con animación suave
-                for (
-                    let i = currentlyVisible;
-                    i < currentlyVisible + projectsToShow;
-                    i++
-                ) {
-                    if (hiddenProjects[i]) {
-                        // Hacer visible el elemento pero mantenerlo invisible
-                        hiddenProjects[i].style.display = "block";
-
-                        // Forzar un reflow para que el display:block tome efecto
-                        hiddenProjects[i].offsetHeight;
-
-                        // Agregar delay escalonado para animación suave
-                        setTimeout(
-                            () => {
-                                hiddenProjects[i].classList.add("show");
-                            },
-                            (i - currentlyVisible) * 200,
-                        ); // Aumentado a 200ms para más suavidad
-                    }
-                }
-
-                currentlyVisible += projectsToShow;
-
-                // Actualizar el botón
-                loadMoreBtn.classList.remove("loading");
-
-                if (currentlyVisible >= hiddenProjects.length) {
-                    // Todos los proyectos están visibles
-                    loadMoreBtn.innerHTML =
-                        currentLanguage === "es"
-                            ? '<i class="fas fa-check"></i> Todos los Proyectos Cargados'
-                            : '<i class="fas fa-check"></i> All Projects Loaded';
-                    loadMoreBtn.style.background = "var(--glass-bg)";
-                    loadMoreBtn.style.color = "var(--text-secondary)";
-                    loadMoreBtn.style.pointerEvents = "none";
-
-                    // Ocultar el botón SIN afectar el layout después de un momento
-                    setTimeout(() => {
-                        loadMoreBtn.style.visibility = "hidden";
-                        loadMoreBtn.style.opacity = "0";
-                    }, 1500);
-                } else {
-                    // Aún hay más proyectos por cargar
-                    updateProjectsButtonText();
-                }
-            }, 300); // Delay reducido a 300ms
-        });
-    }
-});
-
-// Function to update certificates button text
-function updateCertificatesButtonText() {
-    const loadMoreCertBtn = document.getElementById(
-        "load-more-certificates-btn",
-    );
-    if (loadMoreCertBtn && loadMoreCertBtn.style.visibility !== "hidden") {
-        const remainingCerts = document.querySelectorAll(
-            ".hidden-certificate:not(.show)",
-        ).length;
-        const isMobile = window.innerWidth <= 480;
-
-        if (remainingCerts > 0) {
-            if (isMobile) {
-                const certText = remainingCerts === 1 ? "Cert" : "Certs";
-                loadMoreCertBtn.innerHTML =
-                    currentLanguage === "es"
-                        ? `<i class="fas fa-plus"></i> <span class="cert-btn-text">Más ${certText} (${remainingCerts})</span>`
-                        : `<i class="fas fa-plus"></i> <span class="cert-btn-text">More ${certText} (${remainingCerts})</span>`;
-            } else {
-                const certText =
-                    remainingCerts === 1
-                        ? currentLanguage === "es"
-                            ? "restante"
-                            : "remaining"
-                        : currentLanguage === "es"
-                          ? "restantes"
-                          : "remaining";
-                loadMoreCertBtn.innerHTML =
-                    currentLanguage === "es"
-                        ? `<i class="fas fa-plus"></i> <span class="cert-btn-text">Cargar Más Certificados (${remainingCerts} ${certText})</span>`
-                        : `<i class="fas fa-plus"></i> <span class="cert-btn-text">Load More Certificates (${remainingCerts} ${certText})</span>`;
-            }
-        } else {
-            if (isMobile) {
-                loadMoreCertBtn.innerHTML =
-                    currentLanguage === "es"
-                        ? '<i class="fas fa-check"></i> Todo Cargado'
-                        : '<i class="fas fa-check"></i> All Loaded';
-            } else {
-                loadMoreCertBtn.innerHTML =
-                    currentLanguage === "es"
-                        ? '<i class="fas fa-check"></i> Todos los Certificados Cargados'
-                        : '<i class="fas fa-check"></i> All Certificates Loaded';
-            }
-        }
-    }
-}
-
-// LOAD MORE CERTIFICATES FUNCTIONALITY
-// ============================
-
-document.addEventListener("DOMContentLoaded", function () {
-    const loadMoreCertBtn = document.getElementById(
-        "load-more-certificates-btn",
-    );
-    const hiddenCertificates = document.querySelectorAll(".hidden-certificate");
-    let currentlyVisibleCerts = 0;
-    const certificatesPerLoad = 2; // Cargar 4 certificados a la vez
-
-    // Inicializar el texto del botón de certificados
-    updateCertificatesButtonText();
-
-    if (loadMoreCertBtn && hiddenCertificates.length > 0) {
-        loadMoreCertBtn.addEventListener("click", function () {
-            // Prevenir múltiples clicks
-            if (loadMoreCertBtn.classList.contains("loading")) {
-                return;
-            }
-
-            // Agregar clase loading
-            loadMoreCertBtn.classList.add("loading");
-            loadMoreCertBtn.innerHTML =
-                currentLanguage === "es"
-                    ? '<i class="fas fa-spinner fa-spin"></i> Cargando...'
-                    : '<i class="fas fa-spinner fa-spin"></i> Loading...';
-
-            // Simular delay de carga
-            setTimeout(() => {
-                // Determinar cuántos certificados mostrar
-                const certificatesToShow = Math.min(
-                    certificatesPerLoad,
-                    hiddenCertificates.length - currentlyVisibleCerts,
-                );
-
-                // Si no hay certificados para mostrar, salir
-                if (certificatesToShow <= 0) {
-                    loadMoreCertBtn.classList.remove("loading");
-                    updateCertificatesButtonText();
-                    return;
-                }
-
-                // Mostrar los próximos certificados con animación suave
-                const batchStartIndex = currentlyVisibleCerts;
-
-                for (
-                    let i = batchStartIndex;
-                    i < batchStartIndex + certificatesToShow;
-                    i++
-                ) {
-                    if (hiddenCertificates[i]) {
-                        // Hacer visible el elemento
-                        hiddenCertificates[i].style.display = "flex";
-                        hiddenCertificates[i].offsetHeight; // Forzar reflow
-
-                        // Remover la clase hidden-certificate para que updateCertificatesButtonText lo cuente bien
-                        hiddenCertificates[i].classList.remove(
-                            "hidden-certificate",
-                        );
-
-                        // Agregar delay escalonado para animación suave
-                        setTimeout(
-                            () => {
-                                hiddenCertificates[i].classList.add("show");
-                            },
-                            (i - batchStartIndex) * 200,
-                        );
-                    }
-                }
-
-                // Actualizar contador global
-                currentlyVisibleCerts += certificatesToShow;
-
-                // Remover loading y actualizar texto inmediatamente
-                loadMoreCertBtn.classList.remove("loading");
-
-                // Actualizar estado del botón basado en los que quedan
-                const remaining =
-                    hiddenCertificates.length - currentlyVisibleCerts;
-
-                if (remaining <= 0) {
-                    loadMoreCertBtn.innerHTML =
-                        currentLanguage === "es"
-                            ? '<i class="fas fa-check"></i> Todos los Certificados Cargados'
-                            : '<i class="fas fa-check"></i> All Certificates Loaded';
-
-                    // Aplicar estilos de completado
-                    loadMoreCertBtn.style.transition = "none";
-                    loadMoreCertBtn.style.background = "var(--glass-bg)";
-                    loadMoreCertBtn.style.color = "var(--text-secondary)";
-                    loadMoreCertBtn.style.pointerEvents = "none";
-
-                    // Ocultar el botón después de un momento
-                    setTimeout(() => {
-                        loadMoreCertBtn.style.transition =
-                            "opacity 0.5s ease, visibility 0.5s";
-                        loadMoreCertBtn.style.visibility = "hidden";
-                        loadMoreCertBtn.style.opacity = "0";
-                    }, 1500);
-                } else {
-                    updateCertificatesButtonText();
-                }
-            }, 300);
-        });
-    }
-});
-
-// Update certificates button text on window resize
-window.addEventListener("resize", function () {
-    updateCertificatesButtonText();
-});
 
 // Dynamic Year based on Panama Timezone
 function updateYear() {
