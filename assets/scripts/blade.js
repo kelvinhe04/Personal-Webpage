@@ -14,8 +14,10 @@
 //              pushed, grabbed, dragged and thrown. A push springs back; a
 //              piece that was carried stays where it is left until the page
 //              scrolls. What counts as touching is the shape itself
-//   theme      the switch is a cut: the sword crosses the screen and the new
-//              theme opens from the line it leaves ("blade:cut", motion.js)
+//   theme      the switch is a cut: the sword leaves, comes down the diagonal
+//              of the screen, and the new theme opens from the line it
+//              leaves ("blade:cut", motion.js)
+//   pile       it cuts the certificates the same way, one stroke a card
 //   sound      the blade sliding in the scabbard, the ring as it comes out
 //              and the click as it goes home ("blade:sfx" and "blade:scrape"
 //              events, played by motion.js)
@@ -27,8 +29,6 @@ const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const lerp = (a, b, t) => a + (b - a) * t;
 const smooth = (t) => t * t * (3 - 2 * t);
 const ramp = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
-// the angle that is the same direction as `a` and closest to `ref`
-const nearest = (a, ref) => a - TAU * Math.round((a - ref) / TAU);
 
 // ---------------------------------------------------------------- geometry
 
@@ -299,7 +299,10 @@ function bladeMaps() {
         const line =
             0.775 - 0.085 * peaks + 0.03 * Math.sin(u * 143 + 2.1) + 0.016 * Math.sin(u * 331) +
             0.012 * Math.sin(u * 17);
-        const point = ramp(u, BLADE.tip - 0.003, BLADE.tip + 0.003);
+        // the point is polished a little brighter than the rest. It comes in
+        // over a long stretch: drawn as a line across the blade (the yokote
+        // of a real one) it read as a scratch
+        const point = smooth(ramp(u, BLADE.tip - 0.09, BLADE.tip + 0.03));
         for (let y = 0; y < H; y++) {
             const v = y / H;
             const streak = Math.sin(y * 12.9898 + Math.floor(x / 9) * 78.233) * 43758.5453;
@@ -316,7 +319,6 @@ function bladeMaps() {
                 c = 0.8 + grain;
                 rough = 0.33;
             }
-            // the point is polished apart from the rest (the line is the yokote)
             if (below) {
                 c = lerp(c, 0.86, point);
                 rough = lerp(rough, 0.3, point);
@@ -325,10 +327,6 @@ function bladeMaps() {
             const halo = Math.exp(-Math.pow((v - line) / 0.022, 2));
             c = lerp(c, 0.95, temper) + halo * 0.05;
             rough = lerp(rough, 0.56, temper) - halo * 0.1;
-            if (below && Math.abs(u - BLADE.tip) < 0.0009) {
-                c = 0.95;
-                rough = 0.4;
-            }
             const i = (y * W + x) * 4;
             colour[i] = c * 247;
             colour[i + 1] = c * 251;
@@ -596,7 +594,7 @@ function buildKatana(parts, M) {
 
 function buildSaya(parts, M) {
     const seat = new THREE.Group();
-    for (const name of ["saya", "koiguchi", "saya_mouth", "kojiri", "kurigata", "sageo"]) {
+    for (const name of ["saya", "koiguchi", "saya_mouth", "kojiri", "kurigata", "shitodome", "shitodome_void", "sageo"]) {
         const part = parts[name];
         if (!part) continue;
         const finish = part.material === "fitting" ? "sheathFitting" : part.material;
@@ -756,20 +754,27 @@ function buildStations(narrow) {
         return true;
     };
     // The pile of certificates is cut along the screen's diagonal (motion.js,
-    // .deck): the sword lies on that line behind the pile, and turns over
-    // once while the pile goes down.
+    // .deck). Between cuts the sword rests on that line behind the pile; it
+    // leaves it for each stroke (initBlade, "deck").
     const deck = (node) => {
         const r = span(node);
         if (!node.classList.contains("deck") || r.height <= vh * 1.2) return false;
-        const pose = { x: 0.04, y: -0.06, z: -1, ry: TAU * 2, rz: Math.atan2(vh, window.innerWidth), s: 1.3 };
-        k(r.top + vh / 2, { ...pose, rx: TAU + 0.45 });
-        k(r.top + r.height - vh / 2, { ...pose, rx: TAU * 2 + 0.45 });
+        const rz = Math.atan2(vh, window.innerWidth);
+        const pose = { x: 0.04, y: -0.06, z: -1, rx: TAU + 0.45, ry: TAU * 2, rz, s: 1.3 };
+        k(r.top + vh / 2, pose);
+        k(r.top + r.height - vh / 2, pose);
         return true;
     };
     if (el.proj && !pinned(el.proj, -0.06, 0))
         k(span(el.proj).mid, { x: -edge, y: 0, z: -1, rx: TAU, ry: TAU * 2 + 0.4, rz: HALF, s: 0.82 });
-    if (el.cert && !deck(el.cert) && !pinned(el.cert, 0.08, TAU))
-        k(span(el.cert).mid, { x: -edge, y: 0, z: -1, rx: TAU * 2, ry: TAU * 2 + 0.6, rz: HALF, s: 0.82 });
+    // how many times it has turned over by the end of Certificates: resting
+    // behind the pile it does not turn, the other layouts give it one more
+    let turned = TAU * 2;
+    if (el.cert) {
+        if (deck(el.cert)) turned = TAU;
+        else if (!pinned(el.cert, 0.08, TAU))
+            k(span(el.cert).mid, { x: -edge, y: 0, z: -1, rx: TAU * 2, ry: TAU * 2 + 0.6, rz: HALF, s: 0.82 });
+    }
     // out of sight for both: this is where the scabbard turns tip-down
     if (el.proj) s(span(el.proj).top + vh / 2, { x: -side, y: OFF, ...down });
     if (el.cert) {
@@ -780,14 +785,14 @@ function buildStations(narrow) {
     if (el.honors) {
         const h = span(el.honors);
         honorsEnd = h.top + h.height;
-        k(h.mid, { x: right, y: 0, z: -1, rx: TAU * 2, ry: TAU * 2 - 0.5, rz: HALF * 3, s: 0.82 });
+        k(h.mid, { x: right, y: 0, z: -1, rx: turned, ry: TAU * 2 - 0.5, rz: HALF * 3, s: 0.82 });
         s(h.mid, { x: -side, y: 0, ...down });
         s(honorsEnd, { x: -side, y: -OFF, ...down });
     }
     if (el.contact) {
         const pose = narrow
-            ? { x: -edge, y: 0.1, z: -1, rx: TAU * 2, ry: TAU * 2 + 0.3, rz: HALF * 3, s: 0.82 }
-            : { x: -0.075, y: 0.1, z: -1.4, rx: TAU * 2, ry: TAU * 2 + 0.35, rz: HALF * 3, s: 0.8 };
+            ? { x: -edge, y: 0.1, z: -1, rx: turned, ry: TAU * 2 + 0.3, rz: HALF * 3, s: 0.82 }
+            : { x: -0.075, y: 0.1, z: -1.4, rx: turned, ry: TAU * 2 + 0.35, rz: HALF * 3, s: 0.8 };
         const c = span(el.contact);
         k(c.mid, pose);
         // The scabbard waits under the page, already on the line the blade
@@ -799,7 +804,7 @@ function buildStations(narrow) {
     if (el.mark) {
         // home: back in the scabbard, resting just above the wordmark
         const bottom = document.documentElement.scrollHeight - vh / 2;
-        const pose = { x: 0, y: -0.2, z: 0, rx: TAU * 2 + 0.5, ry: TAU * 2, rz: TAU, s: narrow ? 1.4 : 1.1 };
+        const pose = { x: 0, y: -0.2, z: 0, rx: turned + 0.5, ry: TAU * 2, rz: TAU, s: narrow ? 1.4 : 1.1 };
         const r = el.mark.getBoundingClientRect();
         k(bottom, pose, el.mark, r.height / vh + 0.2);
         ride(bottom, 0);
@@ -881,32 +886,79 @@ const sfx = (name, v = 1) =>
 // how loud the steel sliding in the scabbard is right now (0 = not sliding)
 const sfxScrape = (v) => window.dispatchEvent(new CustomEvent("blade:scrape", { detail: { v } }));
 
-// The theme cut, in milliseconds from the moment the page hands over
-// (motion.js sends its own numbers with the event, so the reveal and the
-// sword keep the same time): the sword leaps to the top right corner, comes
-// down the diagonal of the screen, and is gone over the bottom left before
-// the new theme has finished opening.
-const CUT = { wind: 250, strike: 190, exit: 230, total: 1000 };
-
-// `diag` is the angle of that diagonal on this screen.
-function cutPose(ms, diag, out) {
-    const lift = 1 - Math.pow(1 - ramp(ms, 0, CUT.wind), 3);
-    const fall = ramp(ms, CUT.wind, CUT.wind + CUT.strike);
-    const gone = ramp(ms, CUT.wind + CUT.strike, CUT.wind + CUT.strike + CUT.exit);
-    // raised over the corner, a breath of drawing back, then down the line
-    const along = -0.07 * Math.sin(lift * Math.PI) + Math.pow(fall, 1.4) * 1.45 + gone * 1.3;
-    out.x = 0.8 - along;
-    out.y = 0.8 - along;
-    out.z = 0;
-    // Turned over, so the edge leads the swing. Turned over, the blade also
-    // points at minus its own angle: raised above the line, it swings all the
-    // way through until it points down it.
-    out.rx = Math.PI;
-    out.ry = 0;
-    out.rz = -(diag + 0.75 - 0.3 * lift + smooth(fall) * (Math.PI - 0.45) + gone * 0.4);
-    out.s = 1.3;
-    return out;
+// A cut - the theme switch, and each certificate of the pile - is one stroke
+// down the diagonal of the screen. Where the sword is on it takes two
+// numbers: `along`, how far its middle has come down the diagonal from the
+// top right corner (in half-screens), and `phi`, the angle of the blade to
+// the diagonal. It waits raised (PHI_UP) further up than the corner, comes
+// down turning over the top until it points along the line it has cut
+// (phi = PI, at REACH), and leaves over the bottom left (BEYOND). The same
+// stroke turned half round goes up the diagonal instead: that is how one cut
+// follows another without the sword leaving (FOLLOW is how far it runs on
+// before it comes back).
+const PHI_UP = 0.45;
+const REACH = 1.45;
+const BEYOND = 1.3;
+const FOLLOW = 0.5;
+// the two raised places, one for each way, are this far apart
+const ACROSS = 1.6;
+// How far through a stroke it is, `u` of the way through its time: it
+// gathers speed all the way. `flying` is the share of the distance it covers
+// at a steady pace on top of that - none for a stroke that starts in view,
+// from rest; some for one that starts out of sight, which should not be
+// long in coming.
+const STRIKE_POW = 1.6;
+const travel = (u, flying) => (1 - flying) * Math.pow(u, STRIKE_POW) + flying * u;
+// the part of its time a stroke that starts `a0` (zero or less) up the
+// diagonal spends before it is over the screen
+function runUp(a0, flying) {
+    const back = Math.max(0, -a0);
+    const goal = back / (REACH + back);
+    let lo = 0;
+    let hi = 1;
+    for (let i = 0; i < 24; i++) {
+        const mid = (lo + hi) / 2;
+        if (travel(mid, flying) < goal) lo = mid;
+        else hi = mid;
+    }
+    return hi;
 }
+// Whatever the run-up, the part of a stroke that crosses the screen lasts
+// the same.
+const STRIKE_ON = 160;
+const strikeMs = (a0, flying) => STRIKE_ON / (1 - runUp(a0, flying));
+const FOLLOW_MS = 110;
+
+// Where a piece is in the world: place, turn and size.
+const makePose = () => ({ p: new THREE.Vector3(), q: new THREE.Quaternion(), s: 1 });
+const copyPose = (out, a) => {
+    out.p.copy(a.p);
+    out.q.copy(a.q);
+    out.s = a.s;
+    return out;
+};
+// part of the way from one to another, by the shortest turn
+const mixPose = (out, a, b, t) => {
+    out.p.lerpVectors(a.p, b.p, t);
+    out.q.slerpQuaternions(a.q, b.q, t);
+    out.s = lerp(a.s, b.s, t);
+    return out;
+};
+const X_AXIS = new THREE.Vector3(1, 0, 0);
+const Z_AXIS = new THREE.Vector3(0, 0, 1);
+// in the sword's own coordinates: the centre of the circle its curve lies on,
+const ARC_C = new THREE.Vector3(BODY_X, ARC_R - BLADE.sori * 0.32, 0);
+// the two ends of the cutting edge,
+const EDGE_A = new THREE.Vector3(BODY_X + 0.4, -0.12 - BLADE.sori * 0.32, 0);
+const EDGE_B = new THREE.Vector3(BODY_X + BLADE.length, BLADE.sori * 0.68, 0);
+// and points all along it, pommel to tip, a guard's radius apart at most
+const HULL = [];
+for (let i = 0; i <= 22; i++) {
+    const x = lerp(GRIP_END - 0.15, BLADE.length + 0.05, i / 22);
+    const lift = x > 0 ? BLADE.sori * Math.pow(x / BLADE.length, 2) : 0;
+    HULL.push(new THREE.Vector3(BODY_X + x, lift - BLADE.sori * 0.32, 0));
+}
+const GUARD_R = 0.5;
 
 export async function initBlade() {
     const canvas = document.createElement("canvas");
@@ -1024,8 +1076,14 @@ export async function initBlade() {
     let scrapeLevel = 0;
     let grab = null;
     let hovering = "";
+    // the stroke in progress, if any (see "the cut" below)
     let cut = null;
     let armed = false;
+    // During a stroke: how far back along its own line the sword is drawn,
+    // or -1 while it is off that line altogether.
+    let lineD = -1;
+    // how far along the blade the scabbard sits, as drawn
+    let slidNow = 0;
     let sheathLook = 0;
     let sheathGoal = 0;
     let parkedAt = 0;
@@ -1042,14 +1100,19 @@ export async function initBlade() {
 
     const eul = new THREE.Euler();
     const qFree = new THREE.Quaternion();
-    const qHome = new THREE.Quaternion();
+    const qTurn = new THREE.Quaternion();
     const vFree = new THREE.Vector3();
-    const vHome = new THREE.Vector3();
     const v0 = new THREE.Vector3();
     const v1 = new THREE.Vector3();
     const ndc = new THREE.Vector2();
     const caster = new THREE.Raycaster();
-    const struck = { x: 0, y: 0, z: 0, rx: 0, ry: 0, rz: 0, s: 1 };
+    // where the scroll wants the sword, and where it is drawn (a stroke
+    // takes it away from there)
+    const home = makePose();
+    const shown = makePose();
+    const poseA = makePose();
+    const poseB = makePose();
+    const poseC = makePose();
 
     function setRatio() {
         // cap the pixels the sword costs: it sits under every frosted panel
@@ -1246,14 +1309,74 @@ export async function initBlade() {
         window.dispatchEvent(new CustomEvent("blade:hover", { detail: { state } }));
     }
 
-    function pose(group, p, sc) {
-        group.position.set(p.x * halfW, p.y * halfH, p.z);
-        group.rotation.set(p.rx, p.ry, p.rz);
-        group.scale.setScalar(sc);
+    // ---- the cut -----------------------------------------------------------
+    // One stroke at a time (`cut`), in phases:
+    //   wind     from wherever it is to raised, beyond the top right corner.
+    //            A blade that is in its scabbard is drawn out of it first
+    //   hold     waiting there, out of sight, for the page (theme switch only)
+    //   strike   down the diagonal
+    //   follow   another cut is wanted: it does not leave, it turns for the
+    //            stroke back up
+    //   exit     off over the far corner
+    //   away     out of sight, until it may come back
+    //   back     home again, point first along its own line
+    // For the theme switch the page draws this canvas above itself for as
+    // long as the new theme takes to open (motion.js, a view transition). The
+    // sword is off the screen at both ends of that, so nobody sees it change
+    // layer - and the moment the page freezes to take its picture of itself
+    // falls while there is nothing moving to freeze. A cut through the pile
+    // of certificates brings the canvas in front the same way, with a class.
+    const front = (on) => canvas.classList.toggle("is-front", on);
+
+    function pathPose(along, phi, dir, out) {
+        const k = (0.8 - along) * dir;
+        out.p.set(k * halfW, k * halfH, 0);
+        // Turned over, so the edge leads the swing (and so the blade points
+        // at minus the angle it is given).
+        eul.set(Math.PI, 0, -(Math.atan2(halfH, halfW) + phi + (dir < 0 ? Math.PI : 0)));
+        out.q.setFromEuler(eul);
+        out.s = 1.3 * unit;
+        return out;
     }
 
-    // the arc the edge has swept in the last moments of the cut
+    // `from`, pulled back by `d` along the curve of its own blade: the way a
+    // sword leaves a scabbard, and the way it goes back into one.
+    function drawnBack(from, d, out) {
+        const th = d / ARC_R;
+        const c = Math.cos(th);
+        const s = Math.sin(th);
+        v1.set(ARC_C.x - (ARC_C.x * c + ARC_C.y * s), ARC_C.y - (ARC_C.y * c - ARC_C.x * s), 0);
+        out.p.copy(v1).multiplyScalar(from.s).applyQuaternion(from.q).add(from.p);
+        out.q.copy(from.q).multiply(qTurn.setFromAxisAngle(Z_AXIS, -th));
+        out.s = from.s;
+        return out;
+    }
+
+    // Is any of the sword over this part of the screen?
+    function touches(at, left, top, right, bottom) {
+        const pad = (GUARD_R * at.s * vh) / (halfH * 2) + 8;
+        for (const point of HULL) {
+            v0.copy(point).multiplyScalar(at.s).applyQuaternion(at.q).add(at.p).project(camera);
+            const x = (v0.x * 0.5 + 0.5) * vw;
+            const y = (-v0.y * 0.5 + 0.5) * vh;
+            if (x > left - pad && x < right + pad && y > top - pad && y < bottom + pad) return true;
+        }
+        return false;
+    }
+    const onScreen = (at) => touches(at, 0, 0, vw, vh);
+
+    // the arc the edge has swept in the last moments of a stroke
     const swept = [];
+    const TRAIL_MS = 170;
+    function sweep(at, when) {
+        swept.push({
+            a: EDGE_A.clone().multiplyScalar(at.s).applyQuaternion(at.q).add(at.p),
+            b: EDGE_B.clone().multiplyScalar(at.s).applyQuaternion(at.q).add(at.p),
+            t: when,
+        });
+        if (swept.length > TRAIL) swept.shift();
+    }
+
     function drawTrail(now) {
         const pos = trailGeo.attributes.position;
         const col = trailGeo.attributes.color;
@@ -1261,7 +1384,7 @@ export async function initBlade() {
         const tone = ink ? [0.03, 0.2, 0.36] : [0.62, 0.92, 1];
         for (let i = 0; i < TRAIL; i++) {
             const s = swept[Math.max(0, swept.length - TRAIL + i)] || swept[0];
-            const age = s ? clamp(1 - (now - s.t) / (CUT.strike * 0.9), 0, 1) : 0;
+            const age = s ? clamp(1 - (now - s.t) / (TRAIL_MS * cut.slow), 0, 1) : 0;
             const base = s ? s.a : v0.set(0, 0, 0);
             const tip = s ? s.b : v0;
             pos.setXYZ(i * 2, base.x, base.y, base.z);
@@ -1272,65 +1395,315 @@ export async function initBlade() {
         pos.needsUpdate = col.needsUpdate = true;
     }
 
+    // Leaves for a stroke, from wherever it is drawn now. `clear` is the part
+    // of the screen ([left, top, right, bottom]) it has to be raised clear
+    // of. Returns how long until it is there.
+    function windUp(kind, clear, slow) {
+        release();
+        flourish = 1;
+        // a sword that was left somewhere gives its place up
+        kBody.parked = false;
+        const sheathed =
+            sCur.lock >= 1 && (!cut || lineD >= 0) && slidNow + Math.max(0, lineD) < BLADE.length;
+        // far enough that the point is out with a fifth of the pull to go
+        const out = sheathed ? (BLADE.length - slidNow + 0.15) / 0.8 : 0;
+        const d0 = sheathed ? Math.max(0, lineD) : 0;
+        let a0 = 0;
+        while (a0 > -3 && touches(pathPose(a0, PHI_UP, 1, poseA), clear[0], clear[1], clear[2], clear[3])) a0 -= 0.05;
+        a0 -= 0.05;
+        // it comes back in from out of sight for the theme switch, and
+        // from beside the pile for a certificate
+        const flying = kind === "theme" ? 0.3 : 0;
+        cut = {
+            kind,
+            slow,
+            dir: 1,
+            a0,
+            flying,
+            run: runUp(a0, flying),
+            phase: "wind",
+            t: performance.now(),
+            prev: 0,
+            from: copyPose(makePose(), shown),
+            out,
+            d0,
+            drawMs: sheathed ? (80 + 24 * (out - d0)) * slow : 0,
+            windMs: (kind === "deck" ? 170 : 280) * slow,
+            ms: strikeMs(a0, flying) * slow,
+            outMs: 0,
+            gone: [0, FOLLOW, 0],
+            again: false,
+            go: null,
+            struckAt: 0,
+            cross: 0,
+            first: 0,
+            until: 0,
+            far: 0,
+            off: null,
+            flyMs: 0,
+            slideMs: 0,
+            fromLight: lightMode,
+            swapped: kind !== "theme",
+        };
+        front(false);
+        swept.length = 0;
+        trail.visible = cutLine.visible = false;
+        setHover(false, false);
+        dirty = true;
+        const whole = cut.drawMs * 0.72 + cut.windMs;
+        if (kind !== "theme") return whole;
+        // The page only has to wait until the sword is out of sight: the
+        // last moments of its way up are spent where nobody sees it.
+        for (let t = whole - cut.windMs * 0.6; t < whole; t += 8 * slow) {
+            if (!onScreen(windAt(cut, t, poseB))) return t + 16 * slow;
+        }
+        return whole;
+    }
+
+    // On its way up, `t` ms after it left. A blade that was in its scabbard
+    // is drawn out along its own line (drawnAt: how far, or -1 if it was
+    // not in one), and leaves that line once the point is clear.
+    const drawnAt = (c, t) => (c.drawMs ? lerp(c.d0, c.out, smooth(clamp(t / c.drawMs, 0, 1))) : -1);
+    function windAt(c, t, out) {
+        const d = drawnAt(c, t);
+        const base = d < 0 ? c.from : drawnBack(home, d, poseA);
+        const up = smooth(clamp((t - c.drawMs * 0.72) / c.windMs, 0, 1));
+        return mixPose(out, base, pathPose(c.a0, PHI_UP, c.dir, poseC), up);
+    }
+
+    function strike(now, wait) {
+        const c = cut;
+        c.phase = "strike";
+        c.t = now + wait;
+        c.prev = -wait;
+        if (!c.struckAt) {
+            c.struckAt = c.t;
+            c.first = c.ms;
+            c.cross = c.ms * c.run;
+        }
+        if (c.kind === "deck") front(true);
+    }
+
+    // the same stroke, the other way: it starts from where the last one took it
+    function strikeBack(when, gone) {
+        const c = cut;
+        c.dir = -c.dir;
+        c.a0 = ACROSS - REACH - gone;
+        c.flying = 0;
+        c.run = runUp(c.a0, 0);
+        c.ms = strikeMs(c.a0, 0) * c.slow;
+        c.phase = "strike";
+        c.t = when;
+        c.prev = 0;
+    }
+
+    function onPath(c, at, out) {
+        if (c.phase === "strike") {
+            const along = c.a0 + (REACH - c.a0) * travel(clamp(at / c.ms, 0, 1), c.flying);
+            const fall = Math.pow(clamp(along / REACH, 0, 1), 1 / 1.4);
+            return pathPose(along, PHI_UP + smooth(fall) * (Math.PI - PHI_UP), c.dir, out);
+        }
+        const u = clamp(at / c.outMs, 0, 1);
+        // it slows, turns on past the line, and is raised for the stroke back
+        if (c.phase === "follow") {
+            const gone = lerp(c.gone[0], c.gone[1], 1 - (1 - u) * (1 - u));
+            return pathPose(REACH + gone, Math.PI + lerp(c.gone[2], PHI_UP, smooth(u)), c.dir, out);
+        }
+        return pathPose(REACH + BEYOND * (1 - Math.pow(1 - u, 1.5)), Math.PI + 0.4 * u, c.dir, out);
+    }
+
+    // It is not to leave after all: from `gone` past the end of its stroke
+    // (and `phi` past the line) it runs on a little, slowing, and turns for
+    // the stroke back.
+    function turnBack(when, gone, phi, ms) {
+        const c = cut;
+        c.phase = "follow";
+        c.gone = [gone, gone + (gone > 0 ? 0.3 : FOLLOW), phi];
+        c.outMs = ms * c.slow;
+        c.t = when;
+        c.prev = 0;
+    }
+
+    // Home again. A blade whose line lies across the screen comes in along
+    // it, point first - into the scabbard, if that is where it belongs. One
+    // that points at the viewer (the hero) flies in from the corner it left
+    // by to the mouth of the scabbard, and slides in from there.
+    function comeBack(now) {
+        const c = cut;
+        front(false);
+        trail.visible = cutLine.visible = false;
+        swept.length = 0;
+        c.phase = "back";
+        c.t = now;
+        const sheathed = sCur.lock >= 1 && slidNow < BLADE.length;
+        const need = sheathed ? BLADE.length - slidNow + 0.5 : 0;
+        v0.copy(X_AXIS).applyQuaternion(home.q);
+        if (Math.abs(v0.z) <= 0.4) {
+            // (after a stroke up the diagonal it went out point first: it
+            // comes back the way it went)
+            const way = c.kind === "deck" && c.dir < 0 ? -1 : 1;
+            let far = need;
+            while (far < 60 && onScreen(drawnBack(home, way * far, poseA))) far += 0.5;
+            c.far = way * (far + 0.5);
+            c.flyMs = 0;
+            c.slideMs = (430 + 22 * far * home.s) * c.slow;
+        } else {
+            const corner = new THREE.Vector3(-halfW, -halfH, 0).normalize().multiplyScalar(c.dir);
+            drawnBack(home, need, poseA);
+            let k = 0;
+            do {
+                k += 0.5;
+                poseB.p.copy(corner).multiplyScalar(k).add(poseA.p);
+                poseB.q.copy(poseA.q);
+                poseB.s = poseA.s;
+            } while (k < 60 && onScreen(poseB));
+            c.far = need;
+            c.off = corner.multiplyScalar(k + 0.5);
+            c.flyMs = 540 * c.slow;
+            c.slideMs = need ? 420 * c.slow : 0;
+        }
+    }
+
     function stepCut(now) {
-        const ms = now - cut.t0;
-        const strikeEnd = CUT.wind + CUT.strike;
-        const diag = Math.atan2(halfH, halfW);
-        // the scabbard stays on screen, so it takes its new finish as the new
-        // theme opens over it
-        if (ms >= CUT.wind + CUT.strike * 0.5) sheathGoal = document.body.classList.contains("light-mode") ? 1 : 0;
-        if (ms >= strikeEnd + CUT.exit && !cut.swapped) {
-            // out of sight: this is where one sword becomes the other
-            cut.swapped = true;
-            applyTheme();
-        }
-        if (ms >= CUT.total) {
-            // it comes back from where it left, by the shortest turn
-            cutPose(CUT.total, diag, struck);
-            Object.assign(cur, struck);
-            cur.rx = nearest(struck.rx, tgt.rx);
-            cur.ry = nearest(struck.ry, tgt.ry);
-            cur.rz = nearest(struck.rz, tgt.rz);
-            pose(katana, cur, cur.s * unit);
-            cut = null;
-            cutLine.visible = trail.visible = false;
-            swept.length = 0;
-            return;
-        }
-        // the pose it had, handed over to the path during the first moments
-        const take = smooth(ramp(ms, 0, CUT.wind * 0.44));
-        const steps = ms > CUT.wind && ms < strikeEnd + CUT.exit ? 4 : 1;
-        for (let i = 1; i <= steps; i++) {
-            const at = cut.prev + ((ms - cut.prev) * i) / steps;
-            cutPose(at, diag, struck);
-            for (const k of POSE_KEYS) struck[k] = lerp(cut.from[k], struck[k], take);
-            pose(katana, struck, struck.s * unit);
-            if (at > CUT.wind * 0.88) {
-                katana.updateMatrixWorld(true);
-                const a = body.localToWorld(new THREE.Vector3(0.4, -0.12, 0));
-                const b = body.localToWorld(new THREE.Vector3(BLADE.length, BLADE.sori, 0));
-                swept.push({ a, b, t: cut.t0 + at });
-                if (swept.length > TRAIL) swept.shift();
+        const c = cut;
+        const t = now - c.t;
+        lineD = -1;
+        if (c.phase === "wind") {
+            windAt(c, t, shown);
+            if (t <= c.drawMs * 0.72) lineD = drawnAt(c, t);
+            if (t >= c.drawMs * 0.72 + c.windMs) {
+                if (c.kind === "deck") strike(now, 0);
+                else if (c.go) {
+                    c.until = now + c.go.total;
+                    strike(now, c.go.hold);
+                } else {
+                    c.phase = "hold";
+                    c.t = now;
+                }
+            }
+        } else if (c.phase === "hold") {
+            pathPose(c.a0, PHI_UP, c.dir, shown);
+            // the page never said go
+            if (t > 3000) {
+                c.swapped = true;
+                applyTheme();
+                comeBack(now);
+            }
+        } else if (c.phase === "away") {
+            if (now >= c.until) comeBack(now);
+        } else if (c.phase === "back") {
+            const fly = c.flyMs ? 1 - Math.pow(1 - clamp(t / c.flyMs, 0, 1), 3) : 1;
+            const d = c.flyMs
+                ? c.far * (1 - smooth(clamp((t - c.flyMs * 0.78) / Math.max(1, c.slideMs), 0, 1)))
+                : c.far * Math.pow(1 - clamp(t / c.slideMs, 0, 1), 3);
+            drawnBack(home, d, shown);
+            if (fly < 1) {
+                shown.p.addScaledVector(c.off, 1 - fly);
+                shown.q.multiply(qTurn.setFromAxisAngle(X_AXIS, -1.3 * (1 - fly)));
+            }
+            if (fly > 0.985) lineD = Math.max(0, d);
+            if (t >= (c.flyMs ? Math.max(c.flyMs, c.flyMs * 0.78 + c.slideMs) : c.slideMs)) {
+                cut = null;
+                lineD = -1;
+                return;
+            }
+        } else {
+            // strike, follow, exit: several points of the path in every
+            // frame, for the arc the edge leaves behind it
+            for (let i = 1; i <= 4; i++) {
+                const at = c.prev + ((t - c.prev) * i) / 4;
+                onPath(c, at, shown);
+                if (c.phase !== "strike" || at > c.ms * c.run * 0.8) sweep(shown, c.t + at);
+            }
+            c.prev = t;
+            if (c.phase === "strike") {
+                if (t >= c.ms) {
+                    // the speed it ends the stroke with is the speed it leaves at
+                    const speed = (((1 - c.flying) * STRIKE_POW + c.flying) * (REACH - c.a0)) / c.ms;
+                    if (c.again) {
+                        c.again = false;
+                        turnBack(c.t + c.ms, 0, 0, FOLLOW_MS);
+                    } else {
+                        c.phase = "exit";
+                        c.outMs = (1.5 * BEYOND) / speed;
+                        c.t += c.ms;
+                        c.prev = 0;
+                    }
+                }
+            } else if (t >= c.outMs) {
+                if (c.phase === "follow") {
+                    strikeBack(c.t + c.outMs, c.gone[1]);
+                } else {
+                    // out of sight: this is where one sword becomes the other
+                    c.phase = "away";
+                    if (c.kind === "theme") {
+                        c.swapped = true;
+                        applyTheme();
+                    } else {
+                        c.until = now + 90 * c.slow;
+                    }
+                }
             }
         }
-        cut.prev = ms;
+        katana.position.copy(shown.p);
+        katana.quaternion.copy(shown.q);
+        katana.scale.setScalar(shown.s);
+        if (c.phase === "back") return;
+
         drawTrail(now);
         trail.visible = swept.length > 1;
-        trail.material.blending = cut.fromLight ? THREE.NormalBlending : THREE.AdditiveBlending;
-
+        trail.material.blending = c.fromLight ? THREE.NormalBlending : THREE.AdditiveBlending;
+        if (c.kind !== "theme" || !c.struckAt) return;
+        // since the stroke began
+        const ms = now - c.struckAt;
+        const across = c.first - c.cross;
+        // the scabbard stays on screen, so it takes its new finish as the new
+        // theme opens over it
+        if (ms >= c.cross + across * 0.5) sheathGoal = document.body.classList.contains("light-mode") ? 1 : 0;
         // the line: drawn corner to corner as the blade comes down, then fades
-        const drawn = ramp(ms, CUT.wind + CUT.strike * 0.1, strikeEnd);
-        const fade = 1 - ramp(ms, strikeEnd + CUT.strike * 0.3, strikeEnd + CUT.strike * 2.2);
+        const drawn = ramp(ms, c.cross + across * 0.1, c.first);
+        const fade = 1 - ramp(ms, c.first + 55 * c.slow, c.first + 400 * c.slow);
         cutLine.visible = drawn > 0 && fade > 0;
         if (cutLine.visible) {
             const len = Math.hypot(halfW, halfH) * 2.3;
             cutLine.position.set(halfW * 1.12, halfH * 1.12, 0);
             cutLine.rotation.z = Math.atan2(halfH, halfW);
-            cutLine.scale.set(len * drawn, (cut.fromLight ? 0.1 : 0.16) * (0.5 + 0.5 * fade), 1);
-            cutLine.material.color.set(cut.fromLight ? 0x06263f : 0xcdf3ff);
-            cutLine.material.blending = cut.fromLight ? THREE.NormalBlending : THREE.AdditiveBlending;
+            cutLine.scale.set(len * drawn, (c.fromLight ? 0.1 : 0.16) * (0.5 + 0.5 * fade), 1);
+            cutLine.material.color.set(c.fromLight ? 0x06263f : 0xcdf3ff);
+            cutLine.material.blending = c.fromLight ? THREE.NormalBlending : THREE.AdditiveBlending;
             cutLine.material.opacity = fade;
         }
+    }
+
+    // A cut through the pile of certificates (motion.js asks for one each
+    // time a card is to part). Returns how long until the edge is on the
+    // card, or null if the sword cannot do it.
+    function deckStroke(clear, slow) {
+        const now = performance.now();
+        // the card starts to part a moment before the stroke is through
+        const early = 45 * slow;
+        if (!cut || cut.phase === "back") return windUp("deck", clear, slow) + cut.ms - early;
+        const c = cut;
+        if (c.kind !== "deck") return null;
+        const t = now - c.t;
+        const round = (gone) => strikeMs(ACROSS - REACH - gone, 0) * slow - early;
+        if (c.phase === "wind") return Math.max(0, c.windMs - t) + c.ms - early;
+        // this stroke will do it; later than that, it takes the one back
+        if (c.phase === "strike" && t < c.ms - early * 2) return c.ms - t - early;
+        if (c.phase === "strike") {
+            c.again = true;
+            return c.ms - t + FOLLOW_MS * slow + round(FOLLOW);
+        }
+        if (c.phase === "exit") {
+            // on its way out: it turns where it is
+            const u = clamp(t / c.outMs, 0, 1);
+            turnBack(now, BEYOND * (1 - Math.pow(1 - u, 1.5)), 0.4 * u, 90);
+        } else if (c.phase === "away") {
+            // out of sight already: back in from there
+            strikeBack(now, BEYOND);
+            return round(BEYOND);
+        }
+        return c.outMs - (now - c.t) + round(c.gone[1]);
     }
 
     function frame(now) {
@@ -1357,11 +1730,12 @@ export async function initBlade() {
                 }
             }
         };
-        if (!cut) chase(cur, tgt, POSE_KEYS);
+        // (during a stroke too: this is the place it comes back to)
+        chase(cur, tgt, POSE_KEYS);
         chase(sCur, sTgt, POSE_KEYS);
         // the opening draw: it slides from sheathed to the hero's half-drawn
-        const shown = lerp(0.12, 1, smooth(clamp(ignite * 1.25, 0, 1)));
-        if (stepSheath(dt, shown)) moving = true;
+        const opening = lerp(0.12, 1, smooth(clamp(ignite * 1.25, 0, 1)));
+        if (stepSheath(dt, opening)) moving = true;
 
         // the hanging scabbard leans into the scroll and settles afterwards
         const sy = window.scrollY;
@@ -1389,7 +1763,7 @@ export async function initBlade() {
         if (glowing) mouse.glow += (glowTarget - mouse.glow) * Math.min(1, dt * 7);
         else mouse.glow = glowTarget;
         if (sheathLook !== sheathGoal) {
-            const step = dt / ((CUT.exit * 1.4) / 1000);
+            const step = dt / (0.32 * (cut ? cut.slow : 1));
             sheathLook = sheathGoal > sheathLook ? Math.min(sheathGoal, sheathLook + step) : Math.max(sheathGoal, sheathLook - step);
             setFinish(smooth(sheathLook), true);
             dirty = true;
@@ -1426,17 +1800,18 @@ export async function initBlade() {
         );
         katana.scale.setScalar(sc);
         // where the sword belongs: the scabbard stays there during a cut
-        vHome.copy(katana.position);
-        qHome.copy(katana.quaternion);
+        home.p.copy(katana.position);
+        home.q.copy(katana.quaternion);
+        home.s = sc;
 
         // scabbard: its own place, or the blade's line, or the flight between
         // the two - which always ends past the point (stepSheath)
         const riding = sCur.lock >= 1;
         const lock = riding ? 1 : smooth(clamp(sCur.lock, 0, 1));
         const free = 1 - lock;
-        const slid = sCur.slide * shown;
+        const slid = sCur.slide * opening;
+        slidNow = slid;
         arc.rotation.z = (slid * lock) / ARC_R;
-        cursorUniforms.uCover.value = cut || !riding ? 2 : slid / BLADE.length + 0.02;
         eul.set(sCur.rx + sBody.roll * free, sCur.ry, sCur.rz + (sBody.az + sway) * free);
         qFree.setFromEuler(eul);
         vFree.set(
@@ -1444,31 +1819,37 @@ export async function initBlade() {
             sCur.y * halfH + (sBody.oy - Math.abs(sway) * 0.5) * free,
             sCur.z,
         );
-        saya.position.copy(vFree).lerp(vHome, lock);
-        saya.quaternion.copy(qFree).slerp(qHome, lock);
+        saya.position.copy(vFree).lerp(home.p, lock);
+        saya.quaternion.copy(qFree).slerp(home.q, lock);
         saya.scale.setScalar(lerp(sCur.s * unit, sc, lock));
 
         if (cut) stepCut(now);
+        if (!cut) copyPose(shown, home);
+        // A stroke takes the blade off the scabbard's line, or along it:
+        // `out` is how far out of the scabbard it is, all told.
+        const lined = riding && (!cut || lineD >= 0);
+        const out = slid + (cut ? Math.max(0, lineD) : 0);
+        cursorUniforms.uCover.value = lined ? out / BLADE.length + 0.02 : 2;
 
         // What is heard is what is happening, at the speed it is happening:
         // the steel sliding for as long as some of the blade is moving
         // inside the scabbard, the ring at the moment its point comes out
         // of the mouth, and the click when it is all the way home. So a
         // blade that starts half drawn only has the second half to say.
-        const home = riding && slid < 0.3;
-        const inside = riding && slid < BLADE.length;
-        const rate = Math.abs(slid - slidWas) / Math.max(dt, 0.004); // units a second
+        const seated = lined && out < 0.3;
+        const inside = lined && out < BLADE.length;
+        const rate = Math.abs(out - slidWas) / Math.max(dt, 0.004); // units a second
         if (ignite >= 1) {
-            if (home && !sheathed) sfx("sheath", 0.8);
+            if (seated && !sheathed) sfx("sheath", 0.8);
             if (wasInside && riding && !inside && now - lastRing > 500) {
                 lastRing = now;
                 sfx("ring", 0.45 + rate / 14);
             }
-            scrape(inside && !home ? clamp(rate / 7, 0, 1) : 0);
+            scrape(inside && !seated ? clamp(rate / 7, 0, 1) : 0);
         }
-        sheathed = home;
+        sheathed = seated;
         wasInside = inside;
-        slidWas = slid;
+        slidWas = out;
         // (the opening draw plays before any sound is allowed, so it is silent)
 
         scene.updateMatrixWorld();
@@ -1505,6 +1886,10 @@ export async function initBlade() {
 
     measure();
     applyTheme();
+    // Every shader now, while the canvas is still fading in - the line and
+    // the arc of a cut included, which are not drawn until the first one
+    // (compiling them then cost that cut a frame or two in mid-stroke).
+    renderer.compile(scene, camera);
 
     let resizeTimer = 0;
     const remeasure = () => {
@@ -1641,42 +2026,51 @@ export async function initBlade() {
         kBody.vroll += 7;
         dirty = true;
     });
-    // The theme switch (motion.js). "arm" comes before the page changes
-    // theme, so this sword keeps its finish until it has left the screen;
-    // "go" is the moment the reveal starts; "cancel" if it never does.
+    // What motion.js asks of the sword, and what it is told back (written
+    // into the event's detail, since the events are handled on the spot):
+    //   wind    the theme is about to switch: leave for the stroke. Answers
+    //           `lead` (ms until it is raised, out of sight), `strike` (how
+    //           long the stroke will take) and `enter` (the part of that
+    //           spent before it is over the screen)
+    //   arm     the page is about to change theme: keep this finish for now
+    //   go      the new theme is ready underneath: strike (`timing.hold` ms
+    //           from now; the page has it back after `timing.total`)
+    //   cancel  there will be no go
+    //   deck    cut the certificate on top of the pile; `clear` is the part
+    //           of the screen the pile takes. Answers `at`: ms until the
+    //           edge is on the card
     window.addEventListener("blade:cut", (e) => {
-        const { phase, timing } = e.detail;
-        if (phase === "arm") {
+        const d = e.detail;
+        const now = performance.now();
+        if (d.phase === "arm") {
             armed = true;
-            return;
+        } else if (d.phase === "wind") {
+            if (!visible) return;
+            d.lead = windUp("theme", [0, 0, vw, vh], d.slow || 1);
+            d.strike = cut.ms;
+            d.enter = cut.run;
+        } else if (d.phase === "deck") {
+            if (visible) d.at = deckStroke(d.clear, d.slow || 1);
+        } else if (d.phase === "go" && cut && cut.kind === "theme" && !cut.struckAt) {
+            armed = false;
+            // still in sight on its way up: it strikes as soon as it is there
+            if (cut.phase === "wind" && onScreen(shown)) {
+                cut.go = d.timing;
+                return;
+            }
+            cut.until = now + d.timing.total;
+            strike(now, d.timing.hold);
+        } else {
+            // no stroke after all: the sword that left comes straight back
+            armed = false;
+            if (cut && cut.kind === "theme" && !cut.swapped) {
+                cut.swapped = true;
+                applyTheme();
+                comeBack(now);
+            } else {
+                applyTheme();
+            }
         }
-        armed = false;
-        if (phase !== "go" || !visible) {
-            applyTheme();
-            return;
-        }
-        Object.assign(CUT, timing);
-        release();
-        flourish = 1;
-        kBody.ox = kBody.oy = kBody.az = kBody.roll = kBody.vx = kBody.vy = kBody.vaz = kBody.vroll = 0;
-        kBody.parked = false;
-        swept.length = 0;
-        const first = cutPose(0, Math.atan2(halfH, halfW), struck);
-        cut = {
-            t0: performance.now(),
-            prev: 0,
-            // the shortest way round to edge-first, whatever turn it was on
-            from: {
-                ...cur,
-                rx: nearest(cur.rx, first.rx),
-                ry: nearest(cur.ry, first.ry),
-                rz: nearest(cur.rz, first.rz),
-            },
-            fromLight: lightMode,
-            swapped: false,
-        };
-        setHover(false, false);
-        dirty = true;
     });
     // motion.js found the machine struggling: render at screen resolution
     const goLite = () => {

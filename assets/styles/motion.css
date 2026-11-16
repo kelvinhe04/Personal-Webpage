@@ -102,7 +102,11 @@ html.lenis.lenis-stopped {
 .arrow-link {
     background: var(--glass-fill), var(--glass-solid);
     border-color: rgba(var(--accent-rgb), 0.5);
-    box-shadow: var(--glass-rim);
+    /* The last shadow draws nothing: it is room around the circle. The bounce
+       puts the button on a layer of its own, and a layer exactly the size of
+       the circle loses its outermost row of pixels whenever it sits between
+       two of the screen's - the ring came out flat on top while it jumped. */
+    box-shadow: var(--glass-rim), 0 0 0 6px transparent;
 }
 
 /* ---------- The katana canvas (blade.js) ---------- */
@@ -119,6 +123,13 @@ html.lenis.lenis-stopped {
 
 .blade-canvas.is-live {
     opacity: 1;
+}
+
+/* While it cuts a certificate the sword is in front of the page (under the
+   navbar and the rail). blade.js only switches this while the sword is clear
+   of the pile, so nothing is seen to jump from one side of it to the other. */
+.blade-canvas.is-front {
+    z-index: 800;
 }
 
 /* ---------- Glass surfaces ---------- */
@@ -1009,25 +1020,28 @@ cut-piece {
     font-variant-numeric: tabular-nums;
 }
 
+/* the two numbers are the same size and sit the same distance from the
+   slash; only the colour says which one is the section being read */
 .trail-alt b,
 .trail-alt em {
     position: absolute;
+    font-size: 0.7rem;
     font-style: normal;
+    font-weight: 600;
     line-height: 1;
 }
 
+/* (figures sit a little high in their line: the nudge is what makes the gap
+   to the slash measure the same on both sides) */
 .trail-alt b {
-    top: 0;
+    top: 0.4px;
     left: 0;
-    font-size: 0.76rem;
-    font-weight: 600;
     color: var(--accent-secondary);
 }
 
 .trail-alt em {
     right: 0;
-    bottom: 0;
-    font-size: 0.6rem;
+    bottom: -0.4px;
 }
 
 /* the slash */
@@ -1712,6 +1726,39 @@ body .honor-card:hover {
     }
 }
 
+/* ---------- Scrollbar: the thumb eases into its hover colour ----------
+   A scrollbar part cannot run a transition of its own. It can take a colour
+   from the element it belongs to, though (the page's bar belongs to <body>),
+   and a registered colour can be eased there. motion.js says when the
+   pointer is on the thumb (.thumb-over); .thumb-eased, which it sets once it
+   knows it can tell, hands the job over from the plain :hover rule. The
+   colour does not inherit, so easing it restyles <body> and nothing else. */
+@property --thumb {
+    syntax: "<color>";
+    inherits: false;
+    initial-value: #00c6ff;
+}
+
+body {
+    --thumb: var(--accent-color);
+}
+
+.thumb-over body {
+    --thumb: var(--accent-secondary);
+}
+
+/* (script.js fades the page in with a transition on <body> too: this one
+   has to name it, or it would replace it) */
+.thumb-eased body {
+    transition: --thumb 0.3s ease, opacity 0.5s ease;
+}
+
+.thumb-eased body::-webkit-scrollbar-thumb,
+.thumb-eased body::-webkit-scrollbar-thumb:hover {
+    --thumb: inherit;
+    background: var(--thumb);
+}
+
 /* ---------- Cursor: point, ring and trail ---------- */
 html.has-cursor,
 html.has-cursor * {
@@ -1935,11 +1982,6 @@ html.theme-cut-blade::view-transition-new(blade) {
 
 /* ---------- Small screens ---------- */
 @media (max-width: 899px) {
-    /* the sword stays in the margins and behind the text here */
-    .blade-canvas.is-live {
-        opacity: 0.6;
-    }
-
     .timeline-content {
         grid-template-columns: minmax(0, 1fr);
     }

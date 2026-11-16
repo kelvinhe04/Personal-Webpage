@@ -18,6 +18,7 @@ ones (one set per theme) by that name. Each vertex stores how enclosed it is
 (ambient occlusion, cast here with rays) as its colour, which is what gives
 the wrap and the fittings their contact shadows.
 """
+import bisect
 import gzip
 import json
 import math
@@ -53,6 +54,14 @@ R_TSUBA = 0.45
 
 A_S, B_S = 0.205, 0.118   # scabbard: half width / half thickness
 S_T0, S_T1 = -0.004, 1.035
+
+# the knob and the cord tied round it (only this script needs these)
+T_KNOB = 0.14                                 # where the knob sits on the outward face
+KNOB_L, KNOB_W, KNOB_H = 0.095, 0.06, 0.07    # its half length, half width and height
+CORD_W, CORD_H = 0.076, 0.012                 # the cord, a flat braid: its width, and how far it stands off what it lies on
+CORD_STEP = 0.078                             # from one turn of it to the next
+CORD_TURNS = 4                                # on each side of the knob
+PLAIT_S = 0.15                                # where its twisted part lies, round from the middle of the face
 
 
 def lerp(a, b, f):
@@ -511,7 +520,7 @@ def round_end(t_end, reach, steps=7):
     return out
 
 
-def build_saya(mat_lacquer, mat_fitting, mat_void, mat_cord):
+def build_saya(mat_lacquer, mat_fitting, mat_void):
     shell = Part("saya", mat_lacquer)
     n = 96
     stops = [(lerp(S_T0 + 0.004, S_T1, i / n), 1.0) for i in range(n + 1)]
@@ -532,21 +541,89 @@ def build_saya(mat_lacquer, mat_fitting, mat_void, mat_cord):
     rings = tube(cap, stops, 44, grow=0.007)
     cap.fan(rings[-1], (1, 0, 0))
 
-    # the knob the cord is tied through, on the outward face
+    return [(shell, None), (mouth, 40), (void, None), (cap, 45)]
+
+
+class Skin:
+    """The scabbard's surface, unrolled. u runs along it (the site's x) and s
+    round it: the distance over the surface from the middle of the outward
+    face, growing towards the spine. `lap` is once round."""
+
+    def __init__(self, t, n=720):
+        a, b = saya_radii(t)
+        self.angles = [math.pi / 2 - TAU * i / n for i in range(n + 1)]
+        self.laps = [0.0]
+        for th0, th1 in zip(self.angles, self.angles[1:]):
+            self.laps.append(self.laps[-1] + math.hypot(a * (math.cos(th1) - math.cos(th0)),
+                                                        b * (math.sin(th1) - math.sin(th0))))
+        self.lap = self.laps[-1]
+
+    def angle(self, s):
+        s %= self.lap
+        i = min(len(self.laps) - 2, bisect.bisect_right(self.laps, s) - 1)
+        return lerp(self.angles[i], self.angles[i + 1],
+                    (s - self.laps[i]) / (self.laps[i + 1] - self.laps[i]))
+
+    def at(self, u, s, lift=0.0):
+        """The point `lift` above the surface, and the way out of it there."""
+        t = u / L
+        a, b = saya_radii(t)
+        th = self.angle(s)
+        c, sn = math.cos(th), math.sin(th)
+        _, _, (nx, ny) = frame(t)
+        out = Vector((nx * c / a, ny * c / a, sn / b)).normalized()
+        return Vector(on_curve(t, a * c, b * sn)) + out * lift, out
+
+
+def bell(x):
+    return (1 - x * x) ** 2 if abs(x) < 1 else 0.0
+
+
+def thin(samples, turn=math.radians(9), reach=0.045):
+    """Drops the samples a path can do without. One is kept wherever the path
+    has turned or twisted, has gone a while without one, or changes size."""
+    def ahead(i):
+        return (Vector(samples[i + 1][0]) - Vector(samples[i][0])).normalized()
+
+    out = [samples[0]]
+    way = ahead(0)
+    for i in range(1, len(samples) - 1):
+        s, last = samples[i], out[-1]
+        if (ahead(i).angle(way, 0.0) > turn
+                or Vector(s[1]).angle(Vector(last[1]), 0.0) > turn
+                or (Vector(s[0]) - Vector(last[0])).length > reach
+                or abs(s[2] - last[2]) > 0.04 * CORD_W or abs(s[3] - last[3]) > 0.06 * CORD_H):
+            out.append(s)
+            way = ahead(i)
+    out.append(samples[-1])
+    return out
+
+
+HOLE_LIFT = 0.011      # the cord rides this high through the knob
+
+
+def build_knob(mat_lacquer, mat_gold, mat_void):
+    """The knob the cord is tied through (kurigata), on the outward face,
+    and the two metal eyelets (shitodome) the cord goes in and out by."""
     knob = Part("kurigata", mat_lacquer)
-    tk = 0.128
-    (cx, cy), (tx, ty), (nx, ny) = frame(tk)
-    _, bk = saya_radii(tk)
+    (cx, cy), (tx, ty), (nx, ny) = frame(T_KNOB)
+    _, bk = saya_radii(T_KNOB)
+    sink = 0.014
+
+    def power(v, e):
+        return math.copysign(abs(v) ** e, v)
+
+    # a rounded block: near-upright sides, a low domed top
     verts, faces = [], []
-    nu, nv = 20, 12
+    nu, nv = 28, 24
     for i in range(nu + 1):
         ph = math.pi * i / nu                       # pole to pole, along the scabbard
+        r = math.sin(ph) ** 0.7
         for j in range(nv):
             th = TAU * j / nv
-            lx = 0.105 * math.cos(ph)
-            r = math.sin(ph) ** 0.75
-            ly = 0.062 * r * math.cos(th)
-            lz = bk - 0.012 + 0.058 * r * max(-0.3, math.sin(th))
+            lx = KNOB_L * math.cos(ph)
+            ly = KNOB_W * r * power(math.cos(th), 0.7)
+            lz = bk - sink + (KNOB_H + sink) * r * power(max(-0.2, math.sin(th)), 0.7)
             verts.append((cx + tx * lx + nx * ly, cy + ty * lx + ny * ly, lz))
     for i in range(nu):
         for j in range(nv):
@@ -560,37 +637,207 @@ def build_saya(mat_lacquer, mat_fitting, mat_void, mat_cord):
         faces = [tuple(reversed(f)) for f in faces]
     knob.raw(verts, faces)
 
-    # the cord: wound round the scabbard next to the knob, then a strap from
-    # the knob laid back across the turns
-    cord = Part("sageo", mat_cord)
-    cw, ch = 0.05, 0.013
-    turns, t_from = 5, 0.152
-    step_t = (cw * 1.04) / L
-    steps = turns * 40
-    samples = []
-    for i in range(steps + 1):
-        w = TAU * turns * i / steps
-        t = t_from + step_t * w / TAU
-        a, b = saya_radii(t)
-        th = math.pi / 2 + w
-        c2, s2 = math.cos(th), math.sin(th)
-        (_, _), (ftx, fty), (fnx, fny) = frame(t)
-        p = on_curve(t, (a + 0.001) * c2, (b + 0.001) * s2)
-        nrm = (fnx * c2 / a, fny * c2 / a, s2 / b)
-        samples.append((p, nrm, cw, ch, 0.0))
-    ribbon(cord, samples, 1 / cw)
-    samples = []
-    strap = 34
-    for i in range(strap + 1):
-        f = i / strap
-        t = lerp(tk - 0.004, t_from + step_t * (turns + 0.4), f)
-        a, b = saya_radii(t)
-        over = smooth((f - 0.12) / 0.12) * (1 - smooth((f - 0.9) / 0.1))
-        (px, py, _) = on_curve(t, lerp(0.0, 0.035, math.sin(f * math.pi)), 0)
-        z = b + 0.001 + ch * 1.5 * over + 0.05 * (1 - smooth(f / 0.14))
-        samples.append(((px, py, z), (0, 0, 1), cw * 0.92, ch, 0.0))
-    ribbon(cord, samples, 1 / cw)
-    return shell, mouth, void, cap, knob, cord
+    # the eyelets: an oval sleeve with a rolled lip standing a little proud
+    # of each side, and the dark of the hole inside it
+    eyelet = Part("shitodome", mat_gold)
+    hole = Part("shitodome_void", mat_void)
+    skin = Skin(T_KNOB)
+    uk = L * T_KNOB
+    along = Vector((tx, ty, 0.0))
+    m = 32
+    # the opening is a slot the flat cord just fits; the metal round it is
+    # `wall` thick. (how far out of the knob, how much of the wall is left)
+    slot_w, slot_h, wall = CORD_W / 2 + 0.003, CORD_H * 0.7 + 0.003, 0.0105
+    stops = [(off, slot_w + wall * k, slot_h + wall * k) for off, k in (
+        (-0.018, 1.0), (0.0, 1.0), (0.0035, 0.9), (0.0055, 0.62), (0.0055, 0.38),
+        (0.0035, 0.1), (0.0, 0.0), (-0.018, 0.0))]
+    for sd in (1, -1):
+        s = sd * (KNOB_W - 0.003)
+        centre, out = skin.at(uk, s, HOLE_LIFT + CORD_H * 0.3)
+        away = (skin.at(uk, s + sd * 0.004)[0] - skin.at(uk, s - sd * 0.004)[0]).normalized()
+
+        def oval(off, ru, rz):
+            return [tuple(centre + away * off + along * (ru * math.cos(TAU * j / m))
+                          + out * (rz * math.sin(TAU * j / m))) for j in range(m)]
+
+        rings = [oval(*stop) for stop in stops]
+        uvs = [[(i / len(stops), j / m) for j in range(m + 1)] for i in range(len(stops))]
+        eyelet.grid(rings, uvs, centres=[tuple(centre + away * off) for off, _, _ in stops])
+        hole.fan(oval(-0.006, slot_w + 0.001, slot_h + 0.001), tuple(away))
+    return [(knob, None), (eyelet, None), (hole, None)]
+
+
+def build_cord(mat):
+    """The cord (sageo): a flat braid, tied the way a sword is dressed for
+    display. It goes through the knob and once round the scabbard, and is
+    wound round it in a run of turns on each side of the knob. The rest of
+    it, doubled, lies twisted along the scabbard on top of those turns and
+    is held down by the outermost turn on each side: its fold stands out
+    beyond one of them as a loop, its two fringed ends fly free beyond the
+    other."""
+    part = Part("sageo", mat)
+    skin = Skin(T_KNOB)
+    uk = L * T_KNOB
+    lap = skin.lap
+
+    def lay(path):
+        ribbon(part, thin(path), 1 / CORD_W)
+
+    # once round, through the knob: it starts and ends inside it, and comes
+    # out of the eyelets a little above the lacquer before settling onto it
+    ring = []
+    for i in range(361):
+        s = lap * i / 360
+        lift = HOLE_LIFT * (1 - smooth((min(s, lap - s) - KNOB_W) / 0.05))
+        p, out = skin.at(uk, s, lift)
+        ring.append((p, out, CORD_W, CORD_H, 0.0))
+    lay(ring)
+
+    first = KNOB_L + 0.012 + CORD_W / 2             # the middle of the turn nearest the knob
+    last = first + CORD_STEP * (CORD_TURNS - 1)     # and of the one that holds the twist down
+    beyond = last + CORD_W / 2 + 0.012              # just clear of that one
+
+    # The twist: two strands, each a flat band that crosses over the top,
+    # folds round the edge and comes back underneath.
+    TW_W, TW_H = 0.066, 0.013       # a strand: width, and how far it stands off what it lies on
+    SWING, DEPTH = 0.046, 0.006     # how far a strand swings to each side, and above / below the middle
+    HALF_TURNS = 7
+    reach = (last - CORD_W / 2 - 0.005) * HALF_TURNS / (HALF_TURNS + 1)    # the twisted stretch, each way from the knob
+    half = reach / HALF_TURNS                                             # half of one crossing
+    SIDE = TW_W / 2 + 0.004         # where the strands lie once they are side by side
+    HOLD = CORD_H + TW_H * 0.85 + 0.006     # the holding turn rides this high over them
+
+    # The turns. They sit square to the scabbard: each moves over to its
+    # place next to the last underneath the twist, where it does not show.
+    # The outermost goes over the twist instead, and comes down onto itself.
+    for side in (1, -1):
+        s_from = PLAIT_S - 0.02
+        s_to = PLAIT_S + 0.13 + CORD_TURNS * lap
+        steps = math.ceil((s_to - s_from) / 0.004)
+        path = []
+        for i in range(steps + 1):
+            s = lerp(s_from, s_to, i / steps)
+            moved = sum(smooth((s - (PLAIT_S - 0.05 + k * lap)) / 0.1) for k in range(1, CORD_TURNS))
+            off = abs(s - CORD_TURNS * lap - PLAIT_S)
+            begun = smooth((s - s_from) / 0.03)
+            ended = 1 - smooth((s_to - s) / 0.035)
+            lift = HOLD * (1 - smooth((off - 0.072) / 0.05)) - 0.004 * ended
+            p, out = skin.at(uk + side * (first + CORD_STEP * moved), s, lift)
+            path.append((p, out, CORD_W * lerp(0.6, 1.0, begun),
+                         CORD_H * lerp(0.4, 1.0, begun) * lerp(1.0, 0.7, ended), 0.0))
+        lay(path)
+
+    def fold(turn):
+        """A band a `turn` of the way round the twist (pi / 2 = the middle
+        of the top): how far to the side it is, from -1 to 1, and which way
+        it faces. It is no screw thread: it runs straight and flat across
+        the top, rolls over at the edge, and runs back flat underneath."""
+        k = round((turn - math.pi / 2) / math.pi)
+        x = (turn - math.pi / 2 - k * math.pi) / (math.pi / 2)        # -1 .. 1 across this pass
+        run = abs(x) * 8 / 7 if abs(x) < 0.75 else 1 - 16 / 7 * (1 - abs(x)) ** 2
+        return (-math.copysign(run, x) * (-1) ** k,
+                math.pi / 2 + k * math.pi + math.copysign(abs(x) ** 5, x) * math.pi / 2)
+
+    def strand(j, u):
+        """Strand j of the twist where it passes u (measured from the knob):
+        its place round the scabbard, its lift, which way it faces, and how
+        far it has come out of the twist (0 in it, 1 side by side)."""
+        turn = math.pi / 2 + j * math.pi + HALF_TURNS * math.pi * (u + reach) / (2 * reach)
+        lo, hi = math.pi / 2 + j * math.pi, math.pi / 2 + (j + HALF_TURNS) * math.pi
+        facing = fold(min(hi, max(lo, turn)))[1]
+        out_of = smooth((abs(u) - reach) / half)
+        swing = SWING * fold(min(hi + math.pi / 2, max(lo - math.pi / 2, turn)))[0]
+        to_side = smooth((abs(u) - reach - half) / 0.03)
+        s = PLAIT_S + lerp(swing, (SIDE if j == 0 else -SIDE), to_side)
+        rest = TW_H if math.sin(facing) < 0 else 0.0
+        lift = CORD_H + lerp(TW_H + DEPTH * (1 + math.sin(facing)), rest, out_of)
+        return s, lift, facing, out_of
+
+    def on_skin(j, u):
+        s, lift, facing, out_of = strand(j, u)
+        p, out = skin.at(uk + u, s, lift)
+        spineward = (skin.at(uk + u, s + 0.004)[0] - skin.at(uk + u, s - 0.004)[0]).normalized()
+        return (p, spineward * math.cos(facing) + out * math.sin(facing),
+                TW_W, TW_H * lerp(1.0, 0.85, out_of), 0.0)
+
+    rnd = [0.37]
+
+    def chance():
+        rnd[0] = (rnd[0] * 9301.0 + 0.2113) % 1.0
+        return rnd[0]
+
+    def fringe(p, way, face, width):
+        """The frayed end of a band: a fan of loose threads."""
+        edge = way.cross(face).normalized()
+        count = 9
+        for k in range(count):
+            f = k / (count - 1) - 0.5
+            at = p + edge * (f * width * 0.9) - way * 0.008
+            fan = f * 0.7 + (chance() - 0.5) * 0.22
+            tilt = (chance() - 0.5) * 0.45
+            heading = (way * math.cos(fan) + edge * math.sin(fan)).normalized()
+            heading = (heading * math.cos(tilt) + face * math.sin(tilt)).normalized()
+            length = 0.075 + chance() * 0.035
+            curl = (chance() - 0.5) * 1.2
+            thread = []
+            for i in range(6):
+                g = i / 5
+                q = at + heading * (length * g) + face * (curl * (length * g) ** 2)
+                thread.append((q, face, lerp(0.014, 0.007, g), 0.006, 0.0))
+            ribbon(part, thread, 1 / CORD_W)
+
+    # Each strand, from under the turn that holds it at the end nearer the
+    # mouth, through the twist, out past the other holding turn and away
+    # from the scabbard as a loose end.
+    for j, (veer, rise, length, roll) in enumerate(((0.3, 0.2, 0.46, 0.22), (0.1, 0.3, 0.37, -0.18))):
+        steps = math.ceil((beyond + last) / 0.003)
+        path = [on_skin(j, lerp(-last, beyond, i / steps)) for i in range(steps + 1)]
+        p = Vector(path[-1][0])
+        s, _, facing, _ = strand(j, beyond)
+        _, up = skin.at(uk + beyond, s)
+        fwd = (skin.at(uk + beyond + 0.01, s)[0] - skin.at(uk + beyond - 0.01, s)[0]).normalized()
+        left = up.cross(fwd).normalized()
+        flip = 1 if math.sin(facing) > 0 else -1
+        n = 44
+        for i in range(1, n + 1):
+            d = length * i / n
+            yaw = veer * smooth(d / 0.16)
+            pitch = rise * smooth(d / 0.1) - 0.16 * smooth((d - 0.14) / 0.3)
+            flat = fwd * math.cos(yaw) + left * math.sin(yaw)
+            way = flat * math.cos(pitch) + up * math.sin(pitch)
+            square = up * math.cos(pitch) - flat * math.sin(pitch)
+            turn = roll * smooth(d / length)
+            face = (square * math.cos(turn) + way.cross(square) * math.sin(turn)) * flip
+            p = p + way * (length / n)
+            bound = 1 - 0.2 * smooth((d - (length - 0.045)) / 0.03)
+            path.append((tuple(p), face, TW_W * bound, TW_H, 0.0))
+        lay(path)
+        fringe(p, way, face, TW_W * 0.8)
+
+    # The loop: the fold of the doubled cord, standing out beyond the turn
+    # that holds it at the end nearer the mouth. Its upper leg is strand 0,
+    # its lower one strand 1 the other way up, which is how the twist begins.
+    LOOP_L, LOOP_W = 0.25, 0.034
+    base, up = skin.at(uk - beyond, PLAIT_S)
+    back = (skin.at(uk - beyond - 0.01, PLAIT_S)[0] - skin.at(uk - beyond + 0.01, PLAIT_S)[0]).normalized()
+    left = (skin.at(uk - beyond, PLAIT_S + 0.004)[0] - skin.at(uk - beyond, PLAIT_S - 0.004)[0]).normalized()
+    out_way = (back * math.cos(0.2) + left * math.sin(0.2)).normalized()
+    path = [on_skin(0, lerp(-last, -beyond, i / 12)) for i in range(13)]
+    n = 72
+    pts = []
+    for i in range(n + 1):
+        w = TAU * i / n
+        along = LOOP_L * (1 - math.cos(w)) / 2
+        across = LOOP_W * math.sin(w) * (1 - math.cos(w)) / 2
+        climb = math.tan(0.3) * along * smooth(along / 0.1)
+        height = lerp(CORD_H, CORD_H + TW_H, i / n)
+        pts.append(base + out_way * along + up * (height + climb + across) + left * (SIDE * math.cos(w / 2)))
+    for i in range(1, n):
+        tan = (pts[i + 1] - pts[i - 1]).normalized()
+        path.append((tuple(pts[i]), left.cross(tan), TW_W, TW_H, 0.0))
+    path += [on_skin(1, lerp(-beyond, -last, i / 12)) for i in range(13)]
+    lay(path)
+    return [(part, None)]
 
 
 # ---------------------------------------------------------- ambient occlusion
@@ -692,10 +939,10 @@ def build_scene():
         build_core(M["same"]).build(sword),
         build_wrap(M["ito"]).build(sword),
     ]
-    saya = [p.build(sheath, sharp=s) for p, s in zip(
-        build_saya(M["lacquer"], M["fitting"], M["void"], M["sageo"]),
-        (None, 40, None, 45, None, None),
-    )]
+    pieces = (build_saya(M["lacquer"], M["fitting"], M["void"])
+              + build_knob(M["lacquer"], M["gold"], M["void"])
+              + build_cord(M["sageo"]))
+    saya = [part.build(sheath, sharp=sharp) for part, sharp in pieces]
     bake_occlusion(katana)
     bake_occlusion(saya)
     return katana, saya
@@ -832,6 +1079,12 @@ def render_previews(folder):
         "guard": ((0.9, -2.2, 1.0), (-0.05, 0, 0.0), 1.5),
         "mouth": ((1.6, -4, 2.2), (0.9, 0, 0.05), 2.4),
         "tip": ((5.6, -5, 1.2), (5.6, 0, 0.35), 2.2),
+        # the cord, from the face it is tied on, from the spine, three
+        # quarters on and from behind (the scabbard is 0.75 lower here)
+        "cord": ((0.9, -4, 0.2), (0.9, 0, -0.7), 2.1),
+        "cord-spine": ((0.9, -1.2, 3.2), (0.9, 0, -0.7), 2.1),
+        "cord-angle": ((-1.3, -2.6, 0.9), (0.9, 0, -0.7), 2.2),
+        "cord-back": ((0.9, 4, 0.2), (0.9, 0, -0.7), 2.1),
     }
     for name, (eye, target, scale) in shots.items():
         cam_ob.location = eye

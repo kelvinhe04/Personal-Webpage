@@ -15,6 +15,7 @@
 //              carousel on small screens)
 //   deck       Certificates: a pile of cards, parted one by one
 //   trail      section rail: where you are, a dot to jump to each
+//   scrollbar  its thumb eases into the hover colour
 //   cursor     custom pointer with a trail; letters lean towards it
 //   moments    photos the pointer knocks about, picks up and throws
 //   sound      the katana's sounds, with a switch in the navbar
@@ -994,6 +995,12 @@
             if (ctx.state === "suspended") ctx.resume().catch(() => {});
             return ctx.state === "running" ? ctx : null;
         };
+        // Making the context takes the browser some 50 ms. That is spent on
+        // the first press of anything, rather than in the first frames of
+        // whatever the press sets moving (the theme cut stuttered as it began).
+        ["pointerdown", "keydown"].forEach((type) =>
+            window.addEventListener(type, open, { once: true, capture: true, passive: true }),
+        );
 
         // air: noise through a band that sweeps up and back down
         const air = (t, dur, f0, f1, f2, gain, q = 1.4) => {
@@ -1166,6 +1173,57 @@
                 stopSliding();
             }
         });
+    }
+
+    // ---- scrollbar: the thumb eases into its hover colour ------------------
+    // The colour is eased in motion.css, on <body>: a scrollbar part cannot
+    // run a transition. All this does is say when the pointer is on the
+    // thumb. While the thumb is dragged the browser keeps the pointer to
+    // itself: no event arrives, and the colour stays as it was.
+    function initScrollbar() {
+        if (!fine || !window.CSS || !CSS.registerProperty) return;
+        let px = -1;
+        let py = -1;
+        let over = false;
+        let eased = false;
+
+        const check = () => {
+            const edge = root.clientWidth;
+            let hit = false;
+            if (px >= edge && px < window.innerWidth) {
+                // proof that moves over the bar reach the page at all
+                if (!eased) {
+                    eased = true;
+                    root.classList.add("thumb-eased");
+                }
+                const view = window.innerHeight;
+                const total = root.scrollHeight;
+                if (total > view) {
+                    const len = (view * view) / total;
+                    const top = (window.scrollY / (total - view)) * (view - len);
+                    hit = py >= top && py <= top + len;
+                }
+            }
+            if (hit === over) return;
+            over = hit;
+            root.classList.toggle("thumb-over", hit);
+        };
+
+        window.addEventListener(
+            "mousemove",
+            (e) => {
+                px = e.clientX;
+                py = e.clientY;
+                check();
+            },
+            { passive: true },
+        );
+        document.addEventListener("mouseleave", () => {
+            px = -1;
+            check();
+        });
+        // the thumb can slide out from under a pointer that is standing still
+        window.addEventListener("scroll", check, { passive: true });
     }
 
     // ---- cursor: a point, a ring that follows, and a cut of light --------
@@ -1393,22 +1451,27 @@
 
     // ---- theme: the switch is a cut ---------------------------------------
     // script.js hands the actual change over; here it happens inside a view
-    // transition. The sword comes down the diagonal of the screen (blade.js,
-    // which draws it above the page for as long as this lasts) and the new
-    // theme opens outwards from the line it leaves - first where the blade
-    // went in, then all the way along.
+    // transition. The sword leaves first, on the live page: it is out of
+    // sight by the time the page stops to take its picture of itself, so
+    // nothing is seen to freeze. Then it comes down the diagonal of the
+    // screen (blade.js, which is drawn above the page for as long as this
+    // lasts) and the new theme opens outwards from the line it leaves - first
+    // where the blade went in, then all the way along.
     // ("?cut=8" plays it eight times slower, to look at it frame by frame.)
     const slowCut = Number((/[?&]cut=([\d.]+)/.exec(window.location.search) || [])[1]) || 1;
-    const CUT = { wind: 250 * slowCut, strike: 190 * slowCut, exit: 230 * slowCut, open: 560 * slowCut };
-    CUT.total = CUT.wind + CUT.strike + CUT.open;
-    // When to start the sound of a cut (seconds from now) so that it is
-    // heard as the blade comes down: the recording peaks 0.14 s in.
-    const SLASH_AT = () => Math.max(0, (CUT.wind + CUT.strike * 0.45) / 1000 - 0.14);
+    // hold: from the page being ready to the stroke; strike and enter: how
+    // long the stroke takes, and the part of it spent before the blade is
+    // over the screen (the sword says, when there is one); open: the new
+    // theme spreading from the line
+    const CUT = { hold: 0, strike: 190 * slowCut, enter: 0, open: 520 * slowCut };
 
     function initThemeCut() {
         let busy = false;
-        const signal = (phase) =>
-            window.dispatchEvent(new CustomEvent("blade:cut", { detail: { phase, timing: CUT } }));
+        const signal = (phase, more) => {
+            const detail = { phase, slow: slowCut, ...more };
+            window.dispatchEvent(new CustomEvent("blade:cut", { detail }));
+            return detail;
+        };
 
         window.portfolioThemeCut = (apply) => {
             if (busy) return;
@@ -1418,62 +1481,81 @@
             }
             busy = true;
             const sword = root.classList.contains("has-blade");
-            root.classList.add("theme-cut");
-            root.classList.toggle("theme-cut-blade", sword);
-            // told before the page changes, so it keeps its finish until it
-            // has left the screen
-            signal("arm");
-            let vt;
-            try {
-                vt = document.startViewTransition(apply);
-            } catch (err) {
-                apply();
+            const plan = sword ? signal("wind") : {};
+            const timing = { ...CUT };
+            if (plan.strike) {
+                timing.strike = plan.strike;
+                timing.enter = plan.enter;
+            } else {
+                // no sword: a moment of the old theme, then the line opens
+                timing.hold = 250 * slowCut;
             }
-            const done = () => {
-                root.classList.remove("theme-cut", "theme-cut-blade");
-                busy = false;
+            timing.total = timing.hold + timing.strike + timing.open;
+            // the blade is over the screen from here on
+            const on = timing.hold + timing.strike * timing.enter;
+            const across = timing.strike * (1 - timing.enter);
+
+            const begin = () => {
+                root.classList.add("theme-cut");
+                root.classList.toggle("theme-cut-blade", sword);
+                // told before the page changes, so it keeps its finish until
+                // it has left the screen
+                signal("arm");
+                let vt;
+                try {
+                    vt = document.startViewTransition(apply);
+                } catch (err) {
+                    apply();
+                }
+                const done = () => {
+                    root.classList.remove("theme-cut", "theme-cut-blade");
+                    busy = false;
+                };
+                if (!vt) {
+                    signal("cancel");
+                    done();
+                    return;
+                }
+                vt.ready
+                    .then(() => {
+                        // A band along the top-right / bottom-left diagonal,
+                        // as a four-cornered shape: zero wide at first,
+                        // opening at the end the blade enters by, then to
+                        // the whole screen.
+                        const w = window.innerWidth;
+                        const h = window.innerHeight;
+                        const len = Math.hypot(w, h);
+                        const dx = -w / len;
+                        const dy = h / len;
+                        const full = ((w * h) / len) * 1.08;
+                        const band = (a, b) => {
+                            const pt = (along, off) =>
+                                `${(w / 2 + dx * along - dy * off).toFixed(1)}px ${(h / 2 + dy * along + dx * off).toFixed(1)}px`;
+                            return `polygon(${pt(-len, a)}, ${pt(len, b)}, ${pt(len, -b)}, ${pt(-len, -a)})`;
+                        };
+                        root.animate(
+                            [
+                                { clipPath: band(0, 0), offset: 0 },
+                                { clipPath: band(0, 0), offset: (on + across * 0.35) / timing.total, easing: "ease-out" },
+                                {
+                                    clipPath: band(full * 0.16, 0),
+                                    offset: (on + across) / timing.total,
+                                    easing: "cubic-bezier(0.3, 0.5, 0.15, 1)",
+                                },
+                                { clipPath: band(full, full), offset: 1 },
+                            ],
+                            { duration: timing.total, pseudoElement: "::view-transition-new(root)", fill: "both" },
+                        );
+                        signal(sword ? "go" : "cancel", { timing });
+                        // heard as the blade comes down: the recording peaks
+                        // 0.14 s in
+                        playSfx("slash", 1, Math.max(0, (on + across * 0.45) / 1000 - 0.14));
+                    })
+                    .catch(() => signal("cancel"));
+                vt.finished.then(done, done);
             };
-            if (!vt) {
-                signal("cancel");
-                done();
-                return;
-            }
-            vt.ready
-                .then(() => {
-                    // A band along the top-right / bottom-left diagonal, as a
-                    // four-cornered shape: zero wide at first, opening at the
-                    // end the blade enters by, then to the whole screen.
-                    const w = window.innerWidth;
-                    const h = window.innerHeight;
-                    const len = Math.hypot(w, h);
-                    const dx = -w / len;
-                    const dy = h / len;
-                    const full = ((w * h) / len) * 1.08;
-                    const band = (a, b) => {
-                        const pt = (along, off) =>
-                            `${(w / 2 + dx * along - dy * off).toFixed(1)}px ${(h / 2 + dy * along + dx * off).toFixed(1)}px`;
-                        return `polygon(${pt(-len, a)}, ${pt(len, b)}, ${pt(len, -b)}, ${pt(-len, -a)})`;
-                    };
-                    const t0 = CUT.wind + CUT.strike * 0.35;
-                    const t1 = CUT.wind + CUT.strike;
-                    root.animate(
-                        [
-                            { clipPath: band(0, 0), offset: 0 },
-                            { clipPath: band(0, 0), offset: t0 / CUT.total, easing: "ease-out" },
-                            {
-                                clipPath: band(full * 0.16, 0),
-                                offset: t1 / CUT.total,
-                                easing: "cubic-bezier(0.3, 0.5, 0.15, 1)",
-                            },
-                            { clipPath: band(full, full), offset: 1 },
-                        ],
-                        { duration: CUT.total, pseudoElement: "::view-transition-new(root)", fill: "both" },
-                    );
-                    signal(sword ? "go" : "cancel");
-                    playSfx("slash", 1, SLASH_AT());
-                })
-                .catch(() => signal("cancel"));
-            vt.finished.then(done, done);
+            if (plan.lead > 0) setTimeout(begin, plan.lead);
+            else begin();
         };
     }
 
@@ -1852,9 +1934,10 @@
 
     // ---- deck: Certificates, cut through one by one ------------------------
     // Wide screens: the section is pinned and the cards lie in a pile, one
-    // showing at a time. Each step of the scroll is a cut: the card on top
-    // parts along the diagonal the sword lies on, its two halves slide away,
-    // and the next one is there underneath. Scrolling back puts it together.
+    // showing at a time. Each step of the scroll is a cut: the sword comes
+    // down the diagonal of the screen (blade.js), the card on top parts along
+    // that line as the edge reaches it, its two halves slide away, and the
+    // next one is there underneath. Scrolling back puts it together.
     // Small screens keep the swipe carousel (initPinned with pin: false,
     // which also made the counter this uses).
     function initDeck() {
@@ -1873,7 +1956,10 @@
             const slash = make("i", "cert-slash");
             slash.setAttribute("aria-hidden", "true");
             el.append(slash);
-            return { el, slash, pieces: null, cutting: false };
+            // live: in its cut. wait: when the edge will be on it (0: nothing
+            // to wait for). hit: when it began to part. struck: this cut is
+            // the sword's, and is seen through
+            return { el, slash, pieces: null, cutting: false, live: false, wait: 0, hit: 0, struck: false };
         });
         const pin = { sec, cardSel: ".certificate-card", on: false, top: 0, travel: 0, gutter: 0 };
         pins.push(pin);
@@ -1881,6 +1967,8 @@
         // is a whole card to read
         const CUT0 = 0.28;
         const CUT1 = 0.78;
+        // how long a card takes to come apart once the edge is through it
+        const PART = 240 * slowCut;
         let step = 1;
         let shown = -1;
         let lastY = sy;
@@ -1953,6 +2041,32 @@
             });
         };
 
+        // The sword does the cutting: asked for a stroke, it says how long
+        // until its edge is on the card. (Nothing to wait for without it.)
+        const stroke = (it) => {
+            if (!root.classList.contains("has-blade")) return 0;
+            const a = it.el.getBoundingClientRect();
+            const b = ui.getBoundingClientRect();
+            // what it has to be raised clear of: the pile, and the counter
+            // under it
+            const clear = [a.left, a.top, a.right, b.bottom];
+            const detail = { phase: "deck", slow: slowCut, clear, at: null };
+            window.dispatchEvent(new CustomEvent("blade:cut", { detail }));
+            return detail.at || 0;
+        };
+        // the light along the line, as the edge goes through
+        const flash = (it) =>
+            it.slash.animate(
+                [
+                    { opacity: 0, scale: "0.05 1" },
+                    { opacity: 1, scale: "1 1", offset: 0.3 },
+                    { opacity: 0, scale: "1.05 1" },
+                ],
+                { duration: 460, easing: "ease-out" },
+            );
+        // how far apart a card that was hit has come (of what the scroll asks)
+        const parted = (it, now) => (it.hit ? 1 - Math.pow(1 - clamp((now - it.hit) / PART, 0, 1), 3) : 1);
+
         const setHint = () => {
             if (pin.on) hint.textContent = lang() === "es" ? "sigue bajando ↓" : "keep scrolling ↓";
         };
@@ -1961,6 +2075,8 @@
         const reset = () => {
             items.forEach((it) => {
                 forget(it);
+                it.live = it.struck = false;
+                it.wait = it.hit = 0;
                 for (const p of ["transform", "opacity", "visibility", "pointerEvents", "zIndex"]) it.el.style[p] = "";
                 it.el.__fx = {};
             });
@@ -2009,29 +2125,80 @@
             // the card being cut (the last one never is)
             const k = Math.min(n - 2, Math.floor(P));
             const c = smooth(clamp((P - k - CUT0) / (CUT1 - CUT0), 0, 1));
+            // how far apart the card on top is shown (it waits for the sword)
+            let open = 0;
+            // still waiting for the sword, or a card still coming apart
+            let busy = false;
+            // the card that is showing, if it is not the one the scroll is on
+            let held = -1;
             items.forEach((it, j) => {
                 const d = j - k - c; // 0: on top of the pile
                 if (j < k || d > 3.4 || (j === k && c >= 1)) {
+                    // The scroll has left this card behind - and the scroll
+                    // is quicker than the sword. A card it is coming for
+                    // stays whole, on top, until the edge is there; then it
+                    // is given the time to come apart. (Unless the page has
+                    // gone on by more than one card: then it parts now.)
+                    if (it.wait && (now >= it.wait || j < k - 1)) {
+                        it.wait = 0;
+                        it.hit = now;
+                        flash(it);
+                    }
+                    if (it.wait || (it.hit && now - it.hit < PART)) {
+                        busy = true;
+                        if (it.wait) {
+                            if (held < 0) held = j;
+                            dropPieces(it);
+                            put(it.el, "visibility", "");
+                        } else {
+                            it.el.__fx.visibility = "hidden";
+                            cutTo(it, parted(it, now));
+                            if (j === k) open = parted(it, now);
+                        }
+                        put(it.el, "transform", "none");
+                        put(it.el, "opacity", "1");
+                        put(it.el, "pointerEvents", "none");
+                        return;
+                    }
+                    if (j === k) open = 1;
+                    it.live = it.struck = false;
+                    it.hit = 0;
                     dropPieces(it);
                     put(it.el, "visibility", "hidden");
                     return;
                 }
                 if (j === k) {
                     if (c > 0) {
-                        // the blade has just gone in: light along the cut
-                        if (!it.cutting && speed > 0) {
-                            it.slash.animate(
-                                [
-                                    { opacity: 0, scale: "0.05 1" },
-                                    { opacity: 1, scale: "1 1", offset: 0.3 },
-                                    { opacity: 0, scale: "1.05 1" },
-                                ],
-                                { duration: 460, easing: "ease-out" },
-                            );
-                            if (speed < 5000) playSfx("slash", 0.4);
+                        if (!it.live) {
+                            // into its cut. Going down, that is a stroke of
+                            // the sword: the card stays whole until the edge
+                            // is on it. Coming back up, the halves just meet.
+                            it.live = true;
+                            it.wait = it.hit = 0;
+                            it.struck = speed > 0;
+                            if (it.struck) {
+                                const wait = stroke(it);
+                                if (wait > 0) it.wait = now + wait;
+                                else flash(it);
+                                // (the recording peaks 0.14 s in)
+                                if (speed < 5000) playSfx("slash", 0.4, Math.max(0, wait / 1000 - 0.14));
+                            }
                         }
+                        // the edge is there
+                        if (it.wait && now >= it.wait) {
+                            it.wait = 0;
+                            it.hit = now;
+                            flash(it);
+                        }
+                        if (!it.wait) open = c * parted(it, now);
+                        if (it.wait || (it.hit && now - it.hit < PART)) busy = true;
+                    } else {
+                        it.live = it.struck = false;
+                        it.wait = it.hit = 0;
+                    }
+                    if (open > 0) {
                         it.el.__fx.visibility = "hidden";
-                        cutTo(it, c);
+                        cutTo(it, open);
                     } else {
                         dropPieces(it);
                         put(it.el, "visibility", "");
@@ -2047,7 +2214,8 @@
                 put(it.el, "opacity", clamp(3.4 - d, 0, 1).toFixed(3));
                 put(it.el, "pointerEvents", d > 0.5 ? "none" : "");
             });
-            const at = k + c;
+            // the counter follows what is showing, not where the scroll is
+            const at = held >= 0 ? held : k + open;
             const i = Math.round(at);
             if (i !== shown) {
                 shown = i;
@@ -2055,11 +2223,12 @@
             }
             put(bar, "transform", `scaleX(${(at / (n - 1)).toFixed(4)})`);
             ui.classList.toggle("is-moving", P > 0.06);
-            return false;
+            return busy;
         });
 
         // Never left on a half-cut card: when the scroll comes to rest in
-        // the middle of a cut it finishes it, or takes it back.
+        // the middle of a cut it finishes it, or takes it back. (A cut the
+        // sword has struck is always finished.)
         let idle = 0;
         const settle = () => {
             if (!pin.on) return;
@@ -2069,7 +2238,8 @@
             const k = Math.floor(P);
             const f = P - k;
             if (f <= CUT0 || f >= CUT1) return;
-            const to = pin.top + (k + (f < (CUT0 + CUT1) / 2 ? 0.16 : 0.9)) * step;
+            const on = items[k].struck || f >= (CUT0 + CUT1) / 2;
+            const to = pin.top + (k + (on ? 0.9 : 0.16)) * step;
             if (lenis) lenis.scrollTo(to, { duration: 0.55, easing: (t) => 1 - Math.pow(1 - t, 3) });
             else window.scrollTo({ top: to, behavior: "smooth" });
         };
@@ -2194,6 +2364,7 @@
         initFooter();
         initPointer();
         initSound();
+        initScrollbar();
         initCursor();
         initThemeCut();
         initCV();

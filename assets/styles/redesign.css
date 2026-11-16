@@ -903,14 +903,6 @@ body .honor-card:hover {
     box-shadow: none;
 }
 
-::-webkit-scrollbar-thumb {
-    background: var(--glass-border);
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--accent-color);
-}
-
 /* ---------- Responsive ---------- */
 @media (max-width: 900px) {
     .about-content {
