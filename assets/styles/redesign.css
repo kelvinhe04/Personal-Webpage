@@ -50,12 +50,12 @@ body.light-mode {
     --text-secondary: #38465a;
     --text-muted: #5b687c;
     --border-color: rgba(10, 18, 32, 0.13);
-    --glass-bg: #ffffff;
+    --glass-bg: rgba(255, 255, 255, 0.045);
     --glass-border: rgba(10, 18, 32, 0.12);
     --shadow: none;
     --card-shadow: none;
     --shadow-hover: none;
-    --scrolled: rgba(244, 246, 249, 0.86);
+    --scrolled: rgba(244, 246, 249, 0.82);
     --on-accent: #ffffff;
 }
 

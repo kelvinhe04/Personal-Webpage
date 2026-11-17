@@ -1957,7 +1957,7 @@ textarea.form-input {
 
     /* Fondo del menú hamburger en modo claro */
     body.light-mode .nav-menu {
-        background: rgba(240, 240, 240, 0.9);
+        background: rgba(244, 246, 249, 0.95);
     }
 
     .nav-menu.active {

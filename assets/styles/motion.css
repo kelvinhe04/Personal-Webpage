@@ -39,14 +39,25 @@
 }
 
 .lite body.light-mode {
-    --glass-solid: rgba(255, 255, 255, 0.88);
+    --glass-solid: rgba(244, 246, 249, 0.84);
 }
 
+/* The same glass by daylight: every layer lets exactly as much through as
+   its dark counterpart above (the same alphas, in white instead of ink), so
+   no panel, button or chip is more opaque in one theme than in the other.
+   The light caught along the top edge and round the rim is what makes it
+   read as glass on a pale page. */
 body.light-mode {
-    --glass-fill: linear-gradient(140deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.42));
-    --glass-solid: rgba(255, 255, 255, 0.28);
-    --glass-dense: rgba(248, 250, 252, 0.94);
-    --glass-rim: inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    --glass-fill: linear-gradient(
+        140deg,
+        rgba(255, 255, 255, 0.12),
+        rgba(255, 255, 255, 0.035) 55%,
+        rgba(0, 119, 182, 0.05)
+    );
+    --glass-solid: rgba(244, 246, 249, 0.5);
+    --glass-dense: rgba(248, 250, 252, 0.9);
+    --glass-rim: inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(255, 255, 255, 0.45),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.35);
     --glass-drop: 0 30px 60px -36px rgba(10, 18, 32, 0.38);
     --glass-line: rgba(10, 18, 32, 0.11);
     --sheen: rgba(0, 119, 182, 0.09);
