@@ -670,11 +670,10 @@ def build_knob(mat_lacquer, mat_gold, mat_void):
 def build_cord(mat):
     """The cord (sageo): a flat braid, tied the way a sword is dressed for
     display. It goes through the knob and once round the scabbard, and is
-    wound round it in a run of turns on each side of the knob. The rest of
-    it, doubled, lies twisted along the scabbard on top of those turns and
-    is held down by the outermost turn on each side: its fold stands out
-    beyond one of them as a loop, its two fringed ends fly free beyond the
-    other."""
+    wound round it in a run of turns on each side of the knob. Two lengths
+    of it lie twisted along the scabbard on top of those turns and are held
+    down by the outermost turn on each side: beyond each of the two, their
+    fringed ends fly free, a pair to each side of the knot."""
     part = Part("sageo", mat)
     skin = Skin(T_KNOB)
     uk = L * T_KNOB
@@ -786,24 +785,27 @@ def build_cord(mat):
                 thread.append((q, face, lerp(0.014, 0.007, g), 0.006, 0.0))
             ribbon(part, thread, 1 / CORD_W)
 
-    # Each strand, from under the turn that holds it at the end nearer the
-    # mouth, through the twist, out past the other holding turn and away
-    # from the scabbard as a loose end.
-    for j, (veer, rise, length, roll) in enumerate(((0.3, 0.2, 0.46, 0.22), (0.1, 0.3, 0.37, -0.18))):
-        steps = math.ceil((beyond + last) / 0.003)
-        path = [on_skin(j, lerp(-last, beyond, i / steps)) for i in range(steps + 1)]
-        p = Vector(path[-1][0])
-        s, _, facing, _ = strand(j, beyond)
-        _, up = skin.at(uk + beyond, s)
-        fwd = (skin.at(uk + beyond + 0.01, s)[0] - skin.at(uk + beyond - 0.01, s)[0]).normalized()
-        left = up.cross(fwd).normalized()
+    def loose(j, end, veer, rise, length, roll):
+        """The free end of strand j, beyond the holding turn at `end` (1:
+        the far one, -1: the one nearer the mouth): its path from that turn
+        outwards, and where its fringe goes (the tip, the way it is heading
+        and the way it faces there). It leaves along the scabbard, lifts off
+        it by `rise` and veers towards the spine by `veer`."""
+        u0 = end * beyond
+        p = Vector(on_skin(j, u0)[0])
+        s, _, facing, _ = strand(j, u0)
+        _, up = skin.at(uk + u0, s)
+        along = (skin.at(uk + u0 + 0.01, s)[0] - skin.at(uk + u0 - 0.01, s)[0]).normalized()
+        spine = up.cross(along).normalized()
+        fwd = along * end
         flip = 1 if math.sin(facing) > 0 else -1
+        path = []
         n = 44
         for i in range(1, n + 1):
             d = length * i / n
             yaw = veer * smooth(d / 0.16)
             pitch = rise * smooth(d / 0.1) - 0.16 * smooth((d - 0.14) / 0.3)
-            flat = fwd * math.cos(yaw) + left * math.sin(yaw)
+            flat = fwd * math.cos(yaw) + spine * math.sin(yaw)
             way = flat * math.cos(pitch) + up * math.sin(pitch)
             square = up * math.cos(pitch) - flat * math.sin(pitch)
             turn = roll * smooth(d / length)
@@ -811,32 +813,22 @@ def build_cord(mat):
             p = p + way * (length / n)
             bound = 1 - 0.2 * smooth((d - (length - 0.045)) / 0.03)
             path.append((tuple(p), face, TW_W * bound, TW_H, 0.0))
-        lay(path)
-        fringe(p, way, face, TW_W * 0.8)
+        return path, (p, way, face)
 
-    # The loop: the fold of the doubled cord, standing out beyond the turn
-    # that holds it at the end nearer the mouth. Its upper leg is strand 0,
-    # its lower one strand 1 the other way up, which is how the twist begins.
-    LOOP_L, LOOP_W = 0.25, 0.034
-    base, up = skin.at(uk - beyond, PLAIT_S)
-    back = (skin.at(uk - beyond - 0.01, PLAIT_S)[0] - skin.at(uk - beyond + 0.01, PLAIT_S)[0]).normalized()
-    left = (skin.at(uk - beyond, PLAIT_S + 0.004)[0] - skin.at(uk - beyond, PLAIT_S - 0.004)[0]).normalized()
-    out_way = (back * math.cos(0.2) + left * math.sin(0.2)).normalized()
-    path = [on_skin(0, lerp(-last, -beyond, i / 12)) for i in range(13)]
-    n = 72
-    pts = []
-    for i in range(n + 1):
-        w = TAU * i / n
-        along = LOOP_L * (1 - math.cos(w)) / 2
-        across = LOOP_W * math.sin(w) * (1 - math.cos(w)) / 2
-        climb = math.tan(0.3) * along * smooth(along / 0.1)
-        height = lerp(CORD_H, CORD_H + TW_H, i / n)
-        pts.append(base + out_way * along + up * (height + climb + across) + left * (SIDE * math.cos(w / 2)))
-    for i in range(1, n):
-        tan = (pts[i + 1] - pts[i - 1]).normalized()
-        path.append((tuple(pts[i]), left.cross(tan), TW_W, TW_H, 0.0))
-    path += [on_skin(1, lerp(-beyond, -last, i / 12)) for i in range(13)]
-    lay(path)
+    # Each strand: a loose end, in under the turn that holds it at the end
+    # nearer the mouth, through the twist, out past the other holding turn
+    # and away from the scabbard as a loose end again. The pair nearer the
+    # mouth is the shorter one: it stops well short of the guard.
+    ENDS = (((0.3, 0.2, 0.46, 0.22), (0.34, 0.4, 0.235, -0.2)),
+            ((0.1, 0.3, 0.37, -0.18), (0.12, 0.3, 0.165, 0.18)))
+    for j, (far, near) in enumerate(ENDS):
+        steps = math.ceil(2 * beyond / 0.003)
+        body = [on_skin(j, lerp(-beyond, beyond, i / steps)) for i in range(steps + 1)]
+        head, head_tip = loose(j, -1, *near)
+        tail, tail_tip = loose(j, 1, *far)
+        lay(head[::-1] + body + tail)
+        fringe(*head_tip, TW_W * 0.8)
+        fringe(*tail_tip, TW_W * 0.8)
     return [(part, None)]
 
 

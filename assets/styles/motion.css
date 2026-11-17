@@ -99,6 +99,16 @@ html.lenis.lenis-stopped {
     will-change: translate, scale, opacity;
 }
 
+/* It drifts down and grows as the page leaves it (motion.js), and is gone
+   before it reaches the next section. No box may cut it off on the way: one
+   that did (the grid it sits in, on small screens) showed as a hard edge
+   sliding up through the buttons. */
+.fx .hero,
+.fx .hero-container,
+.fx .hero-content {
+    overflow: visible;
+}
+
 .arrow-link {
     background: var(--glass-fill), var(--glass-solid);
     border-color: rgba(var(--accent-rgb), 0.5);
@@ -273,69 +283,71 @@ body .tech-category .tech-item {
     color: var(--accent-secondary);
 }
 
-/* ---------- Navbar: a floating glass capsule on desktop ---------- */
+/* ---------- Navbar: a floating glass capsule ---------- */
 /* --nav-p runs 0 -> 1 over the first stretch of scroll (motion.js writes it
    on .navbar every frame). The bar narrows and the glass fades in with it,
-   so there is no switch between two states to animate. */
+   so there is no switch between two states to animate. The same capsule on
+   every screen: on small ones it holds the logo, the three round buttons
+   and the menu button, and the menu opens underneath it. */
+.navbar,
+.navbar.scrolled {
+    padding-top: 12px;
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border-bottom-color: transparent;
+    pointer-events: none;
+    transition: none;
+}
+
+/* without the script the class set by script.js is the whole story */
+.navbar.scrolled {
+    --nav-p: 1;
+}
+
+.nav-container {
+    isolation: isolate;
+    width: calc(100% - 2.5rem);
+    max-width: calc(1120px - 100px * var(--nav-p, 0));
+    height: 56px;
+    padding: 0 0.65rem 0 1.5rem;
+    border-radius: 999px;
+    pointer-events: auto;
+}
+
+.nav-container::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border: 1px solid var(--glass-line);
+    border-radius: inherit;
+    background: var(--glass-fill), var(--glass-solid);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    box-shadow: var(--glass-rim), var(--glass-drop);
+    opacity: var(--nav-p, 0);
+}
+
+html:not(.fx) .nav-container {
+    transition: max-width 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+html:not(.fx) .nav-container::before {
+    transition: opacity 0.35s ease;
+}
+
+.languageToggle,
+.themeToggle {
+    border-radius: 999px;
+}
+
 @media (min-width: 1025px) {
-    .navbar,
-    .navbar.scrolled {
-        padding-top: 12px;
-        background: transparent;
-        -webkit-backdrop-filter: none;
-        backdrop-filter: none;
-        border-bottom-color: transparent;
-        pointer-events: none;
-        transition: none;
-    }
-
-    /* without the script the class set by script.js is the whole story */
-    .navbar.scrolled {
-        --nav-p: 1;
-    }
-
-    .nav-container {
-        isolation: isolate;
-        width: calc(100% - 2.5rem);
-        max-width: calc(1120px - 100px * var(--nav-p, 0));
-        height: 56px;
-        padding: 0 0.65rem 0 1.5rem;
-        border-radius: 999px;
-        pointer-events: auto;
-    }
-
-    .nav-container::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        z-index: -1;
-        border: 1px solid var(--glass-line);
-        border-radius: inherit;
-        background: var(--glass-fill), var(--glass-solid);
-        -webkit-backdrop-filter: var(--glass-blur);
-        backdrop-filter: var(--glass-blur);
-        box-shadow: var(--glass-rim), var(--glass-drop);
-        opacity: var(--nav-p, 0);
-    }
-
-    html:not(.fx) .nav-container {
-        transition: max-width 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
-
-    html:not(.fx) .nav-container::before {
-        transition: opacity 0.35s ease;
-    }
-
     /* three round buttons live on the right now: the centred menu leans
        left a little so "Contact" never slides under them */
     .nav-menu {
         left: calc(50% - 1.6rem);
         gap: clamp(1.1rem, 2vw, 2rem);
-    }
-
-    .languageToggle,
-    .themeToggle {
-        border-radius: 999px;
     }
 
     .themeToggle {
@@ -346,6 +358,39 @@ body .tech-category .tech-item {
 
     .nav-burger-mode-toggle-container {
         gap: 10px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .navbar,
+    .navbar.scrolled {
+        padding-top: 10px;
+    }
+
+    /* edge to edge at the top of the page, drawn in as the glass appears */
+    .nav-container {
+        width: calc(100% - 0.4rem - 1rem * var(--nav-p, 0));
+        max-width: none;
+        height: 54px;
+        padding: 0 0.6rem 0 1.1rem;
+    }
+
+    .themeToggle,
+    .languageToggle {
+        width: 38px;
+        height: 38px;
+        padding: 0;
+    }
+
+    /* The menu is a sheet of its own under the capsule (and under what the
+       capsule holds: the button that closes it stays on top). */
+    .nav-menu {
+        top: 0;
+        z-index: -1;
+        height: 100vh;
+        height: 100dvh;
+        padding: 5rem 0 1.5rem;
+        border-top: 0;
     }
 }
 
@@ -962,6 +1007,151 @@ cut-piece {
         margin: 0.4rem 0 0;
         /* clear of the fixed "back to top" button */
         padding-right: 4.2rem;
+    }
+
+    /* Pinned all the same when the window is tall enough for the frame
+       (motion.js): the vertical scroll moves the projects sideways and deals
+       the certificates off their pile, as on a wide screen. The frame's
+       content sits at the top, so the room that is left is one strip at
+       the bottom - the sword lies in it under the projects (blade.js). */
+    .hscroll,
+    #certificates.deck {
+        --hs-card: min(78vw, 330px);
+        --hs-gutter: var(--page-pad);
+    }
+
+    .hscroll > .container,
+    #certificates.deck > .container {
+        justify-content: flex-start;
+        /* the height that stays put while a phone's address bar comes and goes */
+        height: 100vh;
+        height: 100svh;
+        padding-top: 72px;
+        padding-bottom: 10px;
+    }
+
+    .hscroll .section-title,
+    #certificates.deck .section-title {
+        margin-bottom: 0.8rem;
+        padding-top: 1.5rem;
+        font-size: 1.85rem;
+    }
+
+    .hscroll .projects-grid,
+    #certificates.deck .certificates-grid {
+        overflow: visible;
+        scroll-snap-type: none;
+    }
+
+    .hscroll .projects-grid {
+        gap: 1rem;
+        padding: 0 var(--page-pad);
+    }
+
+    .hscroll .hs-ui,
+    #certificates.deck .hs-ui {
+        justify-content: flex-start;
+        margin: 0.7rem var(--page-pad) 0;
+        padding-right: 0;
+    }
+
+    /* the pile's counter keeps to the right: the sword's handle shows
+       under the left of the pile (blade.js) */
+    #certificates.deck .hs-ui {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 0.25rem 0.9rem;
+        margin-inline: 0;
+    }
+
+    #certificates.deck .hs-bar {
+        flex: 0 0 6.5rem;
+    }
+
+    #certificates.deck .hs-hint {
+        flex-basis: 100%;
+        text-align: right;
+    }
+
+    .hscroll .hs-hint,
+    #certificates.deck .hs-hint {
+        white-space: nowrap;
+    }
+
+    #projects.hscroll .project-content {
+        padding: 0.95rem 1.05rem 1.05rem;
+    }
+
+    #projects.hscroll .project-title {
+        margin-bottom: 0.4rem;
+        font-size: 1.15rem;
+    }
+
+    #projects.hscroll .project-description {
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        margin-bottom: 0.7rem;
+        font-size: 0.9rem;
+    }
+
+    #projects.hscroll .project-team {
+        display: none;
+    }
+
+    #projects.hscroll .project-tech {
+        margin-bottom: 0.8rem;
+    }
+
+    /* the pile: one compact card, the same for all twelve */
+    #certificates.deck .certificates-grid {
+        margin: 0;
+        padding: 0 0 2.4rem;
+    }
+
+    #certificates.deck .certificate-card {
+        padding: 1.1rem 1.1rem 1.2rem;
+    }
+
+    #certificates.deck .certificate-icon {
+        width: 46px;
+        height: 46px;
+        margin-bottom: 0.65rem;
+    }
+
+    #certificates.deck .certificate-title {
+        margin-bottom: 0.3rem;
+        font-size: 1.02rem;
+        line-height: 1.25;
+    }
+
+    #certificates.deck .certificate-issuer,
+    #certificates.deck .certificate-date {
+        margin-bottom: 0.2rem;
+        font-size: 0.86rem;
+        line-height: 1.35;
+    }
+
+    #certificates.deck .certificate-id {
+        margin-bottom: 0.65rem;
+        font-size: 0.7rem;
+    }
+
+    /* two rows of tags at most, so no card makes the pile taller */
+    #certificates.deck .certificate-skills {
+        gap: 0.35rem;
+        max-height: 3.95rem;
+        margin-bottom: 0.85rem;
+        overflow: hidden;
+    }
+
+    #certificates.deck .cert-skill-tag {
+        padding: 0.22rem 0.5rem;
+        font-size: 0.68rem;
+    }
+
+    #certificates.deck .cert-btn {
+        padding: 0.45rem 0.85rem;
+        font-size: 0.82rem;
     }
 }
 

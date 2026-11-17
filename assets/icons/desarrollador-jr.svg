@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="6 8 124 124" role="img" aria-label="Desarrollador Jr.">
+    <!-- the mark of the Departamento de Programación de Computadoras (FISC,
+         UTP), traced from the certificate: two folded bands and a stroke -->
+    <polygon fill="#1b1a2e" points="12,59 56,29 56,52 32,71" />
+    <polygon fill="#1f8f4d" points="12,59 32,71 57,91 57,115 12,83" />
+    <polygon fill="#1b1a2e" points="77,44 85,50 59,86 51,79" />
+    <polygon fill="#1f8f4d" points="78,13 122,45 122,69 103,56 78,37" />
+    <polygon fill="#1b1a2e" points="80,72 103,56 121,68 80,98" />
+    <text x="85" y="123" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="33" font-weight="800" letter-spacing="-1" fill="#17171f">Jr.</text>
+</svg>

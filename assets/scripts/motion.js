@@ -125,9 +125,19 @@
 
     // ---- scroll: inertia + one way to travel to an anchor ----------------
     const pins = [];
+    // The pile of certificates lets the scroll through one cut at a time
+    // (initDeck): `gate` is asked about every turn of the wheel and every
+    // move of a finger that is on the pile, and `owed` is how far down the
+    // page they have asked to go beyond what they were given (0: nothing).
+    // `mine` says whether a finger that has just come down is the pile's to
+    // deal with. `touchAt`: when a finger last did anything. `flick`: how
+    // fast it was going up the screen as it lifted (px a ms; down is
+    // negative). `jumpUntil`: the page is being taken somewhere (a link),
+    // not scrolled, until then.
+    const wheel = { gate: null, owed: 0, mine: null, touchAt: -1e9, flick: 0, jumpUntil: 0 };
 
     function initScroll() {
-        if (reduced || !fine || typeof window.Lenis !== "function") return;
+        if (reduced || typeof window.Lenis !== "function") return;
         // A text box only keeps the wheel while it has somewhere left to
         // scroll that way. (Handing it every wheel event made the page stick
         // whenever the pointer happened to be over the message field.)
@@ -147,11 +157,56 @@
                 smoothWheel: true,
                 anchors: false,
                 prevent: keepsWheel,
+                virtualScroll: (data) => (wheel.gate ? wheel.gate(data) : undefined),
+                // A finger scrolls the page the browser's own way (the mark
+                // on <body> below tells Lenis to keep out of it) - except
+                // one that comes down on the pile of certificates: that one
+                // Lenis follows, so it can be held at the gate like the wheel.
+                syncTouch: true,
             });
         } catch (err) {
             lenis = null;
             return;
         }
+        const NATIVE = "data-lenis-prevent-touch";
+        document.body.setAttribute(NATIVE, "");
+        // decided as the finger comes down, and kept for the whole gesture
+        // (the last moments of the finger's way are kept too: its speed as
+        // it lifts is the throw it gives the page)
+        let trail = [];
+        const where = (e) => (e.touches[0] || e.changedTouches[0]).clientY;
+        window.addEventListener(
+            "touchstart",
+            (e) => {
+                wheel.touchAt = performance.now();
+                // a finger on the page takes it over: nothing is owed any more
+                wheel.owed = wheel.flick = 0;
+                trail = [[wheel.touchAt, where(e)]];
+                document.body.toggleAttribute(NATIVE, !(wheel.mine && wheel.mine()));
+            },
+            { capture: true, passive: true },
+        );
+        window.addEventListener(
+            "touchmove",
+            (e) => {
+                wheel.touchAt = performance.now();
+                trail.push([wheel.touchAt, where(e)]);
+                while (trail.length > 2 && wheel.touchAt - trail[0][0] > 90) trail.shift();
+            },
+            { capture: true, passive: true },
+        );
+        window.addEventListener(
+            "touchend",
+            () => {
+                wheel.touchAt = performance.now();
+                const a = trail[0];
+                const b = trail[trail.length - 1];
+                // (a finger that stopped before it lifted throws nothing)
+                const moving = b && a !== b && wheel.touchAt - b[0] < 70;
+                wheel.flick = moving ? (a[1] - b[1]) / Math.max(16, b[0] - a[0]) : 0;
+            },
+            { capture: true, passive: true },
+        );
         // the mobile menu locks the page while it is open
         new MutationObserver(() => {
             if (document.body.classList.contains("menu-open")) lenis.stop();
@@ -161,6 +216,9 @@
 
     function scrollToY(top) {
         const y = Math.max(0, top);
+        // a jump to somewhere else: whatever the wheel was owed is dropped
+        wheel.owed = 0;
+        wheel.jumpUntil = performance.now() + 1500;
         if (lenis) {
             lenis.scrollTo(y, { duration: 1.3, easing: (t) => 1 - Math.pow(1 - t, 4) });
         } else {
@@ -591,7 +649,7 @@
         const cont = sec && $(".container", sec);
         const grid = sec && $(gridSel, sec);
         if (!sec || !cont || !grid) return;
-        const fits = window.matchMedia("(min-width: 900px) and (min-height: 560px)");
+        const fits = window.matchMedia("(min-height: 540px)");
         const ui = make(
             "div",
             "hs-ui",
@@ -1938,8 +1996,15 @@
     // down the diagonal of the screen (blade.js), the card on top parts along
     // that line as the edge reaches it, its two halves slide away, and the
     // next one is there underneath. Scrolling back puts it together.
-    // Small screens keep the swipe carousel (initPinned with pin: false,
-    // which also made the counter this uses).
+    // One stroke, one card, in order: however fast the wheel is turned, it
+    // is not let on to the next card until the sword has been through this
+    // one, and what it asked for beyond that is given as the cuts land. So a
+    // quick scroll goes through the whole pile, a cut (and its sound) a card.
+    // A finger gets the same: one that comes down on the pile is followed by
+    // Lenis instead of the browser, and a page thrown into the pile from
+    // above is stopped at the gate.
+    // A window too low for the pinned frame keeps the swipe carousel
+    // (initPinned with pin: false, which also made the counter this uses).
     function initDeck() {
         const sec = $("#certificates");
         const cont = sec && $(".container", sec);
@@ -1947,7 +2012,7 @@
         const ui = sec && $(".hs-ui", sec);
         const cards = grid ? $$(".certificate-card", grid) : [];
         if (cards.length < 2 || !cont || !ui || reduced) return;
-        const fits = window.matchMedia("(min-width: 900px) and (min-height: 560px)");
+        const fits = window.matchMedia("(min-height: 540px)");
         const countNow = $(".hs-count b", ui);
         const bar = $(".hs-bar span", ui);
         const hint = $(".hs-hint", ui);
@@ -1958,8 +2023,9 @@
             el.append(slash);
             // live: in its cut. wait: when the edge will be on it (0: nothing
             // to wait for). hit: when it began to part. struck: this cut is
-            // the sword's, and is seen through
-            return { el, slash, pieces: null, cutting: false, live: false, wait: 0, hit: 0, struck: false };
+            // the sword's, and is seen through. due: when the stroke last
+            // asked for it lands (it is not asked for again before that)
+            return { el, slash, pieces: null, cutting: false, live: false, wait: 0, hit: 0, struck: false, due: 0 };
         });
         const pin = { sec, cardSel: ".certificate-card", on: false, top: 0, travel: 0, gutter: 0 };
         pins.push(pin);
@@ -1969,10 +2035,17 @@
         const CUT1 = 0.78;
         // how long a card takes to come apart once the edge is through it
         const PART = 240 * slowCut;
+        // the wheel is held this far into the next card (just short of its
+        // cut) until the sword has been through the one on top
+        const GATE = 1 + CUT0 - 0.03;
+        // quicker than this (in cards a second) the page is not being
+        // scrolled, it is jumping somewhere: no stroke for what flies past
+        const JUMP = 12;
         let step = 1;
         let shown = -1;
         let lastY = sy;
         let lastT = 0;
+        let lastP = 0;
         let speed = 0;
 
         const dropPieces = (it) => {
@@ -2050,7 +2123,9 @@
             // what it has to be raised clear of: the pile, and the counter
             // under it
             const clear = [a.left, a.top, a.right, b.bottom];
-            const detail = { phase: "deck", slow: slowCut, clear, at: null };
+            // with more of the pile still asked for, the strokes come quicker
+            const hurry = wheel.owed - window.scrollY > step * 1.6 ? 0.75 : 1;
+            const detail = { phase: "deck", slow: slowCut * hurry, clear, at: null };
             window.dispatchEvent(new CustomEvent("blade:cut", { detail }));
             return detail.at || 0;
         };
@@ -2067,16 +2142,109 @@
         // how far apart a card that was hit has come (of what the scroll asks)
         const parted = (it, now) => (it.hit ? 1 - Math.pow(1 - clamp((now - it.hit) / PART, 0, 1), 3) : 1);
 
+        // a finger is scrolling the page, or has just thrown it
+        const byFinger = (now) => now - wheel.touchAt < 6000;
+        // The page is being taken somewhere, not scrolled: by a link, or (no
+        // finger involved) faster than any scroll goes.
+        const jumping = (now) => now < wheel.jumpUntil || (!byFinger(now) && speed >= JUMP * step);
+
+        // A card comes into its cut. Going down, that is a stroke of the
+        // sword: the card stays whole until the edge is on it. One stroke at
+        // a time, and one for each time the card is cut: a card whose stroke
+        // is still on its way is not asked for again (nor is its sound).
+        // Coming back up, the halves just meet.
+        const enter = (it, now) => {
+            it.live = true;
+            it.wait = it.hit = 0;
+            it.struck = speed > 0 && !jumping(now) && !items.some((o) => o.wait);
+            if (!it.struck) return;
+            if (it.due > now) {
+                it.wait = it.due;
+                return;
+            }
+            const wait = stroke(it);
+            if (wait > 0) it.wait = it.due = now + wait;
+            else flash(it);
+            // (the recording peaks 0.14 s in)
+            playSfx("slash", 0.4, Math.max(0, wait / 1000 - 0.14));
+        };
+
+        // The first card the sword has not been through yet, for a scroll
+        // that is on card `P`. (A card in its cut with nothing to wait for
+        // has been hit, or is parting with the scroll.)
+        const frontOf = (P) => {
+            const k = Math.min(n - 2, Math.floor(P));
+            if (k > 0 && items[k - 1].wait) return k - 1;
+            return items[k].live && !items[k].wait ? k + 1 : k;
+        };
+        // how far down the page the wheel may go for now (null: as far as it likes)
+        const gateY = () => {
+            const front = frontOf(clamp((window.scrollY - pin.top) / step, 0, n - 1));
+            if (front > n - 2) return null;
+            // (the last card to be cut keeps the page until it has been)
+            return Math.round(pin.top + Math.min(front + GATE, n - 1) * step);
+        };
+        // the furthest anything is owed: just past the pile, however long
+        // the wheel is kept turning (or the finger pulling) against the gate
+        const most = () => pin.top + pin.travel + vh * 0.35;
+        // how far a finger throws the page, for each px a ms it was moving at
+        const THROW = 320;
+        wheel.gate = (data) => {
+            const type = data.event.type;
+            const lifted = type === "touchend";
+            if (!pin.on || !lenis || data.event.ctrlKey) return undefined;
+            if (!type.includes("wheel") && type !== "touchmove" && !lifted) return undefined;
+            // (a finger that came down and went up again: a tap, not a scroll)
+            if (lifted && !data.deltaY && !data.deltaX) return undefined;
+            // What is asked for: the turn of the wheel, the move of the
+            // finger - or, as the finger lifts, the throw it gives the page.
+            const ask = lifted ? clamp(wheel.flick * THROW, -2.5 * vh, 2.5 * vh) : data.deltaY;
+            if (ask < 0) wheel.owed = 0;
+            const from = lenis.targetScroll;
+            const gate = ask > 0 ? gateY() : null;
+            // held: it asks for more than the gate lets through (unless the
+            // page is past the gate already, taken there some other way)
+            const held = gate !== null && from <= gate + 2 && from + ask > gate;
+            if (held) {
+                // the rest is owed
+                wheel.owed = Math.min(most(), Math.max(wheel.owed, gate) + from + ask - gate);
+                tick();
+            }
+            if (lifted) {
+                // the throw is made here, as far as the gate
+                const to = held ? gate : from + ask;
+                if (Math.abs(to - from) >= 1) lenis.scrollTo(to, { programmatic: false, lerp: 0.085 });
+                if (data.event.cancelable) data.event.preventDefault();
+                return false;
+            }
+            if (!held) return undefined;
+            if (gate - from >= 1) {
+                data.deltaY = gate - from;
+                return undefined;
+            }
+            if (data.event.cancelable) data.event.preventDefault();
+            return false;
+        };
+        // A finger that comes down while the pile is pinned, with cards
+        // still to cut, is the pile's: Lenis follows it. Anywhere else the
+        // browser scrolls.
+        wheel.mine = () => {
+            if (!pin.on) return false;
+            const y = window.scrollY;
+            return y >= pin.top - 2 && y <= pin.top + pin.travel + 2 && gateY() !== null;
+        };
+
         const setHint = () => {
             if (pin.on) hint.textContent = lang() === "es" ? "sigue bajando ↓" : "keep scrolling ↓";
         };
         relangers.push(setHint);
 
         const reset = () => {
+            wheel.owed = 0;
             items.forEach((it) => {
                 forget(it);
                 it.live = it.struck = false;
-                it.wait = it.hit = 0;
+                it.wait = it.hit = it.due = 0;
                 for (const p of ["transform", "opacity", "visibility", "pointerEvents", "zIndex"]) it.el.style[p] = "";
                 it.el.__fx = {};
             });
@@ -2103,13 +2271,15 @@
                 disable();
                 return;
             }
-            step = Math.round(vh * 0.62);
+            // a card's worth of scroll (a swipe's worth on a small screen)
+            step = Math.round(vh * (vw < 900 ? 0.5 : 0.62));
             pin.travel = step * (n - 1);
             sec.style.height = `${vh + pin.travel}px`;
             pin.top = docTop(sec);
             items.forEach((it, j) => (it.el.style.zIndex = String(n - j)));
             // the line of the cut runs the way the screen's diagonal does
             grid.style.setProperty("--cut-angle", `${((Math.atan2(vh, -vw) * 180) / Math.PI).toFixed(2)}deg`);
+            lastP = clamp((sy - pin.top) / step, 0, n - 1);
             shown = -1;
             setHint();
         });
@@ -2120,8 +2290,41 @@
             if (ms > 0) speed = ((sy - lastY) / ms) * 1000;
             lastY = sy;
             lastT = now;
-            if (sy + vh < pin.top - 200 || sy > pin.top + pin.travel + vh + 200) return false;
-            const P = clamp((sy - pin.top) / step, 0, n - 1);
+            // where the page is, as far as the pile is concerned
+            let y = sy;
+            const fingered = byFinger(now);
+            // A page the browser is scrolling for a finger (it came down
+            // above the pile, or threw the page into it) is stopped at the
+            // gate too, and owed about what was left of its throw.
+            if (lenis && fingered && lenis.isScrolling !== "smooth" && speed > 0 && !jumping(now)) {
+                const gate = gateY();
+                if (gate !== null && sy > gate + 1 && sy < pin.top + pin.travel + vh) {
+                    wheel.owed = Math.min(most(), Math.max(wheel.owed, gate + clamp(speed * 0.35, 0, step * 3)));
+                    lenis.scrollTo(gate, { immediate: true, force: true });
+                    y = gate;
+                }
+            }
+            // What is owed is given as far as the gate allows. (A scroll
+            // that is neither Lenis's nor a finger's - the scrollbar, the
+            // keyboard - takes the page where it likes: nothing is owed
+            // after it.)
+            if (wheel.owed) {
+                if (!lenis || (lenis.isScrolling === "native" && !fingered) || wheel.owed <= lenis.targetScroll + 1) {
+                    wheel.owed = 0;
+                } else {
+                    const gate = gateY();
+                    const to = gate === null ? wheel.owed : Math.min(wheel.owed, gate);
+                    if (to > lenis.targetScroll + 1) lenis.scrollTo(to, { programmatic: false, lerp: 0.105 });
+                }
+            }
+            lastY = y;
+            if (y + vh < pin.top - 200 || y > pin.top + pin.travel + vh + 200) {
+                lastP = y < pin.top ? 0 : n - 1;
+                return wheel.owed > 0;
+            }
+            const P = clamp((y - pin.top) / step, 0, n - 1);
+            const before = lastP;
+            lastP = P;
             // the card being cut (the last one never is)
             const k = Math.min(n - 2, Math.floor(P));
             const c = smooth(clamp((P - k - CUT0) / (CUT1 - CUT0), 0, 1));
@@ -2139,6 +2342,9 @@
                     // stays whole, on top, until the edge is there; then it
                     // is given the time to come apart. (Unless the page has
                     // gone on by more than one card: then it parts now.)
+                    // A card the scroll went right over between two frames
+                    // is cut all the same.
+                    if (!it.live && j <= k && j >= k - 1 && before < j + CUT0 && speed > 0) enter(it, now);
                     if (it.wait && (now >= it.wait || j < k - 1)) {
                         it.wait = 0;
                         it.hit = now;
@@ -2169,21 +2375,7 @@
                 }
                 if (j === k) {
                     if (c > 0) {
-                        if (!it.live) {
-                            // into its cut. Going down, that is a stroke of
-                            // the sword: the card stays whole until the edge
-                            // is on it. Coming back up, the halves just meet.
-                            it.live = true;
-                            it.wait = it.hit = 0;
-                            it.struck = speed > 0;
-                            if (it.struck) {
-                                const wait = stroke(it);
-                                if (wait > 0) it.wait = now + wait;
-                                else flash(it);
-                                // (the recording peaks 0.14 s in)
-                                if (speed < 5000) playSfx("slash", 0.4, Math.max(0, wait / 1000 - 0.14));
-                            }
-                        }
+                        if (!it.live) enter(it, now);
                         // the edge is there
                         if (it.wait && now >= it.wait) {
                             it.wait = 0;
@@ -2223,7 +2415,7 @@
             }
             put(bar, "transform", `scaleX(${(at / (n - 1)).toFixed(4)})`);
             ui.classList.toggle("is-moving", P > 0.06);
-            return busy;
+            return busy || wheel.owed > 0;
         });
 
         // Never left on a half-cut card: when the scroll comes to rest in
@@ -2231,7 +2423,8 @@
         // sword has struck is always finished.)
         let idle = 0;
         const settle = () => {
-            if (!pin.on) return;
+            // (while the wheel is owed more, that is where the page is going)
+            if (!pin.on || wheel.owed) return;
             const y = window.scrollY;
             if (y <= pin.top || y >= pin.top + pin.travel) return;
             const P = (y - pin.top) / step;

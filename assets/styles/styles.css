@@ -1286,6 +1286,24 @@ body::after {
     height: auto;
 }
 
+.certificate-icon--utp {
+    --logo-bg: #fff;
+}
+
+.certificate-icon--utp img {
+    width: 84%;
+    height: 84%;
+}
+
+.certificate-icon--devjr {
+    --logo-bg: #fff;
+}
+
+.certificate-icon--devjr img {
+    width: 74%;
+    height: 74%;
+}
+
 .certificate-icon--progenios {
     --logo-bg: #fff;
 }
@@ -1457,7 +1475,12 @@ body::after {
 
 .honor-actions {
     display: flex;
-    gap: 1rem;
+    flex-wrap: wrap;
+    gap: 0.7rem 1rem;
+}
+
+.honor-btn {
+    white-space: nowrap;
 }
 
 .honor-btn {

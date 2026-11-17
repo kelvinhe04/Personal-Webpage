@@ -43,6 +43,11 @@ const ARC_R = (BLADE.length * BLADE.length) / (2 * BLADE.sori);
 const GRIP_END = -2.2;
 const BODY_X = -2.1;
 const CAM_Z = 12;
+const FOV = 32;
+// half the height of what the camera sees at the page's depth, and the size
+// of one unit of the sword's scale for a view `halfW` wide (half of it)
+const HALF_H = Math.tan((FOV * Math.PI) / 360) * CAM_Z;
+const unitFor = (halfW) => Math.min(1.2, Math.max(0.42, (halfW * 2) / 11));
 
 // Centre, tangent and normal (towards the spine) of the curve at t.
 function curve(t) {
@@ -647,6 +652,20 @@ export async function loadSword(renderer) {
 
 // ------------------------------------------------------------ choreography
 
+// The hero on a wide screen (buildStations, heroFit): how far out of the
+// scabbard the blade is, and what the two together measure on screen there.
+const HERO_OUT = 2.6;
+const HERO_REACH = 11.56;
+const HERO_MID = 0.317;
+
+// Where the sword and the scabbard hang on a phone: just inside the edge.
+const NARROW_EDGE = 0.985;
+// How big the sword is for a cut (and resting behind the pile of
+// certificates, between two of them): on any screen, nearly as long as the
+// diagonal it cuts along.
+const CUT_SCALE = 1.3;
+const CUT_SCALE_NARROW = 2;
+
 // A pose is where a piece rests while a section is centred on screen.
 // x / y are in half-viewports (-1..1), rotations in radians. `follow` pins
 // y to an element that is travelling through the viewport.
@@ -694,9 +713,11 @@ function buildStations(narrow) {
     // no margin there, both sit half off-screen rather than on top of the
     // words: a white sword behind white text is a sentence nobody can read.
     // (They hang a little behind the page, so "1" is still inside the edge.)
+    // A phone has no margin at all, only the gutter beside the text - and
+    // the sword is small enough there to hang inside it, in full view.
     const tight = !narrow && window.innerWidth < 1320;
-    const edge = narrow ? 1.1 : tight ? 1.04 : 0.955;
-    const side = tight ? 1.1 : edge + 0.02;
+    const edge = narrow ? NARROW_EDGE : tight ? 1.04 : 0.955;
+    const side = narrow ? NARROW_EDGE : tight ? 1.1 : edge + 0.02;
     // on wide screens the section rail lives in the right margin: stay clear
     const right = narrow || tight ? edge : edge - 0.055;
     // the hanging scabbard leans a little; less where there is no room for it
@@ -704,12 +725,42 @@ function buildStations(narrow) {
     const up = { rx: 0.3, ry: 0.5, rz: HALF - lean };
     const down = { rx: 0.3, ry: -0.4, rz: -HALF + lean };
 
-    // hero: caught halfway out of the scabbard
-    const hero = narrow
-        ? { x: 0.62, y: -0.5, z: -1, rx: 0.2, ry: -0.5, rz: 1.05, s: 0.82 }
-        : { x: 0.46, y: -0.08, z: 0, rx: 0.28, ry: -0.5, rz: 0.66, s: 0.9 };
+    // hero: caught part of the way out of the scabbard. On a wide screen all
+    // of it is in view, whatever the shape of the window: it lies along the
+    // diagonal of what the text leaves free, from the pommel beside the
+    // buttons up to the far end of the scabbard under the navbar's buttons.
+    const heroFit = () => {
+        const halfW = (HALF_H * window.innerWidth) / vh;
+        // those two ends, in half-viewports (the upper one clear of the
+        // navbar however low the window is)
+        const from = [0.054, -0.77];
+        const to = [0.944, 1 - 2 * Math.max(0.14, 92 / vh)];
+        const dx = (to[0] - from[0]) * halfW;
+        const dy = (to[1] - from[1]) * HALF_H;
+        const rx = 0.28;
+        const ry = -0.5;
+        // the turn in its own plane that shows at that angle on the screen,
+        // tilted towards the viewer as it is
+        const slope = Math.atan2(dy, dx);
+        const rz = Math.atan((Math.cos(ry) * Math.tan(slope) + Math.sin(rx) * -Math.sin(ry)) / Math.cos(rx));
+        // (HERO_REACH: how long it shows for each unit of its scale, the
+        // scabbard's end being nearer than the pommel - the more so the
+        // flatter it lies. HERO_MID: how far along that its own middle is.)
+        const reach = HERO_REACH * (1 + 0.315 * (0.768 - slope));
+        const s = Math.hypot(dx, dy) / (unitFor(halfW) * reach);
+        return {
+            x: lerp(from[0], to[0], HERO_MID),
+            y: lerp(from[1], to[1], HERO_MID),
+            z: 0,
+            rx,
+            ry,
+            rz,
+            s,
+        };
+    };
+    const hero = narrow ? { x: 0.62, y: -0.5, z: -1, rx: 0.2, ry: -0.5, rz: 1.05, s: 0.82 } : heroFit();
     k(vh / 2, hero);
-    ride(vh / 2, 3.3);
+    ride(vh / 2, narrow ? 3.3 : HERO_OUT);
 
     if (el.about) {
         const a = span(el.about);
@@ -749,6 +800,14 @@ function buildStations(narrow) {
     const pinned = (node, y, spin) => {
         const r = span(node);
         if (!node.classList.contains("hscroll") || r.height <= vh * 1.2) return false;
+        // On a phone the cards hide everything behind them: the sword lies
+        // in the strip the frame leaves free under its counter instead, if
+        // that is deep enough to hold it.
+        const ui = narrow && node.querySelector(".hs-ui");
+        if (ui) {
+            const from = ui.offsetTop + ui.offsetHeight;
+            if (vh - from >= 62) y = -(((from + vh) / 2 / vh) * 2 - 1) * ((CAM_Z + 1) / CAM_Z);
+        }
         k(r.top + vh / 2, { x: -0.5, y, z: -1, rx: 0.45 + spin, ry: TAU * 2, rz: 0, s: 1.22 });
         k(r.top + r.height - vh / 2, { x: 0.2, y, z: -1, rx: 0.45 + spin + TAU, ry: TAU * 2, rz: 0, s: 1.22 });
         return true;
@@ -760,7 +819,12 @@ function buildStations(narrow) {
         const r = span(node);
         if (!node.classList.contains("deck") || r.height <= vh * 1.2) return false;
         const rz = Math.atan2(vh, window.innerWidth);
-        const pose = { x: 0.04, y: -0.06, z: -1, rx: TAU + 0.45, ry: TAU * 2, rz, s: 1.3 };
+        // (a phone's pile is as wide as its screen: the sword is as long
+        // as the diagonal there, so its handle shows under the cards and its
+        // blade above them, as on a wide screen)
+        const pose = narrow
+            ? { x: 0.1, y: -0.05, z: -1, rx: TAU + 0.45, ry: TAU * 2, rz, s: CUT_SCALE_NARROW }
+            : { x: 0.04, y: -0.06, z: -1, rx: TAU + 0.45, ry: TAU * 2, rz, s: CUT_SCALE };
         k(r.top + vh / 2, pose);
         k(r.top + r.height - vh / 2, pose);
         return true;
@@ -785,7 +849,17 @@ function buildStations(narrow) {
     if (el.honors) {
         const h = span(el.honors);
         honorsEnd = h.top + h.height;
-        k(h.mid, { x: right, y: 0, z: -1, rx: turned, ry: TAU * 2 - 0.5, rz: HALF * 3, s: 0.82 });
+        const pose = { x: right, y: 0, z: -1, rx: turned, ry: TAU * 2 - 0.5, rz: HALF * 3, s: 0.82 };
+        // On a phone the section is several screens of text, with nothing
+        // beside it: the sword is at the edge by the time the title is under
+        // the navbar and stays there to the last row, instead of crossing
+        // the words all the way down.
+        if (narrow && h.height > vh * 1.6) {
+            k(h.top + vh * 0.6, pose);
+            k(h.top + h.height - vh * 0.6, pose);
+        } else {
+            k(h.mid, pose);
+        }
         s(h.mid, { x: -side, y: 0, ...down });
         s(honorsEnd, { x: -side, y: -OFF, ...down });
     }
@@ -992,7 +1066,7 @@ export async function initBlade() {
     const { saya, arc, body: sayaBody } = sheath;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 60);
+    const camera = new THREE.PerspectiveCamera(FOV, 1, 0.1, 60);
     camera.position.z = CAM_Z;
 
     const key = new THREE.DirectionalLight(0xffffff, 1.7);
@@ -1129,9 +1203,9 @@ export async function initBlade() {
         setRatio();
         camera.aspect = vw / vh;
         camera.updateProjectionMatrix();
-        halfH = Math.tan((camera.fov * Math.PI) / 360) * camera.position.z;
+        halfH = HALF_H;
         halfW = halfH * camera.aspect;
-        unit = clamp((halfW * 2) / 11, 0.42, 1.2);
+        unit = unitFor(halfW);
         stations = buildStations(narrow);
         dirty = true;
     }
@@ -1335,7 +1409,7 @@ export async function initBlade() {
         // at minus the angle it is given).
         eul.set(Math.PI, 0, -(Math.atan2(halfH, halfW) + phi + (dir < 0 ? Math.PI : 0)));
         out.q.setFromEuler(eul);
-        out.s = 1.3 * unit;
+        out.s = (narrow ? CUT_SCALE_NARROW : CUT_SCALE) * unit;
         return out;
     }
 
@@ -1690,6 +1764,8 @@ export async function initBlade() {
         if (c.phase === "wind") return Math.max(0, c.windMs - t) + c.ms - early;
         // this stroke will do it; later than that, it takes the one back
         if (c.phase === "strike" && t < c.ms - early * 2) return c.ms - t - early;
+        // (the stroke back goes at the pace it is asked for now)
+        c.slow = slow;
         if (c.phase === "strike") {
             c.again = true;
             return c.ms - t + FOLLOW_MS * slow + round(FOLLOW);
