@@ -555,8 +555,9 @@
         const items = $$(".timeline-item", timeline);
         const cards = items.map((it) => $(".timeline-content", it));
         if (items.length < 2 || cards.some((c) => !c)) return;
-        const wide = window.matchMedia("(min-width: 900px)");
-        const BASE = 96;
+        // where the first card sticks: under the navbar, which is lower
+        // and slimmer on a small screen
+        let BASE = 96;
         const STEP = 16;
         let on = false;
         let cardH = 1;
@@ -567,7 +568,8 @@
             timeline.classList.remove("stack-on");
             timeline.style.removeProperty("--stack-h");
             on = false;
-            if (canPin && wide.matches) {
+            BASE = vw < 1025 ? 80 : 96;
+            if (canPin) {
                 cardH = Math.max(...cards.map((c) => c.offsetHeight));
                 // only stack when the whole pile fits under the navbar
                 on = cardH + BASE + STEP * (items.length - 1) + 28 <= vh;
@@ -575,6 +577,7 @@
             if (on) {
                 timeline.classList.add("stack-on");
                 timeline.style.setProperty("--stack-h", `${cardH}px`);
+                timeline.style.setProperty("--stack-top", `${BASE}px`);
                 items.forEach((it, i) => it.style.setProperty("--i", String(i)));
             } else {
                 cards.forEach((c) => {

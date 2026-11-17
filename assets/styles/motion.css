@@ -546,9 +546,11 @@ html:not(.fx) .nav-container::before {
     padding-bottom: 12vh;
 }
 
+/* (--stack-top: where the first card sticks, just under the navbar; set by
+   motion.js, which also checks the whole pile fits under it) */
 .timeline.stack-on .timeline-item {
     position: sticky;
-    top: calc(96px + var(--i, 0) * 16px);
+    top: calc(var(--stack-top, 96px) + var(--i, 0) * 16px);
 }
 
 .timeline.stack-on .timeline-content {
@@ -2174,6 +2176,18 @@ html.theme-cut-blade::view-transition-new(blade) {
 @media (max-width: 899px) {
     .timeline-content {
         grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* the strip under the buttons, kept free for the sword (blade.js lays
+       it across the screen there, above the arrow) */
+    .fx .hero-content {
+        /* (the arrow sits in its lower part) */
+        padding-bottom: 8.5rem;
+    }
+
+    /* (and the badge never goes under the navbar on a short screen) */
+    .fx .hero {
+        padding-top: 76px;
     }
 
     /* keep the copyright line clear of the fixed "back to top" button */

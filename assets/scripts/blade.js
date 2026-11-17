@@ -657,6 +657,10 @@ export async function loadSword(renderer) {
 const HERO_OUT = 2.6;
 const HERO_REACH = 11.56;
 const HERO_MID = 0.317;
+// on a phone: how far (px) the far end of the scabbard is above the pommel
+const HERO_RISE_NARROW = 46;
+const HERO_FLAT_GAIN = 1.42;
+const HERO_FLAT_SHIFT = 0.06;
 
 // Where the sword and the scabbard hang on a phone: just inside the edge.
 const NARROW_EDGE = 0.985;
@@ -725,16 +729,15 @@ function buildStations(narrow) {
     const up = { rx: 0.3, ry: 0.5, rz: HALF - lean };
     const down = { rx: 0.3, ry: -0.4, rz: -HALF + lean };
 
-    // hero: caught part of the way out of the scabbard. On a wide screen all
-    // of it is in view, whatever the shape of the window: it lies along the
-    // diagonal of what the text leaves free, from the pommel beside the
-    // buttons up to the far end of the scabbard under the navbar's buttons.
-    const heroFit = () => {
+    // hero: caught part of the way out of the scabbard, all of it in view
+    // and none of it behind the text. On a wide screen, whatever the shape
+    // of the window, it lies along the diagonal of what the text leaves
+    // free, from the pommel beside the buttons up to the far end of the
+    // scabbard under the navbar's buttons. On a phone the text takes the
+    // whole width: it lies across the screen, a little uphill, in the strip
+    // left free between the buttons and the arrow (motion.css keeps one).
+    const heroFit = (from, to) => {
         const halfW = (HALF_H * window.innerWidth) / vh;
-        // those two ends, in half-viewports (the upper one clear of the
-        // navbar however low the window is)
-        const from = [0.054, -0.77];
-        const to = [0.944, 1 - 2 * Math.max(0.14, 92 / vh)];
         const dx = (to[0] - from[0]) * halfW;
         const dy = (to[1] - from[1]) * HALF_H;
         const rx = 0.28;
@@ -758,9 +761,28 @@ function buildStations(narrow) {
             s,
         };
     };
-    const hero = narrow ? { x: 0.62, y: -0.5, z: -1, rx: 0.2, ry: -0.5, rz: 1.05, s: 0.82 } : heroFit();
+    // (both ends in half-viewports: the upper one clear of the navbar
+    // however low the window is)
+    const wideHero = () => heroFit([0.054, -0.77], [0.944, 1 - 2 * Math.max(0.14, 92 / vh)]);
+    const narrowHero = () => {
+        const buttons = q(".hero-buttons");
+        const arrow = q(".scroll-arrow");
+        if (!buttons) return null;
+        const vw = window.innerWidth;
+        const below = buttons.getBoundingClientRect().bottom + window.scrollY;
+        const above = arrow ? arrow.getBoundingClientRect().top + window.scrollY : vh;
+        const mid = (below + Math.min(above, vh)) / 2;
+        const rise = HERO_RISE_NARROW / 2;
+        const ndc = (px, py) => [(px / vw) * 2 - 1, 1 - (py / vh) * 2];
+        const pose = heroFit(ndc(vw * 0.04, mid + rise), ndc(vw * 0.96, mid - rise));
+        // (lying this flat it shows shorter than heroFit's measure of it)
+        pose.s *= HERO_FLAT_GAIN;
+        pose.x += HERO_FLAT_SHIFT;
+        return pose;
+    };
+    const hero = (narrow ? narrowHero() : wideHero()) || { x: 0.62, y: -0.5, z: -1, rx: 0.2, ry: -0.5, rz: 1.05, s: 0.82 };
     k(vh / 2, hero);
-    ride(vh / 2, narrow ? 3.3 : HERO_OUT);
+    ride(vh / 2, HERO_OUT);
 
     if (el.about) {
         const a = span(el.about);
