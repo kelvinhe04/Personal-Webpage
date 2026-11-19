@@ -783,8 +783,18 @@ function buildStations(narrow, vh) {
         const arrow = q(".scroll-arrow");
         if (!buttons) return null;
         const vw = window.innerWidth;
-        const below = buttons.getBoundingClientRect().bottom + window.scrollY;
-        const above = arrow ? arrow.getBoundingClientRect().top + window.scrollY : vh;
+        // Where they sit in the page, not where they are drawn: scrolling
+        // down moves and scales the hero's text (and the arrow bobs), so a
+        // measure taken then - the page growing under a lazy image or an
+        // opened card is enough - put the sword lower and lower, and after
+        // the way back up it was off the bottom of the screen.
+        const laidTop = (n) => {
+            let t = 0;
+            for (; n; n = n.offsetParent) t += n.offsetTop;
+            return t;
+        };
+        const below = laidTop(buttons) + buttons.offsetHeight;
+        const above = arrow ? laidTop(arrow) : vh;
         const mid = (below + Math.min(above, vh)) / 2;
         const rise = HERO_RISE_NARROW / 2;
         const ndc = (px, py) => [(px / vw) * 2 - 1, 1 - (py / vh) * 2];
