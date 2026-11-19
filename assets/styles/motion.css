@@ -2335,7 +2335,7 @@ html.theme-cut-blade::view-transition-new(blade) {
 
     /* keep the copyright line clear of the fixed "back to top" button */
     .footer {
-        padding-bottom: 5.5rem;
+        padding-bottom: 4rem;
     }
 
     .sec-glyph {
