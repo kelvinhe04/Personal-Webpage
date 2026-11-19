@@ -56,6 +56,22 @@
     const tasks = [];
     const measurers = [];
     const relangers = [];
+
+    // The height of the screen that a phone's address bar never changes:
+    // the screen with the bar showing (100svh, read off a hidden box). Every
+    // effect is laid out in it. With window.innerHeight instead, the bar
+    // going away as the page scrolled grew every pinned section, and
+    // everything under the certificates jumped some 400 px each time.
+    let probe = null;
+    const screenH = () => {
+        if (!probe) {
+            probe = make("div", "vh-probe");
+            probe.setAttribute("aria-hidden", "true");
+            document.body.append(probe);
+        }
+        return probe.offsetHeight || window.innerHeight;
+    };
+
     let sy = window.scrollY;
     let vw = window.innerWidth;
     let vh = window.innerHeight;
@@ -81,7 +97,7 @@
 
     function measureAll() {
         vw = window.innerWidth;
-        vh = window.innerHeight;
+        vh = screenH();
         sy = window.scrollY;
         for (const m of measurers) m();
         if (lenis) lenis.resize();
@@ -92,6 +108,11 @@
     const measureSoon = () => {
         clearTimeout(measureTimer);
         measureTimer = setTimeout(measureAll, 140);
+    };
+    // A window that changed size - not a phone's address bar or keyboard
+    // coming and going, which only change how much of it is showing.
+    const resized = () => {
+        if (window.innerWidth !== vw || screenH() !== vh) measureSoon();
     };
 
     // ---- governor: trade blur for frame rate on slow machines ------------
@@ -133,8 +154,10 @@
     // deal with. `touchAt`: when a finger last did anything. `flick`: how
     // fast it was going up the screen as it lifted (px a ms; down is
     // negative). `jumpUntil`: the page is being taken somewhere (a link),
-    // not scrolled, until then.
-    const wheel = { gate: null, owed: 0, mine: null, touchAt: -1e9, flick: 0, jumpUntil: 0 };
+    // not scrolled, until then. `down`: a finger is on the screen.
+    // `native`: the browser is scrolling the page for the finger that is
+    // (or last was) on it, not Lenis.
+    const wheel = { gate: null, owed: 0, mine: null, touchAt: -1e9, flick: 0, jumpUntil: 0, down: false, native: true };
 
     function initScroll() {
         if (reduced || typeof window.Lenis !== "function") return;
@@ -179,10 +202,12 @@
             "touchstart",
             (e) => {
                 wheel.touchAt = performance.now();
+                wheel.down = true;
                 // a finger on the page takes it over: nothing is owed any more
                 wheel.owed = wheel.flick = 0;
                 trail = [[wheel.touchAt, where(e)]];
-                document.body.toggleAttribute(NATIVE, !(wheel.mine && wheel.mine()));
+                wheel.native = !(wheel.mine && wheel.mine());
+                document.body.toggleAttribute(NATIVE, wheel.native);
             },
             { capture: true, passive: true },
         );
@@ -196,9 +221,18 @@
             { capture: true, passive: true },
         );
         window.addEventListener(
-            "touchend",
+            "touchcancel",
             () => {
                 wheel.touchAt = performance.now();
+                wheel.down = false;
+            },
+            { capture: true, passive: true },
+        );
+        window.addEventListener(
+            "touchend",
+            (e) => {
+                wheel.touchAt = performance.now();
+                wheel.down = e.touches.length > 0;
                 const a = trail[0];
                 const b = trail[trail.length - 1];
                 // (a finger that stopped before it lifted throws nothing)
@@ -300,21 +334,29 @@
 
     // ---- hero: drift away on the way out ---------------------------------
     // Transform and opacity only: both stay on the compositor. (A blur here
-    // repainted the whole title on every frame of the scroll.)
+    // repainted the whole title on every frame of the scroll.) Where the
+    // browser can tie an animation to the scroll itself, it does all of it
+    // (motion.css, same curves), in step with the scroll to the pixel. Moved
+    // from here it was a frame behind a finger's scroll, which the browser
+    // does on its own - and the title shook as it left. (Whether it can still
+    // be clicked is decided here either way.)
     function initHero() {
         const content = $(".hero-content");
         const arrow = $(".scroll-arrow");
         if (!content || reduced) return;
+        const byBrowser = window.CSS && CSS.supports("animation-timeline", "scroll()");
+        if (byBrowser) root.classList.add("hero-sda");
         let wasOut = false;
         tasks.push(() => {
             const p = clamp(sy / vh, 0, 1.2);
             const out = p >= 1.1;
             if (out && wasOut) return false;
             wasOut = out;
+            put(content, "visibility", p > 0.72 ? "hidden" : "");
+            if (byBrowser) return false;
             content.style.translate = `0 ${(sy * 0.3).toFixed(1)}px`;
             put(content, "opacity", clamp(1 - p * 1.45, 0, 1).toFixed(3));
             content.style.scale = (1 + p * 0.12).toFixed(4);
-            put(content, "visibility", p > 0.72 ? "hidden" : "");
             if (arrow) put(arrow, "opacity", clamp(1 - p * 5, 0, 1).toFixed(3));
             return false;
         });
@@ -861,14 +903,18 @@
         label();
         relangers.push(label);
 
+        let docH = 1;
         let max = 1;
         let active = -2;
         measurers.push(() => {
             stops.forEach((s) => (s.top = docTop(s.el)));
-            max = Math.max(1, root.scrollHeight - vh);
+            docH = root.scrollHeight;
+            max = Math.max(1, docH - vh);
         });
         tasks.push(() => {
-            const overall = clamp(sy / max, 0, 1);
+            // (how far the page can go depends on how much of the screen
+            // the address bar leaves)
+            const overall = clamp(sy / Math.max(1, docH - window.innerHeight), 0, 1);
             const pos = sy + vh * 0.4;
             let k = -1;
             for (let i = 0; i < stops.length; i++) if (pos >= stops[i].top) k = i;
@@ -2147,6 +2193,31 @@
 
         // a finger is scrolling the page, or has just thrown it
         const byFinger = (now) => now - wheel.touchAt < 6000;
+        // The browser's own scroll - a finger dragging the page, or the
+        // throw it carries on with once the finger lifts - does not stop for
+        // a scroll the page makes: it goes on from wherever it is put. Held
+        // at the gate, the page shook between the two for as long as the
+        // throw lasted. A page that cannot be scrolled stops it dead: kept so
+        // until the finger is off the screen (what is owed meanwhile is
+        // given by Lenis, which still can scroll it).
+        let unlock = 0;
+        const stopThrow = () => {
+            clearTimeout(unlock);
+            // (the gutter is kept: a scrollbar that disappears moves the page)
+            root.style.scrollbarGutter = "stable";
+            root.style.overflowY = "hidden";
+            const free = () => {
+                // (a finger that has done nothing for a while lets it go too:
+                // the page is never left locked if its lifting went unheard)
+                if (wheel.down && performance.now() - wheel.touchAt < 1500) {
+                    unlock = setTimeout(free, 60);
+                    return;
+                }
+                root.style.overflowY = "";
+                root.style.scrollbarGutter = "";
+            };
+            unlock = setTimeout(free, 90);
+        };
         // The page is being taken somewhere, not scrolled: by a link, or (no
         // finger involved) faster than any scroll goes.
         const jumping = (now) => now < wheel.jumpUntil || (!byFinger(now) && speed >= JUMP * step);
@@ -2197,6 +2268,11 @@
             const lifted = type === "touchend";
             if (!pin.on || !lenis || data.event.ctrlKey) return undefined;
             if (!type.includes("wheel") && type !== "touchmove" && !lifted) return undefined;
+            // A finger the browser is scrolling for is not Lenis's to follow
+            // (Lenis asks all the same): it is held at the gate by the frame
+            // loop below. Thrown from here as well, the page went two ways at
+            // once as it lifted - and shook until the browser's throw ran out.
+            if (type.startsWith("touch") && wheel.native) return undefined;
             // (a finger that came down and went up again: a tap, not a scroll)
             if (lifted && !data.deltaY && !data.deltaX) return undefined;
             // What is asked for: the turn of the wheel, the move of the
@@ -2303,6 +2379,13 @@
                 const gate = gateY();
                 if (gate !== null && sy > gate + 1 && sy < pin.top + pin.travel + vh) {
                     wheel.owed = Math.min(most(), Math.max(wheel.owed, gate + clamp(speed * 0.35, 0, step * 3)));
+                    stopThrow();
+                    // (Lenis skips the native scroll event after a jump of its
+                    // own: a last push of the throw that lands just then goes
+                    // unseen, it believes the page is at the gate already and
+                    // does nothing when asked to put it there. So the page is
+                    // put there by hand, and Lenis told.)
+                    window.scrollTo(0, gate);
                     lenis.scrollTo(gate, { immediate: true, force: true });
                     y = gate;
                 }
@@ -2567,7 +2650,7 @@
 
         measureAll();
         window.addEventListener("scroll", tick, { passive: true });
-        window.addEventListener("resize", measureSoon);
+        window.addEventListener("resize", resized);
         window.addEventListener("load", measureAll);
         if (document.fonts) document.fonts.ready.then(measureAll);
         if ("ResizeObserver" in window) new ResizeObserver(measureSoon).observe(document.body);

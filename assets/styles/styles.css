@@ -414,7 +414,11 @@ body::after {
 
 /* Hero Section */
 .hero {
-    min-height: 100dvh;
+    /* the screen with a phone's address bar showing: with the screen as it
+       is at the moment (dvh) the hero grew as the bar went away, and pushed
+       the whole page down under the finger */
+    min-height: 100vh;
+    min-height: 100svh;
     display: flex;
     align-items: center;
     position: relative;

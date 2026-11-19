@@ -324,7 +324,15 @@ function setupReadMore() {
     });
 
     refreshReadMore();
-    window.addEventListener("resize", refreshReadMore);
+    // Only a change of width can change where a description wraps. (A
+    // phone's address bar coming and going is a resize too, and this was
+    // measuring every description on each one, in the middle of a scroll.)
+    let width = window.innerWidth;
+    window.addEventListener("resize", () => {
+        if (window.innerWidth === width) return;
+        width = window.innerWidth;
+        refreshReadMore();
+    });
     window.addEventListener("load", refreshReadMore);
     if (document.fonts) document.fonts.ready.then(refreshReadMore);
 }

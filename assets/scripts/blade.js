@@ -670,6 +670,21 @@ const NARROW_EDGE = 0.985;
 const CUT_SCALE = 1.3;
 const CUT_SCALE_NARROW = 2;
 
+// The height of the screen with a phone's address bar showing (read off
+// .vh-probe, motion.css): every place of the sword is worked out in it, so
+// the bar coming and going as the page scrolls moves nothing. (The canvas
+// is as tall as the screen with the bar gone, and only draws on below it.)
+function screenH() {
+    let probe = document.querySelector(".vh-probe");
+    if (!probe) {
+        probe = document.createElement("div");
+        probe.className = "vh-probe";
+        probe.setAttribute("aria-hidden", "true");
+        document.body.append(probe);
+    }
+    return probe.offsetHeight || window.innerHeight;
+}
+
 // A pose is where a piece rests while a section is centred on screen.
 // x / y are in half-viewports (-1..1), rotations in radians. `follow` pins
 // y to an element that is travelling through the viewport.
@@ -681,13 +696,12 @@ const CUT_SCALE_NARROW = 2;
 // the blade, `slide` units away from being fully sheathed. Getting from one
 // kind to the other is not written here: stepSheath (below) only lets it
 // join or leave the blade over the tip, the way a real one does.
-function buildStations(narrow) {
+function buildStations(narrow, vh) {
     const q = (s) => document.querySelector(s);
     const span = (el) => {
         const r = el.getBoundingClientRect();
         return { top: r.top + window.scrollY, height: r.height, mid: r.top + window.scrollY + r.height / 2 };
     };
-    const vh = window.innerHeight;
     const K = [];
     const S = [];
     // far enough past an edge that neither end of the scabbard shows
@@ -1148,7 +1162,11 @@ export async function initBlade() {
 
     // ---- state
     let vw = 1;
+    // vh: the screen every place is worked out in (screenH); ch: how tall
+    // the canvas is, which on a phone goes on under the address bar. Screen
+    // points the camera projects are in the canvas's height.
     let vh = 1;
+    let ch = 1;
     let halfW = 1;
     let halfH = 1;
     let unit = 1;
@@ -1212,23 +1230,36 @@ export async function initBlade() {
 
     function setRatio() {
         // cap the pixels the sword costs: it sits under every frosted panel
-        const budget = Math.sqrt(3.6e6 / Math.max(1, vw * vh));
+        const budget = Math.sqrt(3.6e6 / Math.max(1, vw * ch));
         ratio = Math.max(0.75, Math.min(window.devicePixelRatio || 1, ratioCap, budget));
         renderer.setPixelRatio(ratio);
-        renderer.setSize(vw, vh, false);
+        renderer.setSize(vw, ch, false);
     }
 
+    // whether the screen (not just how much of it the address bar leaves)
+    // has changed since it was measured
+    const resized = () =>
+        window.innerWidth !== vw || screenH() !== vh || Math.max(vh, canvas.clientHeight) !== ch;
+
     function measure() {
-        vw = window.innerWidth;
-        vh = window.innerHeight;
+        // (giving the canvas its size clears it: only when it has changed)
+        if (resized()) {
+            vw = window.innerWidth;
+            vh = screenH();
+            ch = Math.max(vh, canvas.clientHeight);
+            setRatio();
+            camera.aspect = vw / vh;
+            // The view is the screen above the bar, and the canvas draws on
+            // below it what a taller view would show there.
+            if (ch > vh) camera.setViewOffset(vw, vh, 0, 0, vw, ch);
+            else camera.clearViewOffset();
+            camera.updateProjectionMatrix();
+            halfH = HALF_H;
+            halfW = halfH * camera.aspect;
+            unit = unitFor(halfW);
+        }
         narrow = vw < 900;
-        setRatio();
-        camera.aspect = vw / vh;
-        camera.updateProjectionMatrix();
-        halfH = HALF_H;
-        halfW = halfH * camera.aspect;
-        unit = unitFor(halfW);
-        stations = buildStations(narrow);
+        stations = buildStations(narrow, vh);
         dirty = true;
     }
 
@@ -1336,7 +1367,7 @@ export async function initBlade() {
     function toPx(group, v, out) {
         group.localToWorld(v).project(camera);
         out[0] = (v.x * 0.5 + 0.5) * vw;
-        out[1] = (-v.y * 0.5 + 0.5) * vh;
+        out[1] = (-v.y * 0.5 + 0.5) * ch;
     }
 
     function project(group, x0, x1, store) {
@@ -1356,7 +1387,7 @@ export async function initBlade() {
     // What is under a point of the screen: a ray against the shapes
     // themselves. The scabbard goes with the sword while it is on it.
     function probe(x, y) {
-        ndc.set((x / vw) * 2 - 1, -(y / vh) * 2 + 1);
+        ndc.set((x / vw) * 2 - 1, -(y / ch) * 2 + 1);
         caster.setFromCamera(ndc, camera);
         const hits = caster.intersectObjects([sword.proxy, sheath.proxy], true);
         if (!hits.length) return null;
@@ -1454,12 +1485,13 @@ export async function initBlade() {
         for (const point of HULL) {
             v0.copy(point).multiplyScalar(at.s).applyQuaternion(at.q).add(at.p).project(camera);
             const x = (v0.x * 0.5 + 0.5) * vw;
-            const y = (-v0.y * 0.5 + 0.5) * vh;
+            const y = (-v0.y * 0.5 + 0.5) * ch;
             if (x > left - pad && x < right + pad && y > top - pad && y < bottom + pad) return true;
         }
         return false;
     }
-    const onScreen = (at) => touches(at, 0, 0, vw, vh);
+    // (on a phone that includes the strip the address bar may be covering)
+    const onScreen = (at) => touches(at, 0, 0, vw, ch);
 
     // the arc the edge has swept in the last moments of a stroke
     const swept = [];
@@ -1960,7 +1992,7 @@ export async function initBlade() {
             setHover(!blocked(under) && !!pick(mouse.px, mouse.py), false);
         }
 
-        cursorUniforms.uCur.value.set(mouse.px * ratio, (vh - mouse.py) * ratio, 110 * ratio);
+        cursorUniforms.uCur.value.set(mouse.px * ratio, (ch - mouse.py) * ratio, 110 * ratio);
         cursorUniforms.uGlow.value = mouse.glow;
         if (mouse.seen) {
             const wx = ((mouse.px / vw) * 2 - 1) * halfW;
@@ -1994,7 +2026,10 @@ export async function initBlade() {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(measure, 120);
     };
-    window.addEventListener("resize", remeasure);
+    // (a phone's address bar coming and going is a resize that changes nothing)
+    window.addEventListener("resize", () => {
+        if (resized()) remeasure();
+    });
     if ("ResizeObserver" in window) new ResizeObserver(remeasure).observe(document.body);
     window.addEventListener(
         "scroll",
@@ -2144,7 +2179,7 @@ export async function initBlade() {
             armed = true;
         } else if (d.phase === "wind") {
             if (!visible) return;
-            d.lead = windUp("theme", [0, 0, vw, vh], d.slow || 1);
+            d.lead = windUp("theme", [0, 0, vw, ch], d.slow || 1);
             d.strike = cut.ms;
             d.enter = cut.run;
         } else if (d.phase === "deck") {

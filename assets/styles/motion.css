@@ -110,6 +110,53 @@ html.lenis.lenis-stopped {
     will-change: translate, scale, opacity;
 }
 
+/* The hero leaving, tied to the scroll by the browser itself (motion.js
+   does it by hand where it cannot): over the first 1.2 screens of scroll it
+   drifts down by 0.3 of the scroll, grows by 12% a screen and is gone by
+   0.69 of a screen; the arrow by 0.2. */
+@supports (animation-timeline: scroll()) {
+    .fx.hero-sda .hero-content {
+        animation: hero-leave linear both;
+        animation-timeline: scroll(root block);
+        animation-range: 0 120svh;
+    }
+
+    .fx.hero-sda .scroll-arrow {
+        animation: arrow-leave linear both;
+        animation-timeline: scroll(root block);
+        animation-range: 0 120svh;
+    }
+}
+
+@keyframes hero-leave {
+    0% {
+        translate: 0 0;
+        scale: 1;
+        opacity: 1;
+    }
+
+    57.47% {
+        opacity: 0;
+    }
+
+    100% {
+        translate: 0 36svh;
+        scale: 1.144;
+        opacity: 0;
+    }
+}
+
+@keyframes arrow-leave {
+    0% {
+        opacity: 1;
+    }
+
+    16.67%,
+    100% {
+        opacity: 0;
+    }
+}
+
 /* It drifts down and grows as the page leaves it (motion.js), and is gone
    before it reaches the next section. No box may cut it off on the way: one
    that did (the grid it sits in, on small screens) showed as a hard edge
@@ -130,12 +177,30 @@ html.lenis.lenis-stopped {
     box-shadow: var(--glass-rim), 0 0 0 6px transparent;
 }
 
+/* The height of the screen with a phone's address bar showing: the one the
+   scripts lay every effect out in, since the bar coming and going as the
+   page scrolls does not change it (motion.js, blade.js read it off this). */
+.vh-probe {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 100vh;
+    height: 100svh;
+    visibility: hidden;
+    pointer-events: none;
+}
+
 /* ---------- The katana canvas (blade.js) ---------- */
+/* As tall as the screen is with the address bar gone, whether it is or not:
+   the canvas never changes size as the bar comes and goes (it was stretched
+   until it caught up, and the sword jumped), and no edge of it ever shows. */
 .blade-canvas {
     position: fixed;
-    inset: 0;
+    inset: 0 0 auto;
     width: 100%;
-    height: 100%;
+    height: 100vh;
+    height: 100lvh;
     z-index: -1;
     pointer-events: none;
     opacity: 0;
@@ -657,8 +722,10 @@ body.light-mode .project-featured .project-award {
     flex-direction: column;
     justify-content: center;
     max-width: none;
+    /* the screen with a phone's address bar showing: the height motion.js
+       pins it for (the bar coming and going changes neither) */
     height: 100vh;
-    height: 100dvh;
+    height: 100svh;
     padding: 78px 0 14px;
     overflow: clip;
 }
@@ -805,7 +872,7 @@ body.light-mode .project-featured .project-award {
     flex-direction: column;
     justify-content: center;
     height: 100vh;
-    height: 100dvh;
+    height: 100svh;
     padding-top: 78px;
     padding-bottom: 14px;
     overflow: clip;
@@ -1036,9 +1103,6 @@ cut-piece {
     .hscroll > .container,
     #certificates.deck > .container {
         justify-content: flex-start;
-        /* the height that stays put while a phone's address bar comes and goes */
-        height: 100vh;
-        height: 100svh;
         padding-top: 72px;
         padding-bottom: 10px;
     }
