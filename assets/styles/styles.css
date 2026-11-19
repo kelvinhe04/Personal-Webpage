@@ -309,8 +309,13 @@ body::after {
     transition: all 0.3s ease;
 }
 
-.themeToggle:hover {
-    opacity: 0.6;
+/* Only where there is a pointer to hover with: a finger leaves the button it
+   tapped "hovered" until it taps somewhere else, and the sound switch stayed
+   dimmed after every toggle. */
+@media (hover: hover) and (pointer: fine) {
+    .themeToggle:hover {
+        opacity: 0.6;
+    }
 }
 
 .languageToggle {
@@ -333,8 +338,10 @@ body::after {
     transition: all 0.3s ease;
 }
 
-.languageToggle:hover {
-    opacity: 0.6;
+@media (hover: hover) and (pointer: fine) {
+    .languageToggle:hover {
+        opacity: 0.6;
+    }
 }
 
 /* Single language button label */

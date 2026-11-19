@@ -751,17 +751,28 @@ const navSections = navLinkEls
     .filter(Boolean);
 let activeSection = null;
 let scrollQueued = false;
+// Where each section starts on the page, measured when the layout changes
+// - not on every frame. Asking the browser for positions (or for the scroll
+// position) after the frame's effects have moved things makes it restyle
+// the page first: on a phone that cost more than the rest of the frame.
+let sectionTops = [];
+let scrollNow = window.scrollY;
+
+function measureSections() {
+    const y = window.scrollY;
+    sectionTops = navSections.map((section) => section.getBoundingClientRect().top + y);
+}
 
 function updateScrollState() {
     scrollQueued = false;
-    const y = window.scrollY;
+    const y = scrollNow;
     navbarEl.classList.toggle("scrolled", y > 50);
     if (goTopBtn) goTopBtn.classList.toggle("show", y > 400);
 
     let current = null;
-    for (const section of navSections) {
-        if (section.getBoundingClientRect().top <= 110) current = section;
-    }
+    navSections.forEach((section, i) => {
+        if (sectionTops[i] - y <= 110) current = section;
+    });
     if (current !== activeSection) {
         const from = navSections.indexOf(activeSection);
         const to = navSections.indexOf(current);
@@ -802,12 +813,24 @@ function flashNavLink(index, order) {
 window.addEventListener(
     "scroll",
     () => {
+        // read here, before the frame's effects change anything
+        scrollNow = window.scrollY;
         if (scrollQueued) return;
         scrollQueued = true;
         requestAnimationFrame(updateScrollState);
     },
     { passive: true },
 );
+// The sections move when the page is laid out again: the pinned sections
+// get their height, images and fonts arrive, the window changes width.
+const remeasureSections = () => {
+    measureSections();
+    scrollNow = window.scrollY;
+    updateScrollState();
+};
+if ("ResizeObserver" in window) new ResizeObserver(remeasureSections).observe(document.body);
+window.addEventListener("load", remeasureSections);
+measureSections();
 updateScrollState();
 
 // ============================

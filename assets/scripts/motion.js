@@ -98,6 +98,7 @@
     function measureAll() {
         vw = window.innerWidth;
         vh = screenH();
+        shownH = window.innerHeight;
         sy = window.scrollY;
         for (const m of measurers) m();
         if (lenis) lenis.resize();
@@ -109,9 +110,12 @@
         clearTimeout(measureTimer);
         measureTimer = setTimeout(measureAll, 140);
     };
+    // how much of the screen is showing right now (the address bar moves it)
+    let shownH = window.innerHeight;
     // A window that changed size - not a phone's address bar or keyboard
     // coming and going, which only change how much of it is showing.
     const resized = () => {
+        shownH = window.innerHeight;
         if (window.innerWidth !== vw || screenH() !== vh) measureSoon();
     };
 
@@ -372,6 +376,10 @@
             if (p !== shown) {
                 shown = p;
                 nav.style.setProperty("--nav-p", String(p));
+                // the capsule's glass is all there: the round buttons on it
+                // stop frosting a second time what it has frosted already
+                // (motion.css; each was a blur of its own on every frame)
+                nav.classList.toggle("is-glass", p >= 1);
             }
             return false;
         });
@@ -671,12 +679,15 @@
                 if (c.shown) {
                     c.shown = false;
                     put(c.el, "visibility", "hidden");
+                    // (its loops stop too: motion.css)
+                    c.el.classList.add("is-away");
                 }
                 continue;
             }
             if (!c.shown) {
                 c.shown = true;
                 put(c.el, "visibility", "");
+                c.el.classList.remove("is-away");
             }
             const e = smooth(clamp((left - vw * 0.58) / (vw * 0.42), 0, 1));
             const l = clamp(-left / c.width, 0, 1);
@@ -736,6 +747,7 @@
                 for (const p of ["translate", "rotate", "scale", "opacity", "transform", "visibility"]) {
                     c.el.style[p] = "";
                 }
+                c.el.classList.remove("is-away");
                 c.el.__fx = {};
             });
             grid.__fx = {};
@@ -913,8 +925,9 @@
         });
         tasks.push(() => {
             // (how far the page can go depends on how much of the screen
-            // the address bar leaves)
-            const overall = clamp(sy / Math.max(1, docH - window.innerHeight), 0, 1);
+            // the address bar leaves: shownH, kept by the resize events, as
+            // reading window.innerHeight here restyled the page every frame)
+            const overall = clamp(sy / Math.max(1, docH - shownH), 0, 1);
             const pos = sy + vh * 0.4;
             let k = -1;
             for (let i = 0; i < stops.length; i++) if (pos >= stops[i].top) k = i;
@@ -924,8 +937,8 @@
                 const frac = clamp((pos - stops[k].top) / Math.max(1, end - stops[k].top), 0, 1);
                 f = clamp((k + frac) / (stops.length - 1), 0, 1);
             }
-            fill.style.transform = `scaleY(${f.toFixed(4)})`;
-            barFill.style.transform = `scaleX(${overall.toFixed(4)})`;
+            put(fill, "transform", `scaleY(${f.toFixed(4)})`);
+            put(barFill, "transform", `scaleX(${overall.toFixed(4)})`);
             if (k !== active) {
                 active = k;
                 now.textContent = pad(Math.max(k, 0) + 1);
@@ -1848,6 +1861,10 @@
         window.addEventListener(
             "scroll",
             () => {
+                // (nothing to send home, nothing to ask: reading the scroll
+                // position here made the browser restyle the page first, on
+                // every scroll event)
+                if (!items.some((it) => it.parked && !it.held)) return;
                 if (Math.abs(window.scrollY - parkedAt) <= 4) return;
                 let any = false;
                 for (const it of items) {
@@ -2000,6 +2017,11 @@
             const it = { card, img, box: img.parentElement, video: null, hover: false, focus: false };
             items.set(card, it);
             it.box.classList.add("has-video");
+            // the pulse around the play mark (motion.css): a ring of its own,
+            // so it can grow and fade on the compositor
+            const ring = make("i", "play-ring");
+            ring.setAttribute("aria-hidden", "true");
+            it.box.append(ring);
             card.addEventListener("pointerenter", (e) => {
                 if (e.pointerType === "touch") return;
                 it.hover = true;
@@ -2097,17 +2119,37 @@
         let lastP = 0;
         let speed = 0;
 
+        // The halves of the card that is cut next wait on it, laid out and
+        // invisible (opacity 0, and will-change: opacity in motion.css, so
+        // the GPU paints them all the same). Shown only as the cut began, the
+        // two of them had to be painted in that very frame - the parting
+        // hitched on a phone. One card at a time: the rest keep theirs out
+        // of the layout.
+        let warmIt = null;
+        const warm = (it) => {
+            if (warmIt === it) return;
+            if (warmIt && warmIt.pieces && !warmIt.cutting) warmIt.pieces.forEach((p) => (p.style.display = "none"));
+            warmIt = it && it.pieces ? it : null;
+            if (!warmIt || warmIt.cutting) return;
+            warmIt.pieces.forEach((p) => {
+                p.style.transform = "none";
+                p.style.opacity = "0";
+                p.style.display = "";
+            });
+        };
         const dropPieces = (it) => {
             if (!it.cutting) return;
             it.cutting = false;
             it.pieces.forEach((p) => (p.style.display = "none"));
             it.el.style.visibility = "";
             if (it.el.__fx) it.el.__fx.visibility = "";
+            if (warmIt === it) warmIt = null;
         };
         const forget = (it) => {
             dropPieces(it);
             if (it.pieces) it.pieces.forEach((p) => p.remove());
             it.pieces = null;
+            if (warmIt === it) warmIt = null;
         };
         // the two halves of a card, on either side of the screen's diagonal
         const build = (it) => {
@@ -2128,20 +2170,42 @@
                 `${(w / 2 + tx * along + nx * off).toFixed(1)}px ${(h / 2 + ty * along + ny * off).toFixed(1)}px`;
             const copies = [el.cloneNode(true), el.cloneNode(true)];
             it.pieces = [1, -1].map((side, i) => {
+                // The half moves as one layer; the line it is cut along is
+                // on a box inside it, so it is drawn into that layer once.
+                // (On the moving layer itself, a phone's GPU cut it out
+                // again, in fresh textures, on every frame of the parting.)
                 const piece = document.createElement("cut-piece");
                 piece.setAttribute("aria-hidden", "true");
-                piece.style.cssText =
-                    `left:${-bl}px;top:${-bt}px;width:${w}px;height:${h}px;display:none;` +
-                    `clip-path:polygon(${pt(-far, 0)}, ${pt(far, 0)}, ${pt(far, far * side)}, ${pt(-far, far * side)})`;
+                piece.style.cssText = `left:${-bl}px;top:${-bt}px;width:${w}px;height:${h}px;display:none`;
+                const half = document.createElement("cut-half");
+                half.style.clipPath = `polygon(${pt(-far, 0)}, ${pt(far, 0)}, ${pt(far, far * side)}, ${pt(-far, far * side)})`;
                 const copy = copies[i];
                 copy.querySelectorAll("[id]").forEach((node) => node.removeAttribute("id"));
                 copy.querySelectorAll("a, button").forEach((node) => node.setAttribute("tabindex", "-1"));
                 copy.classList.add("cut-copy");
-                piece.append(copy);
+                half.append(copy);
+                piece.append(half);
                 piece.cut = { side, tx, ty, nx, ny, w };
                 return piece;
             });
             el.append(...it.pieces);
+        };
+        // The halves of the next cards are made ahead, when the page has a
+        // moment, rather than in the frame the cut begins. The last card is
+        // never cut.
+        let preparing = 0;
+        const whenFree = window.requestIdleCallback || ((fn) => setTimeout(fn, 120));
+        const prepare = (k) => {
+            if (preparing) return;
+            const it = [items[k], items[k + 1]].find((o) => o && !o.pieces && o !== items[n - 1]);
+            if (!it) return;
+            preparing = whenFree(
+                () => {
+                    preparing = 0;
+                    if (pin.on && !it.pieces) build(it);
+                },
+                { timeout: 700 },
+            );
         };
         const cutTo = (it, c) => {
             if (!it.pieces) build(it);
@@ -2249,11 +2313,20 @@
         const frontOf = (P) => {
             const k = Math.min(n - 2, Math.floor(P));
             if (k > 0 && items[k - 1].wait) return k - 1;
+            // The last card to be cut, once the scroll has gone on past its
+            // cut, is done too (the frame loop stops calling a card it has
+            // left behind live): nothing is left to keep the page for. Taken
+            // for one still to cut, the page was held on the last
+            // certificate for good.
+            if (k === n - 2 && P - k >= CUT1 && !items[k].wait) return k + 1;
             return items[k].live && !items[k].wait ? k + 1 : k;
         };
         // how far down the page the wheel may go for now (null: as far as it likes)
-        const gateY = () => {
-            const front = frontOf(clamp((window.scrollY - pin.top) / step, 0, n - 1));
+        // (`at`: where the page is; the frame loop passes what it read at the
+        // start of the frame - asked again after its writes, the browser had
+        // to restyle the page first)
+        const gateY = (at = window.scrollY) => {
+            const front = frontOf(clamp((at - pin.top) / step, 0, n - 1));
             if (front > n - 2) return null;
             // (the last card to be cut keeps the page until it has been)
             return Math.round(pin.top + Math.min(front + GATE, n - 1) * step);
@@ -2375,9 +2448,11 @@
             // A page the browser is scrolling for a finger (it came down
             // above the pile, or threw the page into it) is stopped at the
             // gate too, and owed about what was left of its throw.
-            if (lenis && fingered && lenis.isScrolling !== "smooth" && speed > 0 && !jumping(now)) {
-                const gate = gateY();
-                if (gate !== null && sy > gate + 1 && sy < pin.top + pin.travel + vh) {
+            // (the gate is always inside the pile: nothing to ask further away)
+            const inPile = sy > pin.top && sy < pin.top + pin.travel + vh;
+            if (inPile && lenis && fingered && lenis.isScrolling !== "smooth" && speed > 0 && !jumping(now)) {
+                const gate = gateY(sy);
+                if (gate !== null && sy > gate + 1) {
                     wheel.owed = Math.min(most(), Math.max(wheel.owed, gate + clamp(speed * 0.35, 0, step * 3)));
                     stopThrow();
                     // (Lenis skips the native scroll event after a jump of its
@@ -2398,7 +2473,7 @@
                 if (!lenis || (lenis.isScrolling === "native" && !fingered) || wheel.owed <= lenis.targetScroll + 1) {
                     wheel.owed = 0;
                 } else {
-                    const gate = gateY();
+                    const gate = gateY(y);
                     const to = gate === null ? wheel.owed : Math.min(wheel.owed, gate);
                     if (to > lenis.targetScroll + 1) lenis.scrollTo(to, { programmatic: false, lerp: 0.105 });
                 }
@@ -2406,6 +2481,7 @@
             lastY = y;
             if (y + vh < pin.top - 200 || y > pin.top + pin.travel + vh + 200) {
                 lastP = y < pin.top ? 0 : n - 1;
+                warm(null);
                 return wheel.owed > 0;
             }
             const P = clamp((y - pin.top) / step, 0, n - 1);
@@ -2413,6 +2489,12 @@
             lastP = P;
             // the card being cut (the last one never is)
             const k = Math.min(n - 2, Math.floor(P));
+            prepare(k);
+            // the next card to be cut: this one, unless it is parting or has
+            // been hit already (one still waiting for the edge is next)
+            const under = items[k].cutting || (items[k].live && !items[k].wait);
+            const next = under ? items[k + 1] : items[k];
+            warm(next && next !== items[n - 1] ? next : null);
             const c = smooth(clamp((P - k - CUT0) / (CUT1 - CUT0), 0, 1));
             // how far apart the card on top is shown (it waits for the sword)
             let open = 0;
@@ -2543,6 +2625,21 @@
         });
     }
 
+    // ---- rest: the loops nobody can see stop -----------------------------
+    // A CSS animation that never ends is restyled on every frame, whether
+    // it is on screen or not (the project pulse repaints too): the carets
+    // and the arrow of the hero, the pulse on each project that plays. On a
+    // phone every frame of the page paid for them - and every read of the
+    // scroll position after that paid again. A section out of sight is
+    // marked (motion.css pauses them; redesign.js stops typing).
+    function initRest() {
+        if (!("IntersectionObserver" in window)) return;
+        const io = new IntersectionObserver((entries) =>
+            entries.forEach((e) => e.target.classList.toggle("is-off", !e.isIntersecting)),
+        );
+        $$("#hero, #projects").forEach((sec) => io.observe(sec));
+    }
+
     // ---- sparks: a burst of them from a point on the screen ----------------
     function burst(x, y, count = 16) {
         const host = make("div", "cv-sparks");
@@ -2647,6 +2744,7 @@
         initCursor();
         initThemeCut();
         initCV();
+        initRest();
 
         measureAll();
         window.addEventListener("scroll", tick, { passive: true });

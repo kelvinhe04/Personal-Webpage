@@ -418,6 +418,15 @@ html:not(.fx) .nav-container::before {
     border-radius: 999px;
 }
 
+/* On the capsule, once its glass is fully there, the buttons see through to
+   that glass: blurring it again looked the same and cost the GPU a pass of
+   its own for each button, on every frame (motion.js sets .is-glass). */
+.navbar.is-glass .languageToggle,
+.navbar.is-glass .themeToggle {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
 @media (min-width: 1025px) {
     /* three round buttons live on the right now: the centred menu leans
        left a little so "Contact" never slides under them */
@@ -957,11 +966,23 @@ cut-piece {
     display: block;
     visibility: visible;
     pointer-events: none;
-    will-change: transform;
+    /* (opacity too: the halves of the next card wait on it at opacity 0,
+       already painted, which the GPU only does for a layer that may fade) */
+    will-change: transform, opacity;
+}
+
+/* what cuts the copy along the line: not a layer of its own, so the cut is
+   drawn into the moving half once, not redone by the GPU every frame */
+cut-half {
+    position: absolute;
+    inset: 0;
+    display: block;
 }
 
 .cut-copy {
     position: absolute !important;
+    /* (painted into its half: a card of the pile is a layer of its own) */
+    will-change: auto !important;
     inset: 0 !important;
     box-sizing: border-box !important;
     flex: none !important;
@@ -1729,24 +1750,71 @@ a.contact-method:hover span::after {
     color: var(--on-accent);
     background: var(--accent-color);
     border-radius: 50%;
-    box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.5);
-    animation: play-pulse 2.4s ease-out infinite;
     transition: opacity 0.3s ease;
 }
 
 .project-image.is-playing::before {
     opacity: 0;
+}
+
+/* Its pulse: a disc behind the mark that grows by 10px all round and fades
+   (motion.js adds it). It was the mark's own box-shadow, animated: restyled
+   and repainted on every frame, for every project, seen or not. */
+.play-ring {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    /* under the mark (z-index 2), over the screenshot */
+    z-index: 1;
+    width: 1.7rem;
+    height: 1.7rem;
+    border-radius: 50%;
+    background: rgba(var(--accent-rgb), 0.5);
+    pointer-events: none;
+    animation: play-ring 2.4s ease-out infinite;
+    transition: opacity 0.3s ease;
+}
+
+.project-image.is-playing .play-ring {
+    opacity: 0;
     animation: none;
 }
 
-@keyframes play-pulse {
+/* (a dealt card out of view, or the section out of sight: no pulse) */
+.project-card.is-away .play-ring,
+#projects.is-off .play-ring {
+    animation-play-state: paused;
+}
+
+/* The deal itself turns the cards a little on every frame: the transition
+   on rotate (it eases a pointer's tilt elsewhere) was started over each
+   time, on each card, and kept them animating for nothing. */
+.hscroll .project-card {
+    transition:
+        border-color 0.25s ease,
+        box-shadow 0.25s ease !important;
+}
+
+/* Endless loops stop while their section is out of sight (motion.js marks
+   it): they were restyled - the pulse repainted - on every frame anyway. */
+#hero.is-off .arrow-link,
+#hero.is-off .roles-caret,
+#hero.is-off .hero-char::after,
+#hero.is-off .hero-char::before {
+    animation-play-state: paused;
+}
+
+/* 1.7rem across, 10px more all round at the end: 27.2px -> 47.2px */
+@keyframes play-ring {
     0% {
-        box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.5);
+        transform: scale(1);
+        opacity: 1;
     }
 
     70%,
     100% {
-        box-shadow: 0 0 0 10px rgba(var(--accent-rgb), 0);
+        transform: scale(1.735);
+        opacity: 0;
     }
 }
 

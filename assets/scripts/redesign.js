@@ -51,13 +51,23 @@
         return;
     }
 
+    // While the hero is out of sight (motion.js marks it) nothing is typed:
+    // each letter changed the text, and the page had to be laid out again
+    // in the middle of whatever was being scrolled.
+    const hero = document.getElementById("hero");
+    const unseen = async () => {
+        while (hero && hero.classList.contains("is-off")) await sleep(300);
+    };
+
     async function loop() {
         // let the name finish typing first
         await sleep(1900);
         for (let i = 0; ; i = (i + 1) % ROLES.length) {
+            await unseen();
             const phrase = ROLES[i][lang()];
             caret.classList.add("is-typing");
             for (let n = 1; n <= phrase.length; n++) {
+                await unseen();
                 text.textContent = phrase.slice(0, n);
                 await sleep(55);
             }
@@ -65,6 +75,7 @@
             await sleep(1800);
             caret.classList.add("is-typing");
             for (let n = phrase.length - 1; n >= 0; n--) {
+                await unseen();
                 text.textContent = phrase.slice(0, n);
                 await sleep(22);
             }
