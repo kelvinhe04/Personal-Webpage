@@ -1172,7 +1172,7 @@ export async function initBlade() {
     let unit = 1;
     let narrow = false;
     let ratio = 1;
-    let ratioCap = 1.5;
+    let ratioCap = 3;
     let stations = { K: [], S: [] };
     let dirty = true;
     let visible = !document.hidden;
