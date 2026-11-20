@@ -1655,6 +1655,9 @@ cut-half {
 .project-link span,
 a.contact-method span {
     position: relative;
+    /* In a flex row the span is a block as tall as the page's 1.6 line
+       height, which pushed the underline well below the word. */
+    line-height: 1.15;
 }
 
 .read-more-btn span::after,
